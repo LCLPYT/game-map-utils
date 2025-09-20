@@ -1,5 +1,5 @@
-# fabric-mod-boilerplate
-A boilerplate to setup a fabric mod quickly.
+# game-map-utils
+Utilities for creating mini game maps for Minecraft: Java edition 
 
 ## Needed configuration
 - `gradle.properties`:
