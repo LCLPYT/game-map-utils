@@ -2,6 +2,7 @@ plugins {
 	id 'fabric-loom' version "${loom_version}"
 	id 'maven-publish'
 	id 'gradle-build-utils' version '1.7.0'
+    id 'org.jetbrains.kotlin.jvm' version "2.2.10"
 }
 
 Properties props = buildUtils.loadProperties('publish.properties')  // will be empty, if the file is missing
@@ -36,6 +37,7 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    modImplementation("net.fabricmc:fabric-language-kotlin:${project.kotlin_version}")
 }
 
 processResources {

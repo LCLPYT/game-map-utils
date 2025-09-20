@@ -16,10 +16,16 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-          "work.lclpnet.map_utils.GameMapUtilInit"
+          {
+            "adapter": "kotlin",
+            "value": "work.lclpnet.map_utils.GameMapUtilInitKt::init"
+          }
 		],
 		"client": [
-          "work.lclpnet.map_utils.GameMapUtilClientInit"
+          {
+            "adapter": "kotlin",
+            "value": "work.lclpnet.map_utils.GameMapUtilClientInitKt::initClient"
+          }
 		]
 	},
 	"mixins": [

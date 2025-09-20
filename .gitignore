@@ -17,6 +17,7 @@ publish.properties
 *.iml
 *.ipr
 *.iws
+.kotlin/
 
 # vscode
 
