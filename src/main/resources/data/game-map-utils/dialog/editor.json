@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:multi_action",
+  "title": {
+    "translate": "game-map-utils.editor",
+    "fallback": "Map Data Editor"
+  },
+  "external_title": {
+    "translate": "game-map-utils.editor",
+    "fallback": "Map Data Editor"
+  },
+  "inputs": [],
+  "actions": [
+    {
+      "label": "Create",
+      "action": {
+        "type": "minecraft:custom",
+        "id": "game-map-utils:create"
+      }
+    },
+    {
+      "label": "List",
+      "action": {
+        "type": "minecraft:custom",
+        "id": "game-map-utils:list"
+      }
+    }
+  ]
+}
