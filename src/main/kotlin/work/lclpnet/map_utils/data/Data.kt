@@ -6,5 +6,5 @@ interface Data {
 }
 
 interface DataEditor {
-
+    fun data(): Data
 }

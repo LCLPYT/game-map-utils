@@ -7,14 +7,15 @@ import net.minecraft.world.World
 import work.lclpnet.kibu.hook.HookRegistrar
 import work.lclpnet.kibu.hook.ServerLifecycleHooks
 import work.lclpnet.kibu.hook.player.PlayerConnectionHooks
+import work.lclpnet.kibu.translate.Translations
 import java.util.*
 
-class SessionManager {
+class SessionManager(val translations: Translations) {
 
     private val sessions = mutableMapOf<UUID, MutableMap<RegistryKey<World>, Session>>()
 
     fun init(hooks: HookRegistrar) {
-        hooks.registerHook(ServerLifecycleHooks.SERVER_STOPPED, ServerLifecycleEvents.ServerStopped {
+        hooks.registerHook(ServerLifecycleHooks.SERVER_STOPPING, ServerLifecycleEvents.ServerStopping {
             clearSessions()
         })
 
@@ -25,17 +26,30 @@ class SessionManager {
 
     @Synchronized
     fun getSession(player: ServerPlayerEntity): Session {
-        return sessions.computeIfAbsent(player.uuid) { mutableMapOf() }
-            .computeIfAbsent(player.world.registryKey) { Session() }
+        val world = player.world
+
+        return sessions.computeIfAbsent(player.uuid) { mutableMapOf() }.computeIfAbsent(world.registryKey) {
+            Session(SessionArgs(translations, world, player.networkHandler)).also { it.init() }
+        }
     }
 
     @Synchronized
     fun clearSession(player: ServerPlayerEntity) {
-        sessions.remove(player.uuid)
+        val playerSessions = sessions.remove(player.uuid) ?: return
+
+        for ((_, session) in playerSessions) {
+            session.destroy()
+        }
     }
 
     @Synchronized
     fun clearSessions() {
+        for ((_, playerSessions) in sessions) {
+            for ((_, session) in playerSessions) {
+                session.destroy()
+            }
+        }
+
         sessions.clear()
     }
 }

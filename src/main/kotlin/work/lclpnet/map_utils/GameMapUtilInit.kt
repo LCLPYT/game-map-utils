@@ -20,7 +20,7 @@ fun identifier(path: String): Identifier {
 fun init() {
     val translations = ModTranslations.fromAssets(MOD_ID, LOGGER, true).translations
     val dataManager = DataManager()
-    val sessionManager = SessionManager()
+    val sessionManager = SessionManager(translations)
     val hooks = HookContainer()
 
     sessionManager.init(hooks)

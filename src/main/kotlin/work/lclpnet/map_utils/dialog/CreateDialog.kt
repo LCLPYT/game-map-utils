@@ -116,7 +116,7 @@ class CreateDialog(val translations: Translations, val dataManager: DataManager,
     }
 
     fun discardAndOpen(player: ServerPlayerEntity) {
-        sessionManager.getSession(player).clearEditor()
+        sessionManager.getSession(player).destroy()
         openOrConfirm(player)
     }
 

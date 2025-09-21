@@ -10,5 +10,6 @@
   "game-map-utils.discard": "Discard",
   "game-map-utils.create.active_editor": "You are currently editing another element, do yo really want to discard the current changes?",
   "game-map-utils.type.block_box": "Block Box",
-  "game-map-utils.missing_permission": "You need to be an operator in creative mode to do this"
+  "game-map-utils.missing_permission": "You need to be an operator in creative mode to do this",
+  "game-map-utils.editing": "Editing %s"
 }
