@@ -7,7 +7,7 @@ import work.lclpnet.kibu.hook.HookRegistrar
 import work.lclpnet.kibu.hook.network.CustomClickActionCallback
 import java.util.*
 
-class DialogHandler(val createDialog: CreateDialog) {
+class DialogHandler(val createDialog: CreateDialog, val saveDialog: SaveDialog) {
 
     fun init(hooks: HookRegistrar) {
         hooks.registerHook(CustomClickActionCallback.HOOK, CustomClickActionCallback { player, id, payload ->
@@ -20,6 +20,7 @@ class DialogHandler(val createDialog: CreateDialog) {
             CreateDialog.OPEN_ID -> createDialog.openOrConfirm(player)
             CreateDialog.START_ID -> createDialog.startEditing(player, payload)
             CreateDialog.CONFIRM_ID -> createDialog.discardAndOpen(player)
+            SaveDialog.SAVE_ID -> saveDialog.save(player, payload)
         }
     }
 }

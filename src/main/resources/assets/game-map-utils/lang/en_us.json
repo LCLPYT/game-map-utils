@@ -8,8 +8,13 @@
   "game-map-utils.create": "Create",
   "game-map-utils.warning": "Warning",
   "game-map-utils.discard": "Discard",
+  "game-map-utils.save": "Save",
+  "game-map-utils.save.title": "Save \"%s\"",
+  "game-map-utils.save.title_new": "Save new %s",
+  "game-map-utils.save.property_id": "Property Id",
   "game-map-utils.create.active_editor": "You are currently editing another element, do yo really want to discard the current changes?",
   "game-map-utils.type.block_box": "Block Box",
   "game-map-utils.missing_permission": "You need to be an operator in creative mode to do this",
-  "game-map-utils.editing": "Editing %s"
+  "game-map-utils.creating": "Creating %s [%s]",
+  "game-map-utils.editing": "Editing \"%s\" [%s]"
 }

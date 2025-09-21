@@ -30,7 +30,7 @@ class CreateDialog(val translations: Translations, val dataManager: DataManager,
             return
         }
 
-        if (sessionManager.getSession(player).editor != null) {
+        if (sessionManager.optSession(player)?.editor != null) {
             confirm(player)
             return
         }
@@ -112,11 +112,11 @@ class CreateDialog(val translations: Translations, val dataManager: DataManager,
 
         val type = dataManager.types[typeId] ?: return
 
-        sessionManager.getSession(player).setEditor(type.createEditor())
+        sessionManager.getSession(player).setEditor(type.createEditor(null))
     }
 
     fun discardAndOpen(player: ServerPlayerEntity) {
-        sessionManager.getSession(player).destroy()
+        sessionManager.optSession(player)?.destroy()
         openOrConfirm(player)
     }
 

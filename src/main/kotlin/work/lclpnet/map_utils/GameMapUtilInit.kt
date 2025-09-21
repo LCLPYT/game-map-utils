@@ -8,6 +8,7 @@ import work.lclpnet.kibu.translate.util.ModTranslations
 import work.lclpnet.map_utils.data.DataManager
 import work.lclpnet.map_utils.dialog.CreateDialog
 import work.lclpnet.map_utils.dialog.DialogHandler
+import work.lclpnet.map_utils.dialog.SaveDialog
 import work.lclpnet.map_utils.editor.SessionManager
 
 const val MOD_ID = "game-map-utils"
@@ -25,8 +26,12 @@ fun init() {
 
     sessionManager.init(hooks)
 
+    val saveDialog = SaveDialog(translations, sessionManager)
+    saveDialog.init(hooks)
+
     DialogHandler(
-        CreateDialog(translations, dataManager, sessionManager)
+        CreateDialog(translations, dataManager, sessionManager),
+        saveDialog
     ).init(hooks)
 
     LOGGER.info("Initialized")

@@ -24,6 +24,12 @@ class SessionManager(val translations: Translations) {
         })
     }
 
+    fun optSession(player: ServerPlayerEntity): Session? {
+        val playerSessions = sessions[player.uuid] ?: return null
+
+        return playerSessions[player.world.registryKey]
+    }
+
     @Synchronized
     fun getSession(player: ServerPlayerEntity): Session {
         val world = player.world
@@ -31,6 +37,10 @@ class SessionManager(val translations: Translations) {
         return sessions.computeIfAbsent(player.uuid) { mutableMapOf() }.computeIfAbsent(world.registryKey) {
             Session(SessionArgs(translations, world, player.networkHandler)).also { it.init() }
         }
+    }
+
+    fun isEditing(player: ServerPlayerEntity): Boolean {
+        return optSession(player)?.editor != null
     }
 
     @Synchronized
