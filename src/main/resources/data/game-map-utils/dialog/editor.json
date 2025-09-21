@@ -11,14 +11,20 @@
   "inputs": [],
   "actions": [
     {
-      "label": "Create",
+      "label": {
+        "translate": "game-map-utils.editor.create_data",
+        "fallback": "Create data"
+      },
       "action": {
         "type": "minecraft:custom",
         "id": "game-map-utils:create"
       }
     },
     {
-      "label": "List",
+      "label": {
+        "translate": "game-map-utils.editor.list_data",
+        "fallback": "List data"
+      },
       "action": {
         "type": "minecraft:custom",
         "id": "game-map-utils:list"

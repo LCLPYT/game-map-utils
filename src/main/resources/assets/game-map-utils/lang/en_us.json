@@ -1,3 +1,9 @@
 {
-  "game-map-utils.overview": "Map data overview"
+  "game-map-utils.editor": "Map data overview",
+  "game-map-utils.editor.create": "Create data",
+  "game-map-utils.editor.list": "List data",
+  "game-map-utils.create": "Create map data",
+  "game-map-utils.create.type": "Type",
+  "game-map-utils.create.create": "Create",
+  "game-map-utils.type.block_box": "Block Box"
 }
