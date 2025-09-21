@@ -47,7 +47,9 @@ class SaveDialog(val translations: Translations, val sessionManager: SessionMana
             propertyId as Object
         )).translateFor(player)
 
-        val body = listOf<DialogBody>()
+        val body = mutableListOf<DialogBody>()
+
+        editor.addBody(body, translations, player)
 
         val inputs = listOf(DialogInput(
             "propertyId",
@@ -80,6 +82,7 @@ class SaveDialog(val translations: Translations, val sessionManager: SessionMana
 
     fun save(player: ServerPlayerEntity, payload: Optional<NbtElement>) {
         val nbt = payload.map { it as? NbtCompound }.orElseGet { NbtCompound() }!!
+        val propertyId = nbt.getString("propertyId", null) ?: return
 
     }
 

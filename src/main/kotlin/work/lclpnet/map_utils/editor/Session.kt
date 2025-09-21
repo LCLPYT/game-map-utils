@@ -2,17 +2,19 @@ package work.lclpnet.map_utils.editor
 
 import net.minecraft.entity.boss.BossBar
 import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.text.Text
 import net.minecraft.util.Formatting.AQUA
 import net.minecraft.util.Formatting.YELLOW
+import work.lclpnet.kibu.hook.HookContainer
 import work.lclpnet.kibu.translate.bossbar.TranslatedBossBar
 import work.lclpnet.map_utils.data.DataEditor
 import work.lclpnet.map_utils.identifier
 import work.lclpnet.map_utils.util.BossBarContainer
+import work.lclpnet.map_utils.util.keybind
 
 class Session(val args: SessionArgs) {
 
     private val bossBars = BossBarContainer()
+    private val hooks = HookContainer()
     private var bossBar: TranslatedBossBar? = null
 
     var editor: DataEditor? = null
@@ -26,6 +28,7 @@ class Session(val args: SessionArgs) {
         editor = null
         bossBar = null
         bossBars.destroy()
+        hooks.unload()
     }
 
     fun player(): ServerPlayerEntity = args.player()
@@ -39,16 +42,18 @@ class Session(val args: SessionArgs) {
             barId,
             "creating",
             args.translations.translateText("type.${editor.data().id()}"),
-            Text.keybind("key.swapOffhand").formatted(YELLOW)
+            keybind("swapOffhand").formatted(YELLOW)
         ) else args.translations.translateBossBar(
             barId,
             "editing",
             editor.propertyId(),
-            Text.keybind("key.swapOffhand").formatted(YELLOW)
+            keybind("swapOffhand").formatted(YELLOW)
         )).with(bossBars).formatted(AQUA)
 
         bar.color = BossBar.Color.YELLOW
         bar.addPlayer(player())
+
+        editor.init(hooks, args)
 
         bossBar = bar
     }

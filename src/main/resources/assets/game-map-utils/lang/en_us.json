@@ -14,7 +14,11 @@
   "game-map-utils.save.property_id": "Property Id",
   "game-map-utils.create.active_editor": "You are currently editing another element, do yo really want to discard the current changes?",
   "game-map-utils.type.block_box": "Block Box",
+  "game-map-utils.type.block_box.pos1": "Start position: %s",
+  "game-map-utils.type.block_box.pos2": "End position: %s",
+  "game-map-utils.type.block_box.init": "Set start position: %s\nSet end position: %s\nSave / info: %s",
   "game-map-utils.missing_permission": "You need to be an operator in creative mode to do this",
-  "game-map-utils.creating": "Creating %s [%s]",
-  "game-map-utils.editing": "Editing \"%s\" [%s]"
+  "game-map-utils.creating": "Creating %s %s",
+  "game-map-utils.editing": "Editing \"%s\" %s",
+  "game-map-utils.required": "required"
 }
