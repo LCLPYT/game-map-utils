@@ -1,11 +1,11 @@
 {
   "type": "minecraft:multi_action",
   "title": {
-    "translate": "game-map-utils.editor",
+    "translate": "game-map-utils.editor.title",
     "fallback": "Map Data Editor"
   },
   "external_title": {
-    "translate": "game-map-utils.editor",
+    "translate": "game-map-utils.editor.title",
     "fallback": "Map Data Editor"
   },
   "inputs": [],
@@ -17,7 +17,7 @@
       },
       "action": {
         "type": "minecraft:custom",
-        "id": "game-map-utils:create"
+        "id": "game-map-utils:create_open"
       }
     },
     {

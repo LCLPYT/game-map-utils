@@ -5,11 +5,9 @@ import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.Identifier
 import work.lclpnet.kibu.hook.HookRegistrar
 import work.lclpnet.kibu.hook.network.CustomClickActionCallback
-import work.lclpnet.kibu.translate.Translations
-import work.lclpnet.map_utils.data.DataManager
 import java.util.*
 
-class DialogHandler(val translations: Translations, val dataManager: DataManager) {
+class DialogHandler(val createDialog: CreateDialog) {
 
     fun init(hooks: HookRegistrar) {
         hooks.registerHook(CustomClickActionCallback.HOOK, CustomClickActionCallback { player, id, payload ->
@@ -18,8 +16,10 @@ class DialogHandler(val translations: Translations, val dataManager: DataManager
     }
 
     fun onCustomClick(player: ServerPlayerEntity, id: Identifier, payload: Optional<NbtElement>) {
-        if (id == CreateDialog.ID) {
-            CreateDialog(translations, dataManager).open(player)
+        when (id) {
+            CreateDialog.OPEN_ID -> createDialog.openOrConfirm(player)
+            CreateDialog.START_ID -> createDialog.startEditing(player, payload)
+            CreateDialog.CONFIRM_ID -> createDialog.discardAndOpen(player)
         }
     }
 }

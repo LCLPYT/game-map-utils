@@ -4,22 +4,68 @@ import net.minecraft.dialog.AfterAction
 import net.minecraft.dialog.DialogActionButtonData
 import net.minecraft.dialog.DialogButtonData
 import net.minecraft.dialog.DialogCommonData
+import net.minecraft.dialog.action.DynamicCustomDialogAction
 import net.minecraft.dialog.body.DialogBody
+import net.minecraft.dialog.body.PlainMessageDialogBody
 import net.minecraft.dialog.input.SingleOptionInputControl
 import net.minecraft.dialog.type.ConfirmationDialog
 import net.minecraft.dialog.type.DialogInput
+import net.minecraft.nbt.NbtCompound
+import net.minecraft.nbt.NbtElement
 import net.minecraft.registry.entry.RegistryEntry
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.Text
+import net.minecraft.util.Formatting.*
 import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.map_utils.data.DataManager
+import work.lclpnet.map_utils.editor.SessionManager
 import work.lclpnet.map_utils.identifier
 import java.util.*
 
-class CreateDialog(val translations: Translations, val dataManager: DataManager) {
+class CreateDialog(val translations: Translations, val dataManager: DataManager, val sessionManager: SessionManager) {
 
-    fun open(player: ServerPlayerEntity) {
-        val title = translations.translateText("create").translateFor(player)
+    fun openOrConfirm(player: ServerPlayerEntity) {
+        if (!player.isCreativeLevelTwoOp) {
+            translations.translateText("missing_permission").formatted(RED).sendTo(player)
+            return
+        }
+
+        if (sessionManager.getSession(player).editor != null) {
+            confirm(player)
+            return
+        }
+
+        open(player)
+    }
+
+    fun confirm(player: ServerPlayerEntity) {
+        val title = translations.translateText("warning").formatted(YELLOW, BOLD).translateFor(player)
+        val msg = translations.translateText("create.active_editor").formatted(YELLOW).translateFor(player)
+        val discardLabel = translations.translateText("discard").formatted(RED).translateFor(player)
+
+        val body = listOf<DialogBody>(
+            PlainMessageDialogBody(msg, 400)
+        )
+
+        val dialog = ConfirmationDialog(
+            DialogCommonData(
+                title, Optional.empty(), true, true, AfterAction.CLOSE, body, listOf()
+            ),
+            DialogActionButtonData(
+                DialogButtonData(discardLabel, 150),
+                Optional.of(DynamicCustomDialogAction(CONFIRM_ID, Optional.empty()))
+            ),
+            DialogActionButtonData(
+                DialogButtonData(Text.translatable("gui.cancel"), 150),
+                Optional.empty()
+            ),
+        )
+
+        player.openDialog(RegistryEntry.of(dialog))
+    }
+
+    private fun open(player: ServerPlayerEntity) {
+        val title = translations.translateText("create.title").translateFor(player)
 
         val body = listOf<DialogBody>()
 
@@ -30,21 +76,20 @@ class CreateDialog(val translations: Translations, val dataManager: DataManager)
                 title, Optional.empty(), true, true, AfterAction.CLOSE, body, inputs
             ),
             DialogActionButtonData(
+                DialogButtonData(translations.translateText("create").translateFor(player), 150),
+                Optional.of(DynamicCustomDialogAction(START_ID, Optional.empty()))
+            ),
+            DialogActionButtonData(
                 DialogButtonData(Text.translatable("gui.cancel"), 150),
                 Optional.empty()
             ),
-            DialogActionButtonData(
-                DialogButtonData(translations.translateText("create.create").translateFor(player), 150),
-                Optional.empty()
-            )
         )
 
         player.openDialog(RegistryEntry.of(dialog))
     }
 
-    fun typeInput(player: ServerPlayerEntity): DialogInput {
-        val types = dataManager.types.map { data ->
-            val id = data.id()
+    private fun typeInput(player: ServerPlayerEntity): DialogInput {
+        val types = dataManager.types.map { (id, _) ->
             val label = translations.translateText("type.$id").translateFor(player)
 
             SingleOptionInputControl.Entry(id, Optional.of(label), false)
@@ -61,7 +106,23 @@ class CreateDialog(val translations: Translations, val dataManager: DataManager)
         )
     }
 
+    fun startEditing(player: ServerPlayerEntity, payload: Optional<NbtElement>) {
+        val nbt = payload.map { it as? NbtCompound }.orElseGet { NbtCompound() }!!
+        val typeId = nbt.getString("type", null)
+
+        val type = dataManager.types[typeId] ?: return
+
+        sessionManager.getSession(player).setEditor(type.createEditor())
+    }
+
+    fun discardAndOpen(player: ServerPlayerEntity) {
+        sessionManager.getSession(player).clearEditor()
+        openOrConfirm(player)
+    }
+
     companion object {
-        val ID = identifier("create")
+        val OPEN_ID = identifier("create_open")
+        val START_ID = identifier("create_start")
+        val CONFIRM_ID = identifier("create_confirm")
     }
 }

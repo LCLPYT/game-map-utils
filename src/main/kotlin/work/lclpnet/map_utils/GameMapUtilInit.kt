@@ -6,7 +6,9 @@ import org.slf4j.LoggerFactory
 import work.lclpnet.kibu.hook.HookContainer
 import work.lclpnet.kibu.translate.util.ModTranslations
 import work.lclpnet.map_utils.data.DataManager
+import work.lclpnet.map_utils.dialog.CreateDialog
 import work.lclpnet.map_utils.dialog.DialogHandler
+import work.lclpnet.map_utils.editor.SessionManager
 
 const val MOD_ID = "game-map-utils"
 val LOGGER: Logger = LoggerFactory.getLogger(MOD_ID)
@@ -18,8 +20,14 @@ fun identifier(path: String): Identifier {
 fun init() {
     val translations = ModTranslations.fromAssets(MOD_ID, LOGGER, true).translations
     val dataManager = DataManager()
+    val sessionManager = SessionManager()
+    val hooks = HookContainer()
 
-    DialogHandler(translations, dataManager).init(HookContainer())
+    sessionManager.init(hooks)
+
+    DialogHandler(
+        CreateDialog(translations, dataManager, sessionManager)
+    ).init(hooks)
 
     LOGGER.info("Initialized")
 }
