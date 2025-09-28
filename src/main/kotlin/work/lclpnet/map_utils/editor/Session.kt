@@ -4,6 +4,8 @@ import net.minecraft.entity.boss.BossBar
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.Formatting.AQUA
 import net.minecraft.util.Formatting.YELLOW
+import work.lclpnet.gaco.scene.MixedMountContext
+import work.lclpnet.gaco.scene.Scene
 import work.lclpnet.kibu.hook.HookContainer
 import work.lclpnet.kibu.translate.bossbar.TranslatedBossBar
 import work.lclpnet.map_utils.data.DataEditor
@@ -16,6 +18,7 @@ class Session(val args: SessionArgs) {
     private val bossBars = BossBarContainer()
     private val hooks = HookContainer()
     private var bossBar: TranslatedBossBar? = null
+    private val scene: Scene = Scene(MixedMountContext(args.world, args.dynamicEntityManager))
 
     var editor: DataEditor? = null
         private set
@@ -29,6 +32,7 @@ class Session(val args: SessionArgs) {
         bossBar = null
         bossBars.destroy()
         hooks.unload()
+        scene.clear()
     }
 
     fun player(): ServerPlayerEntity = args.player()
