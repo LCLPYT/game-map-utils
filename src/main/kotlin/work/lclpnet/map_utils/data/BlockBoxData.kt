@@ -15,6 +15,7 @@ import net.minecraft.world.World
 import work.lclpnet.kibu.hook.HookRegistrar
 import work.lclpnet.kibu.hook.entity.PlayerInteractionHooks
 import work.lclpnet.kibu.translate.Translations
+import work.lclpnet.kibu.translate.text.FormatWrapper
 import work.lclpnet.map_utils.editor.SessionArgs
 import work.lclpnet.map_utils.util.keybind
 
@@ -63,6 +64,11 @@ class BlockBoxEditor(val data: BlockBoxData, val propertyId: String?) : DataEdit
 
         pos2 = result.blockPos.toImmutable()
 
+        args.translations.translateText(
+            "type.block_box.set_pos2",
+            FormatWrapper.styled(result.blockPos.toShortString(), Formatting.YELLOW)
+        ).formatted(Formatting.GREEN).sendTo(args.player())
+
         return ActionResult.FAIL
     }
 
@@ -76,8 +82,11 @@ class BlockBoxEditor(val data: BlockBoxData, val propertyId: String?) : DataEdit
 
         pos1 = pos.toImmutable()
 
+        args.translations.translateText(
+            "type.block_box.set_pos1",
+            FormatWrapper.styled(pos.toShortString(), Formatting.YELLOW)
+        ).formatted(Formatting.GREEN).sendTo(args.player())
+
         return ActionResult.FAIL
     }
-
-
 }
