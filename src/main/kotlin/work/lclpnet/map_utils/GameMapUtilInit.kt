@@ -20,17 +20,18 @@ fun identifier(path: String): Identifier {
 
 fun init() {
     val translations = ModTranslations.fromAssets(MOD_ID, LOGGER, true).translations
-    val dataManager = DataManager()
+    val dataManager = DataManager(LOGGER)
     val sessionManager = SessionManager(translations)
     val hooks = HookContainer()
 
+    dataManager.init(hooks)
     sessionManager.init(hooks)
 
-    val saveDialog = SaveDialog(translations, sessionManager)
+    val saveDialog = SaveDialog(translations, dataManager, sessionManager)
     saveDialog.init(hooks)
 
     DialogHandler(
-        CreateDialog(translations, dataManager, sessionManager),
+        CreateDialog(translations, sessionManager),
         saveDialog
     ).init(hooks)
 

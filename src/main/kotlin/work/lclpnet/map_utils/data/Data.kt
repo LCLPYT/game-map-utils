@@ -1,25 +1,37 @@
 package work.lclpnet.map_utils.data
 
+import com.mojang.serialization.Codec
 import net.minecraft.dialog.body.DialogBody
 import net.minecraft.dialog.body.PlainMessageDialogBody
+import net.minecraft.nbt.NbtCompound
 import net.minecraft.server.network.ServerPlayerEntity
+import net.minecraft.server.world.ServerWorld
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import work.lclpnet.kibu.hook.HookRegistrar
 import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.map_utils.editor.SessionArgs
 
-interface Data {
+interface Data<T> {
     fun id(): String
-    fun createEditor(propertyId: String?): DataEditor
+    fun codec(): Codec<T>
+    fun createEditor(propertyId: String?): DataEditor<T>
 }
 
-interface DataEditor {
-    fun data(): Data
+interface DataEditor<T> {
+    fun data(): Data<T>
     fun propertyId(): String?
     fun addBody(body: MutableList<DialogBody>, translations: Translations, player: ServerPlayerEntity)
 
     fun init(hooks: HookRegistrar, args: SessionArgs)
+
+    fun create(input: NbtCompound): T?
+
+    fun saveToWorld(world: ServerWorld, dataManager: DataManager, propertyId: String, nbt: NbtCompound) {
+        val value = create(nbt) ?: return
+
+        dataManager.setData(world, propertyId, data(), value)
+    }
 
     fun <T> required(value: T?, key: String, translations: Translations, player: ServerPlayerEntity, toText: (T) -> Text): PlainMessageDialogBody {
         val detail = if (value != null) toText(value).copy().formatted(Formatting.YELLOW)

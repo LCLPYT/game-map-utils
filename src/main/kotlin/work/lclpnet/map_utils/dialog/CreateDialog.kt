@@ -17,12 +17,12 @@ import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting.*
 import work.lclpnet.kibu.translate.Translations
-import work.lclpnet.map_utils.data.DataManager
+import work.lclpnet.map_utils.data.DATA_TYPES
 import work.lclpnet.map_utils.editor.SessionManager
 import work.lclpnet.map_utils.identifier
 import java.util.*
 
-class CreateDialog(val translations: Translations, val dataManager: DataManager, val sessionManager: SessionManager) {
+class CreateDialog(val translations: Translations, val sessionManager: SessionManager) {
 
     fun openOrConfirm(player: ServerPlayerEntity) {
         if (!player.isCreativeLevelTwoOp) {
@@ -89,7 +89,7 @@ class CreateDialog(val translations: Translations, val dataManager: DataManager,
     }
 
     private fun typeInput(player: ServerPlayerEntity): DialogInput {
-        val types = dataManager.types.map { (id, _) ->
+        val types = DATA_TYPES.map { (id, _) ->
             val label = translations.translateText("type.$id").translateFor(player)
 
             SingleOptionInputControl.Entry(id, Optional.of(label), false)
@@ -110,7 +110,7 @@ class CreateDialog(val translations: Translations, val dataManager: DataManager,
         val nbt = payload.map { it as? NbtCompound }.orElseGet { NbtCompound() }!!
         val typeId = nbt.getString("type", null)
 
-        val type = dataManager.types[typeId] ?: return
+        val type = DATA_TYPES[typeId] ?: return
 
         sessionManager.getSession(player).setEditor(type.createEditor(null))
     }

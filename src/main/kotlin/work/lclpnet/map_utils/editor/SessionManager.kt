@@ -19,7 +19,7 @@ import java.util.*
 class SessionManager(val translations: Translations) {
 
     private val sessions = mutableMapOf<UUID, MutableMap<RegistryKey<World>, Session>>()
-    private val worldData = mutableMapOf<RegistryKey<World>, WorldData>()
+    private val worldSession = mutableMapOf<RegistryKey<World>, WorldSession>()
 
     fun init(hooks: HookRegistrar) {
         hooks.registerHook(ServerLifecycleHooks.SERVER_STOPPING, ServerLifecycleEvents.ServerStopping {
@@ -48,9 +48,9 @@ class SessionManager(val translations: Translations) {
         }
     }
 
-    fun getWorldData(world: ServerWorld): WorldData {
-        return worldData.computeIfAbsent(world.registryKey) {
-            WorldData(DynamicEntityManager(world)).also { it.init() }
+    fun getWorldData(world: ServerWorld): WorldSession {
+        return worldSession.computeIfAbsent(world.registryKey) {
+            WorldSession(DynamicEntityManager(world)).also { it.init() }
         }
     }
 
@@ -79,7 +79,7 @@ class SessionManager(val translations: Translations) {
     }
 }
 
-class WorldData(val dynamicEntityManager: DynamicEntityManager) {
+class WorldSession(val dynamicEntityManager: DynamicEntityManager) {
 
     private val hooks = HookContainer()
     private var scheduler: Scheduler? = null

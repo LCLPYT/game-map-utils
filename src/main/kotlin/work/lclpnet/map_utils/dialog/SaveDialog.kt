@@ -17,11 +17,12 @@ import net.minecraft.text.Text
 import work.lclpnet.kibu.hook.HookRegistrar
 import work.lclpnet.kibu.hook.player.PlayerInventoryHooks
 import work.lclpnet.kibu.translate.Translations
+import work.lclpnet.map_utils.data.DataManager
 import work.lclpnet.map_utils.editor.SessionManager
 import work.lclpnet.map_utils.identifier
 import java.util.*
 
-class SaveDialog(val translations: Translations, val sessionManager: SessionManager) {
+class SaveDialog(val translations: Translations, val dataManager: DataManager, val sessionManager: SessionManager) {
 
     fun init(hooks: HookRegistrar) {
         hooks.registerHook(PlayerInventoryHooks.SWAP_HANDS, PlayerInventoryHooks.SwapHands { player, _ ->
@@ -81,9 +82,13 @@ class SaveDialog(val translations: Translations, val sessionManager: SessionMana
     }
 
     fun save(player: ServerPlayerEntity, payload: Optional<NbtElement>) {
+        val session = sessionManager.optSession(player) ?: return
+        val editor = session.editor ?: return
+
         val nbt = payload.map { it as? NbtCompound }.orElseGet { NbtCompound() }!!
         val propertyId = nbt.getString("propertyId", null) ?: return
 
+        editor.saveToWorld(player.world, dataManager, propertyId, nbt)
     }
 
     companion object {

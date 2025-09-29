@@ -20,7 +20,7 @@ class Session(val args: SessionArgs) {
     private var bossBar: TranslatedBossBar? = null
     private val scene: Scene = Scene(MixedMountContext(args.world, args.dynamicEntityManager))
 
-    var editor: DataEditor? = null
+    var editor: DataEditor<*>? = null
         private set
 
     fun init() {
@@ -37,7 +37,7 @@ class Session(val args: SessionArgs) {
 
     fun player(): ServerPlayerEntity = args.player()
 
-    fun setEditor(editor: DataEditor) {
+    fun setEditor(editor: DataEditor<*>) {
         this.editor = editor
 
         val barId = identifier("edit_${player().uuid.toString().replace("-", "").lowercase()}")

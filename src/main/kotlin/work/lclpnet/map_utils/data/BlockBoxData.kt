@@ -1,5 +1,6 @@
 package work.lclpnet.map_utils.data
 
+import com.mojang.serialization.Codec
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback
 import net.fabricmc.fabric.api.event.player.UseBlockCallback
 import net.minecraft.block.Block
@@ -8,6 +9,7 @@ import net.minecraft.dialog.body.DialogBody
 import net.minecraft.entity.EntityType
 import net.minecraft.entity.decoration.DisplayEntity
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.nbt.NbtCompound
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.Text
 import net.minecraft.util.ActionResult
@@ -28,12 +30,13 @@ import work.lclpnet.kibu.translate.text.FormatWrapper
 import work.lclpnet.map_utils.editor.SessionArgs
 import work.lclpnet.map_utils.util.keybind
 
-class BlockBoxData() : Data {
+class BlockBoxData() : Data<BlockBox> {
     override fun id() = "block_box"
+    override fun codec(): Codec<BlockBox> = BlockBox.CODEC
     override fun createEditor(propertyId: String?) = BlockBoxEditor(this, propertyId)
 }
 
-class BlockBoxEditor(val data: BlockBoxData, val propertyId: String?) : DataEditor {
+class BlockBoxEditor(val data: BlockBoxData, val propertyId: String?) : DataEditor<BlockBox> {
     override fun data() = data
     override fun propertyId() = propertyId
 
@@ -101,6 +104,13 @@ class BlockBoxEditor(val data: BlockBoxData, val propertyId: String?) : DataEdit
         return ActionResult.FAIL
     }
 
+    private fun sendPosChanged(args: SessionArgs, key: String, pos: BlockPos) {
+        args.translations.translateText(
+            key,
+            FormatWrapper.styled(pos.toShortString(), Formatting.YELLOW)
+        ).formatted(Formatting.GREEN).sendTo(args.player())
+    }
+
     private fun markPosition(marker: DisplayEntity.BlockDisplayEntity?, pos: BlockPos, args: SessionArgs, block: Block, color: Int): DisplayEntity.BlockDisplayEntity {
         if (marker != null) {
             marker.setPosition(pos.x.toDouble(), pos.y.toDouble(), pos.z.toDouble())
@@ -152,10 +162,12 @@ class BlockBoxEditor(val data: BlockBoxData, val propertyId: String?) : DataEdit
         args.dynamicEntityManager.add(PlayerSpecificDynamicEntity(marker, args.player().uuid))
     }
 
-    private fun sendPosChanged(args: SessionArgs, key: String, pos: BlockPos) {
-        args.translations.translateText(
-            key,
-            FormatWrapper.styled(pos.toShortString(), Formatting.YELLOW)
-        ).formatted(Formatting.GREEN).sendTo(args.player())
+    override fun create(input: NbtCompound): BlockBox? {
+        val pos1 = this.pos1
+        val pos2 = this.pos2
+
+        if (pos1 == null || pos2 == null) return null
+
+        return BlockBox(pos1, pos2)
     }
 }
