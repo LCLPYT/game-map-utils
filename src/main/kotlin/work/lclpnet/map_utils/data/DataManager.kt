@@ -13,6 +13,7 @@ import net.minecraft.world.World
 import org.slf4j.Logger
 import work.lclpnet.kibu.hook.HookContainer
 import work.lclpnet.kibu.hook.world.ServerWorldHooks
+import work.lclpnet.map_utils.data.type.BlockBoxData
 import work.lclpnet.map_utils.mixin.MinecraftServerAccessor
 import work.lclpnet.map_utils.util.toPrettyString
 import java.nio.charset.StandardCharsets

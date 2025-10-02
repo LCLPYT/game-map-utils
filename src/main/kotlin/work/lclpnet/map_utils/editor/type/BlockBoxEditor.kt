@@ -1,6 +1,5 @@
-package work.lclpnet.map_utils.data
+package work.lclpnet.map_utils.editor.type
 
-import com.mojang.serialization.Codec
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback
 import net.fabricmc.fabric.api.event.player.UseBlockCallback
 import net.minecraft.block.Block
@@ -26,15 +25,11 @@ import work.lclpnet.gaco.dynamic_entities.PlayerSpecificDynamicEntity
 import work.lclpnet.kibu.hook.HookRegistrar
 import work.lclpnet.kibu.hook.entity.PlayerInteractionHooks
 import work.lclpnet.kibu.translate.Translations
-import work.lclpnet.kibu.translate.text.FormatWrapper
+import work.lclpnet.kibu.translate.text.FormatWrapper.styled
+import work.lclpnet.map_utils.data.DataEditor
+import work.lclpnet.map_utils.data.type.BlockBoxData
 import work.lclpnet.map_utils.editor.SessionArgs
 import work.lclpnet.map_utils.util.keybind
-
-class BlockBoxData() : Data<BlockBox> {
-    override fun id() = "block_box"
-    override fun codec(): Codec<BlockBox> = BlockBox.CODEC
-    override fun createEditor(propertyId: String?) = BlockBoxEditor(this, propertyId)
-}
 
 class BlockBoxEditor(val data: BlockBoxData, val propertyId: String?) : DataEditor<BlockBox> {
     override fun data() = data
@@ -42,7 +37,7 @@ class BlockBoxEditor(val data: BlockBoxData, val propertyId: String?) : DataEdit
 
     var pos1: BlockPos? = null
     var pos2: BlockPos? = null
-    
+
     var pos1Marker: DisplayEntity.BlockDisplayEntity? = null
     var pos2Marker: DisplayEntity.BlockDisplayEntity? = null
     var boxMarker: DisplayEntity.BlockDisplayEntity? = null
@@ -107,7 +102,7 @@ class BlockBoxEditor(val data: BlockBoxData, val propertyId: String?) : DataEdit
     private fun sendPosChanged(args: SessionArgs, key: String, pos: BlockPos) {
         args.translations.translateText(
             key,
-            FormatWrapper.styled(pos.toShortString(), Formatting.YELLOW)
+            styled(pos.toShortString(), Formatting.YELLOW)
         ).formatted(Formatting.GREEN).sendTo(args.player())
     }
 
@@ -146,16 +141,24 @@ class BlockBoxEditor(val data: BlockBoxData, val propertyId: String?) : DataEdit
 
         if (marker != null) {
             marker.setPos(box.min().x.toDouble(), box.min().y.toDouble(), box.min().z.toDouble())
-            marker.setTransformation(AffineTransformation(Matrix4f()
-                .scale(box.width().toFloat(), box.height().toFloat(), box.length().toFloat())))
+            marker.setTransformation(
+                AffineTransformation(
+                    Matrix4f()
+                        .scale(box.width().toFloat(), box.height().toFloat(), box.length().toFloat())
+                )
+            )
             return
         }
 
         marker = DisplayEntity.BlockDisplayEntity(EntityType.BLOCK_DISPLAY, args.world)
         marker.blockState = Blocks.GREEN_STAINED_GLASS.defaultState
         marker.setPos(box.min().x.toDouble(), box.min().y.toDouble(), box.min().z.toDouble())
-        marker.setTransformation(AffineTransformation(Matrix4f()
-            .scale(box.width().toFloat(), box.height().toFloat(), box.length().toFloat())))
+        marker.setTransformation(
+            AffineTransformation(
+                Matrix4f()
+                    .scale(box.width().toFloat(), box.height().toFloat(), box.length().toFloat())
+            )
+        )
 
         boxMarker = marker
 
@@ -165,6 +168,10 @@ class BlockBoxEditor(val data: BlockBoxData, val propertyId: String?) : DataEdit
     override fun create(input: NbtCompound): BlockBox? {
         val pos1 = this.pos1
         val pos2 = this.pos2
+
+        if (pos1 == null) {
+
+        }
 
         if (pos1 == null || pos2 == null) return null
 
