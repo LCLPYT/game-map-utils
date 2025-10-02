@@ -6,7 +6,6 @@ import net.minecraft.dialog.DialogButtonData
 import net.minecraft.dialog.DialogCommonData
 import net.minecraft.dialog.action.DynamicCustomDialogAction
 import net.minecraft.dialog.body.DialogBody
-import net.minecraft.dialog.body.PlainMessageDialogBody
 import net.minecraft.dialog.input.SingleOptionInputControl
 import net.minecraft.dialog.type.ConfirmationDialog
 import net.minecraft.dialog.type.DialogInput
@@ -15,11 +14,13 @@ import net.minecraft.nbt.NbtElement
 import net.minecraft.registry.entry.RegistryEntry
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.Text
-import net.minecraft.util.Formatting.*
+import net.minecraft.util.Formatting.RED
+import net.minecraft.util.Formatting.YELLOW
 import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.map_utils.data.DATA_TYPES
 import work.lclpnet.map_utils.editor.SessionManager
 import work.lclpnet.map_utils.identifier
+import work.lclpnet.map_utils.util.openConfirmDialog
 import java.util.*
 
 class CreateDialog(val translations: Translations, val sessionManager: SessionManager) {
@@ -31,37 +32,12 @@ class CreateDialog(val translations: Translations, val sessionManager: SessionMa
         }
 
         if (sessionManager.optSession(player)?.editor != null) {
-            confirm(player)
+            val msg = translations.translateText("create.active_editor").formatted(YELLOW).translateFor(player)
+            openConfirmDialog(player, translations, msg, CONFIRM_ID)
             return
         }
 
         open(player)
-    }
-
-    fun confirm(player: ServerPlayerEntity) {
-        val title = translations.translateText("warning").formatted(YELLOW, BOLD).translateFor(player)
-        val msg = translations.translateText("create.active_editor").formatted(YELLOW).translateFor(player)
-        val discardLabel = translations.translateText("discard").formatted(RED).translateFor(player)
-
-        val body = listOf<DialogBody>(
-            PlainMessageDialogBody(msg, 400)
-        )
-
-        val dialog = ConfirmationDialog(
-            DialogCommonData(
-                title, Optional.empty(), true, true, AfterAction.CLOSE, body, listOf()
-            ),
-            DialogActionButtonData(
-                DialogButtonData(discardLabel, 150),
-                Optional.of(DynamicCustomDialogAction(CONFIRM_ID, Optional.empty()))
-            ),
-            DialogActionButtonData(
-                DialogButtonData(Text.translatable("gui.cancel"), 150),
-                Optional.empty()
-            ),
-        )
-
-        player.openDialog(RegistryEntry.of(dialog))
     }
 
     private fun open(player: ServerPlayerEntity) {

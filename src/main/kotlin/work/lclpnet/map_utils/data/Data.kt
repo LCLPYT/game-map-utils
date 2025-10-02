@@ -3,7 +3,6 @@ package work.lclpnet.map_utils.data
 import com.mojang.serialization.Codec
 import net.minecraft.dialog.body.DialogBody
 import net.minecraft.dialog.body.PlainMessageDialogBody
-import net.minecraft.nbt.NbtCompound
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.text.Text
@@ -15,12 +14,13 @@ import work.lclpnet.map_utils.editor.SessionArgs
 interface Data<T> {
     fun id(): String
     fun codec(): Codec<T>
-    fun createEditor(sessionArgs: SessionArgs, propertyId: String?): DataEditor<T>
+    fun createEditor(args: SessionArgs, propertyId: String?): DataEditor<T>
 }
 
 interface DataEditor<T> {
     val args: SessionArgs
     var propertyId: String?
+    var prevPropertyId: String?
 
     fun data(): Data<T>
 
@@ -30,10 +30,10 @@ interface DataEditor<T> {
 
     fun init(hooks: HookRegistrar)
 
-    fun create(input: NbtCompound): T?
+    fun create(): T?
 
-    fun saveToWorld(world: ServerWorld, dataManager: DataManager, propertyId: String, nbt: NbtCompound): Boolean {
-        val value = create(nbt) ?: return false
+    fun saveToWorld(world: ServerWorld, dataManager: DataManager, propertyId: String): Boolean {
+        val value = create() ?: return false
 
         dataManager.setData(world, propertyId, data(), value)
 

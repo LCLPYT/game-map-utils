@@ -22,6 +22,7 @@ import work.lclpnet.kibu.translate.text.FormatWrapper.styled
 import work.lclpnet.map_utils.data.DataManager
 import work.lclpnet.map_utils.editor.SessionManager
 import work.lclpnet.map_utils.identifier
+import work.lclpnet.map_utils.util.openConfirmDialog
 import java.util.*
 
 class SaveDialog(val translations: Translations, val dataManager: DataManager, val sessionManager: SessionManager) {
@@ -98,15 +99,34 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
             return
         }
 
-        val oldPropertyId = editor.propertyId
+        editor.propertyId = propertyId
+
+        if (editor.create() == null) return
+
+        if (dataManager.hasData(player.world, propertyId) && editor.prevPropertyId != propertyId) {
+            val msg = translations.translateText(
+                "save.overwrite",
+                styled(propertyId, YELLOW)
+            ).formatted(RED).translateFor(player)
+            openConfirmDialog(player, translations, msg, CONFIRM_ID)
+            return
+        }
+
+        saveDataToWorld(player)
+    }
+
+    fun saveDataToWorld(player: ServerPlayerEntity) {
+        val session = sessionManager.optSession(player) ?: return
+        val editor = session.editor ?: return
+        val propertyId = editor.propertyId ?: return
+
+        if (!editor.saveToWorld(player.world, dataManager, propertyId)) return
+
+        val oldPropertyId = editor.prevPropertyId
 
         if (oldPropertyId != null) {
             dataManager.removeData(player.world, oldPropertyId)
         }
-
-        editor.propertyId = propertyId
-
-        if (!editor.saveToWorld(player.world, dataManager, propertyId, nbt)) return
 
         translations.translateText(
             "save.saved",
@@ -119,5 +139,6 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
 
     companion object {
         val SAVE_ID = identifier("save")
+        val CONFIRM_ID = identifier("save_confirm")
     }
 }

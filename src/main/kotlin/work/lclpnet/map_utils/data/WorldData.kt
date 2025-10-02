@@ -11,9 +11,7 @@ class WorldData(private val properties: MutableMap<String, DataInstance<*>> = mu
     }
 
     @Synchronized
-    operator fun get(propertyId: String): DataInstance<*>? {
-        return properties[propertyId]
-    }
+    operator fun get(propertyId: String): DataInstance<*>? = properties[propertyId]
 
     @Synchronized
     fun copyFrom(source: WorldData) {
@@ -25,6 +23,9 @@ class WorldData(private val properties: MutableMap<String, DataInstance<*>> = mu
     fun remove(propertyId: String) {
         properties.remove(propertyId)
     }
+
+    @Synchronized
+    fun has(propertyId: String) = properties.contains(propertyId)
 
     companion object {
         @JvmField

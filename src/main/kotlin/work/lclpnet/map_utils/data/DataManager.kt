@@ -63,6 +63,8 @@ class DataManager(val logger: Logger) {
         getWorldData(world).remove(propertyId)
     }
 
+    fun hasData(world: ServerWorld, propertyId: String) = getWorldData(world).has(propertyId)
+
     @JvmOverloads
     fun <T> getData(world: ServerWorld, propertyId: String, data: Data<T>, default: T? = null): T? {
         val instance = getWorldData(world)[propertyId] ?: return default
@@ -135,7 +137,6 @@ class DataManager(val logger: Logger) {
 
         return worldDir.resolve("data").resolve(WORLD_DATA_FILENAME)
     }
-
     @Synchronized
     fun getWorldData(world: ServerWorld) = worldData.computeIfAbsent(world.registryKey) { WorldData() }
 }

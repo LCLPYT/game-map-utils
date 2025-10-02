@@ -21,6 +21,7 @@ class DialogHandler(val createDialog: CreateDialog, val saveDialog: SaveDialog) 
             CreateDialog.START_ID -> createDialog.startEditing(player, payload)
             CreateDialog.CONFIRM_ID -> createDialog.discardAndOpen(player)
             SaveDialog.SAVE_ID -> saveDialog.save(player, payload)
+            SaveDialog.CONFIRM_ID -> saveDialog.saveDataToWorld(player)
         }
     }
 }

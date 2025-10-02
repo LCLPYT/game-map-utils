@@ -8,7 +8,6 @@ import net.minecraft.dialog.body.DialogBody
 import net.minecraft.entity.EntityType
 import net.minecraft.entity.decoration.DisplayEntity
 import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.nbt.NbtCompound
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.Text
 import net.minecraft.util.ActionResult
@@ -31,7 +30,12 @@ import work.lclpnet.map_utils.data.type.BlockBoxData
 import work.lclpnet.map_utils.editor.SessionArgs
 import work.lclpnet.map_utils.util.keybind
 
-class BlockBoxEditor(val data: BlockBoxData, override val args: SessionArgs, override var propertyId: String?) : DataEditor<BlockBox> {
+class BlockBoxEditor(
+    val data: BlockBoxData,
+    override val args: SessionArgs,
+    override var propertyId: String?,
+    override var prevPropertyId: String?
+) : DataEditor<BlockBox> {
 
     val new = propertyId == null
 
@@ -168,7 +172,7 @@ class BlockBoxEditor(val data: BlockBoxData, override val args: SessionArgs, ove
         args.dynamicEntityManager.add(PlayerSpecificDynamicEntity(marker, args.player().uuid))
     }
 
-    override fun create(input: NbtCompound): BlockBox? {
+    override fun create(): BlockBox? {
         val pos1 = this.pos1
         val pos2 = this.pos2
 
