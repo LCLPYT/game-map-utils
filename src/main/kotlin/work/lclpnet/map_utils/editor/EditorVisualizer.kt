@@ -1,6 +1,12 @@
 package work.lclpnet.map_utils.editor
 
+import net.minecraft.block.BlockState
 import net.minecraft.entity.Entity
+import net.minecraft.entity.EntityType
+import net.minecraft.entity.decoration.DisplayEntity
+import net.minecraft.util.math.AffineTransformation
+import net.minecraft.util.math.Vec3i
+import org.joml.Matrix4f
 import work.lclpnet.gaco.dynamic_entities.DynamicEntity
 import work.lclpnet.gaco.dynamic_entities.DynamicEntityManager
 import work.lclpnet.gaco.dynamic_entities.PlayerSpecificDynamicEntity
@@ -8,13 +14,40 @@ import work.lclpnet.gaco.dynamic_entities.PlayerSpecificDynamicEntity
 class EditorVisualizer(val args: SessionArgs, val dynamicEntityManager: DynamicEntityManager) : Visualizer {
 
     val entities = mutableSetOf<DynamicEntity>()
+    val mapping = mutableMapOf<Entity, DynamicEntity>()
 
     override fun addEntity(entity: Entity) {
         val dynamicEntity = PlayerSpecificDynamicEntity(entity, args.player().uuid)
 
         entities.add(dynamicEntity)
+        mapping[entity] = dynamicEntity
 
         dynamicEntityManager.add(dynamicEntity)
+    }
+
+    override fun removeEntity(entity: Entity) {
+        val dynamicEntity = mapping.remove(entity) ?:  return
+
+        entities.remove(dynamicEntity)
+        dynamicEntityManager.remove(dynamicEntity)
+    }
+
+    override fun markBlock(pos: Vec3i, state: BlockState, glowColor: Int): DisplayEntity.BlockDisplayEntity {
+        val margin = 0.015f
+        val marker = DisplayEntity.BlockDisplayEntity(EntityType.BLOCK_DISPLAY, args.world)
+        marker.setPosition(
+            pos.x.toDouble() + margin,
+            pos.y.toDouble() + margin,
+            pos.z.toDouble() + margin
+        )
+        marker.setTransformation(AffineTransformation(Matrix4f().scale(1f - 2 * margin)))
+        marker.blockState = state
+        marker.isGlowing = true
+        marker.glowColorOverride = glowColor
+
+        addEntity(marker)
+
+        return marker
     }
 
     fun destroy() {

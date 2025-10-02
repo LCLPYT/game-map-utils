@@ -14,6 +14,7 @@ import org.slf4j.Logger
 import work.lclpnet.kibu.hook.HookContainer
 import work.lclpnet.kibu.hook.world.ServerWorldHooks
 import work.lclpnet.map_utils.data.type.BlockBoxData
+import work.lclpnet.map_utils.data.type.PositionedBlockSetData
 import work.lclpnet.map_utils.mixin.MinecraftServerAccessor
 import work.lclpnet.map_utils.util.toPrettyString
 import java.nio.charset.StandardCharsets
@@ -25,7 +26,8 @@ import java.util.function.Function
 const val WORLD_DATA_FILENAME = "gaco-map.json"
 
 val DATA_TYPES = listOf<Data<*>>(
-    BlockBoxData()
+    BlockBoxData(),
+    PositionedBlockSetData()
 ).associateBy { it.id() }
 
 val DATA_CODEC: Codec<Data<*>> = Codec.STRING.comapFlatMap(

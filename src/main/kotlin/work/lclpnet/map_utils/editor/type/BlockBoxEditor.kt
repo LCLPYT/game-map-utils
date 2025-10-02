@@ -2,7 +2,6 @@ package work.lclpnet.map_utils.editor.type
 
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback
 import net.fabricmc.fabric.api.event.player.UseBlockCallback
-import net.minecraft.block.Block
 import net.minecraft.block.Blocks
 import net.minecraft.dialog.body.DialogBody
 import net.minecraft.entity.EntityType
@@ -25,24 +24,19 @@ import work.lclpnet.kibu.hook.HookRegistrar
 import work.lclpnet.kibu.hook.entity.PlayerInteractionHooks
 import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.kibu.translate.text.FormatWrapper.styled
-import work.lclpnet.map_utils.data.DataEditor
 import work.lclpnet.map_utils.data.type.BlockBoxData
+import work.lclpnet.map_utils.editor.BaseDataEditor
 import work.lclpnet.map_utils.editor.SessionArgs
 import work.lclpnet.map_utils.editor.Visualizer
 import work.lclpnet.map_utils.util.keybind
 
 class BlockBoxEditor(
-    val data: BlockBoxData,
+    data: BlockBoxData,
     override val args: SessionArgs,
     override val visualizer: Visualizer,
     override var propertyId: String?,
     override var prevPropertyId: String?
-) : DataEditor<BlockBox> {
-
-    val new = propertyId == null
-
-    override fun data() = data
-    override fun isNew() = new
+) : BaseDataEditor<BlockBox>(data) {
 
     var pos1: BlockPos? = null
     var pos2: BlockPos? = null
@@ -84,7 +78,14 @@ class BlockBoxEditor(
 
         pos2 = result.blockPos.toImmutable()
         sendPosChanged(args, "type.block_box.set_pos2", result.blockPos)
-        pos2Marker = markPosition(pos2Marker, result.blockPos, args, Blocks.RED_CONCRETE, DyeColor.RED.entityColor)
+
+        val marker = pos2Marker
+
+        if (marker != null) {
+            visualizer.removeEntity(marker)
+        }
+
+        pos2Marker = visualizer.markBlock(result.blockPos, world.getBlockState(result.blockPos), DyeColor.RED.entityColor)
 
         updateBox(args)
 
@@ -101,7 +102,14 @@ class BlockBoxEditor(
 
         pos1 = pos.toImmutable()
         sendPosChanged(args, "type.block_box.set_pos1", pos)
-        pos1Marker = markPosition(pos1Marker, pos, args, Blocks.BLUE_CONCRETE, DyeColor.BLUE.entityColor)
+
+        val marker = pos1Marker
+
+        if (marker != null) {
+            visualizer.removeEntity(marker)
+        }
+
+        pos1Marker = visualizer.markBlock(pos, world.getBlockState(pos), DyeColor.BLUE.entityColor)
 
         updateBox(args)
 
@@ -113,29 +121,6 @@ class BlockBoxEditor(
             key,
             styled(pos.toShortString(), Formatting.YELLOW)
         ).formatted(Formatting.GREEN).sendTo(args.player())
-    }
-
-    private fun markPosition(marker: DisplayEntity.BlockDisplayEntity?, pos: BlockPos, args: SessionArgs, block: Block, color: Int): DisplayEntity.BlockDisplayEntity {
-        if (marker != null) {
-            marker.setPosition(pos.x.toDouble(), pos.y.toDouble(), pos.z.toDouble())
-            return marker
-        }
-
-        val margin = 0.015f
-        val marker = DisplayEntity.BlockDisplayEntity(EntityType.BLOCK_DISPLAY, args.world)
-        marker.setPosition(
-            pos.x.toDouble() + margin,
-            pos.y.toDouble() + margin,
-            pos.z.toDouble() + margin
-        )
-        marker.setTransformation(AffineTransformation(Matrix4f().scale(1f - 2 * margin)))
-        marker.blockState = block.defaultState
-        marker.isGlowing = true
-        marker.glowColorOverride = color
-
-        visualizer.addEntity(marker)
-
-        return marker
     }
 
     private fun updateBox(args: SessionArgs) {

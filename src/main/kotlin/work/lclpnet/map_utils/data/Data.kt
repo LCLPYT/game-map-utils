@@ -50,6 +50,10 @@ interface DataEditor<T> {
             .formatted(if (value == null) Formatting.RED else Formatting.GREEN)
             .append(detail)
 
+        return messageBody(text)
+    }
+
+    fun messageBody(text: Text): PlainMessageDialogBody {
         return PlainMessageDialogBody(text, 200)
     }
 }
