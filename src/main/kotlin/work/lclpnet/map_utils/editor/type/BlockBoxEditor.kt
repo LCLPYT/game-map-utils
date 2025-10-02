@@ -31,9 +31,12 @@ import work.lclpnet.map_utils.data.type.BlockBoxData
 import work.lclpnet.map_utils.editor.SessionArgs
 import work.lclpnet.map_utils.util.keybind
 
-class BlockBoxEditor(val data: BlockBoxData, val propertyId: String?) : DataEditor<BlockBox> {
+class BlockBoxEditor(val data: BlockBoxData, override val args: SessionArgs, override var propertyId: String?) : DataEditor<BlockBox> {
+
+    val new = propertyId == null
+
     override fun data() = data
-    override fun propertyId() = propertyId
+    override fun isNew() = new
 
     var pos1: BlockPos? = null
     var pos2: BlockPos? = null
@@ -47,7 +50,7 @@ class BlockBoxEditor(val data: BlockBoxData, val propertyId: String?) : DataEdit
         body.add(required(pos2, "pos2", translations, player) { Text.literal(it.toShortString()) })
     }
 
-    override fun init(hooks: HookRegistrar, args: SessionArgs) {
+    override fun init(hooks: HookRegistrar) {
         args.translations.translateText(
             "type.${data.id()}.init",
             keybind("sneak", "attack").formatted(Formatting.YELLOW),
@@ -169,11 +172,20 @@ class BlockBoxEditor(val data: BlockBoxData, val propertyId: String?) : DataEdit
         val pos1 = this.pos1
         val pos2 = this.pos2
 
-        if (pos1 == null) {
+        val missing = mutableSetOf<String>()
 
+        if (pos1 == null) missing.add("pos1")
+        if (pos2 == null) missing.add("pos2")
+
+        if (missing.isNotEmpty()) {
+            args.translations.translateText(
+                "save.missing",
+                Text.literal(missing.joinToString {
+                    args.translations.translate(args.player(), "type.${data.id()}.$it")
+                }).formatted(Formatting.YELLOW)
+            ).formatted(Formatting.RED).sendTo(args.player())
+            return null
         }
-
-        if (pos1 == null || pos2 == null) return null
 
         return BlockBox(pos1, pos2)
     }

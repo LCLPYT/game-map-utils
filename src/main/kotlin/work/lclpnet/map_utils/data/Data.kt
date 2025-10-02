@@ -15,22 +15,29 @@ import work.lclpnet.map_utils.editor.SessionArgs
 interface Data<T> {
     fun id(): String
     fun codec(): Codec<T>
-    fun createEditor(propertyId: String?): DataEditor<T>
+    fun createEditor(sessionArgs: SessionArgs, propertyId: String?): DataEditor<T>
 }
 
 interface DataEditor<T> {
+    val args: SessionArgs
+    var propertyId: String?
+
     fun data(): Data<T>
-    fun propertyId(): String?
+
+    fun isNew(): Boolean
+
     fun addBody(body: MutableList<DialogBody>, translations: Translations, player: ServerPlayerEntity)
 
-    fun init(hooks: HookRegistrar, args: SessionArgs)
+    fun init(hooks: HookRegistrar)
 
     fun create(input: NbtCompound): T?
 
-    fun saveToWorld(world: ServerWorld, dataManager: DataManager, propertyId: String, nbt: NbtCompound) {
-        val value = create(nbt) ?: return
+    fun saveToWorld(world: ServerWorld, dataManager: DataManager, propertyId: String, nbt: NbtCompound): Boolean {
+        val value = create(nbt) ?: return false
 
         dataManager.setData(world, propertyId, data(), value)
+
+        return true
     }
 
     fun <T> required(value: T?, key: String, translations: Translations, player: ServerPlayerEntity, toText: (T) -> Text): PlainMessageDialogBody {

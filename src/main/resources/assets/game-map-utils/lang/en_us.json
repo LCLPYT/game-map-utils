@@ -12,6 +12,8 @@
   "game-map-utils.save.title": "Save \"%s\"",
   "game-map-utils.save.title_new": "Save new %s",
   "game-map-utils.save.property_id": "Property Id",
+  "game-map-utils.save.missing": "Missing properties: %s",
+  "game-map-utils.save.saved": "Saved %s to world %s",
   "game-map-utils.create.active_editor": "You are currently editing another element, do yo really want to discard the current changes?",
   "game-map-utils.type.block_box": "Block Box",
   "game-map-utils.type.block_box.pos1": "Start position",

@@ -42,7 +42,7 @@ class Session(val args: SessionArgs) {
 
         val barId = identifier("edit_${player().uuid.toString().replace("-", "").lowercase()}")
 
-        val bar = (if (editor.propertyId() == null) args.translations.translateBossBar(
+        val bar = (if (editor.propertyId == null || editor.isNew()) args.translations.translateBossBar(
             barId,
             "creating",
             args.translations.translateText("type.${editor.data().id()}"),
@@ -50,14 +50,14 @@ class Session(val args: SessionArgs) {
         ) else args.translations.translateBossBar(
             barId,
             "editing",
-            editor.propertyId(),
+            editor.propertyId,
             keybind("swapOffhand").formatted(YELLOW)
         )).with(bossBars).formatted(AQUA)
 
         bar.color = BossBar.Color.YELLOW
         bar.addPlayer(player())
 
-        editor.init(hooks, args)
+        editor.init(hooks)
 
         bossBar = bar
     }

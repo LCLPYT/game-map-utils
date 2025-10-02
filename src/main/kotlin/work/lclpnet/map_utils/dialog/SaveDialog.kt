@@ -14,9 +14,11 @@ import net.minecraft.nbt.NbtElement
 import net.minecraft.registry.entry.RegistryEntry
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.Text
+import net.minecraft.util.Formatting.*
 import work.lclpnet.kibu.hook.HookRegistrar
 import work.lclpnet.kibu.hook.player.PlayerInventoryHooks
 import work.lclpnet.kibu.translate.Translations
+import work.lclpnet.kibu.translate.text.FormatWrapper.styled
 import work.lclpnet.map_utils.data.DataManager
 import work.lclpnet.map_utils.editor.SessionManager
 import work.lclpnet.map_utils.identifier
@@ -38,9 +40,9 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
     fun openSaveDialog(player: ServerPlayerEntity) {
         val session = sessionManager.optSession(player) ?: return
         val editor = session.editor ?: return
-        val propertyId = editor.propertyId()
+        val propertyId = editor.propertyId
 
-        val title = (if (propertyId == null) translations.translateText(
+        val title = (if (propertyId == null || editor.isNew()) translations.translateText(
             "save.title_new",
             translations.translateText("type.${editor.data().id()}")
         ) else translations.translateText(
@@ -86,9 +88,33 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
         val editor = session.editor ?: return
 
         val nbt = payload.map { it as? NbtCompound }.orElseGet { NbtCompound() }!!
-        val propertyId = nbt.getString("propertyId", null) ?: return
+        val propertyId = nbt.getString("propertyId", null)
 
-        editor.saveToWorld(player.world, dataManager, propertyId, nbt)
+        if (propertyId == null || propertyId.isBlank()) {
+            translations.translateText(
+                "save.missing",
+                translations.translateText("save.property_id").formatted(YELLOW)
+            ).formatted(RED).sendTo(player)
+            return
+        }
+
+        val oldPropertyId = editor.propertyId
+
+        if (oldPropertyId != null) {
+            dataManager.removeData(player.world, oldPropertyId)
+        }
+
+        editor.propertyId = propertyId
+
+        if (!editor.saveToWorld(player.world, dataManager, propertyId, nbt)) return
+
+        translations.translateText(
+            "save.saved",
+            styled(propertyId, YELLOW),
+            styled(player.world.registryKey.value, YELLOW)
+        ).formatted(GREEN).sendTo(player)
+
+        dataManager.save(player.world)
     }
 
     companion object {

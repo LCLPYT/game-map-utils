@@ -57,8 +57,10 @@ class DataManager(val logger: Logger) {
 
     fun <T> setData(world: ServerWorld, propertyId: String, data: Data<T>, value: T) {
         getWorldData(world)[propertyId] = DataInstance(data, value)
+    }
 
-        save(world)
+    fun removeData(world: ServerWorld, propertyId: String) {
+        getWorldData(world).remove(propertyId)
     }
 
     @JvmOverloads

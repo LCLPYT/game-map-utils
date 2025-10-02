@@ -10,6 +10,7 @@ class WorldData(private val properties: MutableMap<String, DataInstance<*>> = mu
         properties[propertyId] = instance
     }
 
+    @Synchronized
     operator fun get(propertyId: String): DataInstance<*>? {
         return properties[propertyId]
     }
@@ -18,6 +19,11 @@ class WorldData(private val properties: MutableMap<String, DataInstance<*>> = mu
     fun copyFrom(source: WorldData) {
         properties.clear()
         properties.putAll(source.properties)
+    }
+
+    @Synchronized
+    fun remove(propertyId: String) {
+        properties.remove(propertyId)
     }
 
     companion object {
