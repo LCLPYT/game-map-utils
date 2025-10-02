@@ -44,7 +44,7 @@ class SessionManager(val translations: Translations) {
         return sessions.computeIfAbsent(player.uuid) { mutableMapOf() }.computeIfAbsent(world.registryKey) {
             val worldData = getWorldData(world)
 
-            Session(SessionArgs(translations, world, player.networkHandler, worldData.dynamicEntityManager)).also { it.init() }
+            Session(SessionArgs(translations, world, player.networkHandler), worldData.dynamicEntityManager).also { it.init() }
         }
     }
 

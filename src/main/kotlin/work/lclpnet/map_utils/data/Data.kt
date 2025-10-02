@@ -10,15 +10,17 @@ import net.minecraft.util.Formatting
 import work.lclpnet.kibu.hook.HookRegistrar
 import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.map_utils.editor.SessionArgs
+import work.lclpnet.map_utils.editor.Visualizer
 
 interface Data<T> {
     fun id(): String
     fun codec(): Codec<T>
-    fun createEditor(args: SessionArgs, propertyId: String?): DataEditor<T>
+    fun createEditor(args: SessionArgs, visualizer: Visualizer, propertyId: String?): DataEditor<T>
 }
 
 interface DataEditor<T> {
     val args: SessionArgs
+    val visualizer: Visualizer
     var propertyId: String?
     var prevPropertyId: String?
 

@@ -135,6 +135,8 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
         ).formatted(GREEN).sendTo(player)
 
         dataManager.save(player.world)
+
+        session.destroyEditor()
     }
 
     companion object {

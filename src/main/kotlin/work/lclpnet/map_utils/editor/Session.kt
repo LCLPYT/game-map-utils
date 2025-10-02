@@ -4,8 +4,7 @@ import net.minecraft.entity.boss.BossBar
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.Formatting.AQUA
 import net.minecraft.util.Formatting.YELLOW
-import work.lclpnet.gaco.scene.MixedMountContext
-import work.lclpnet.gaco.scene.Scene
+import work.lclpnet.gaco.dynamic_entities.DynamicEntityManager
 import work.lclpnet.kibu.hook.HookContainer
 import work.lclpnet.kibu.translate.bossbar.TranslatedBossBar
 import work.lclpnet.map_utils.data.DataEditor
@@ -13,12 +12,13 @@ import work.lclpnet.map_utils.identifier
 import work.lclpnet.map_utils.util.BossBarContainer
 import work.lclpnet.map_utils.util.keybind
 
-class Session(val args: SessionArgs) {
+class Session(val args: SessionArgs, val dynamicEntityManager: DynamicEntityManager) {
 
     private val bossBars = BossBarContainer()
     private val hooks = HookContainer()
-    private var bossBar: TranslatedBossBar? = null
-    private val scene: Scene = Scene(MixedMountContext(args.world, args.dynamicEntityManager))
+    private val editorHooks = HookContainer()
+    private var editorBossBar: TranslatedBossBar? = null
+    val editorVisualizer = EditorVisualizer(args, dynamicEntityManager)
 
     var editor: DataEditor<*>? = null
         private set
@@ -28,11 +28,20 @@ class Session(val args: SessionArgs) {
     }
 
     fun destroy() {
-        editor = null
-        bossBar = null
+        destroyEditor()
         bossBars.destroy()
         hooks.unload()
-        scene.clear()
+    }
+
+    fun destroyEditor() {
+        editorHooks.unload()
+        editorVisualizer.destroy()
+
+        editorBossBar?.removePlayer(args.player())
+        bossBars.destroy()
+
+        this.editor = null
+        editorBossBar = null
     }
 
     fun player(): ServerPlayerEntity = args.player()
@@ -57,8 +66,8 @@ class Session(val args: SessionArgs) {
         bar.color = BossBar.Color.YELLOW
         bar.addPlayer(player())
 
-        editor.init(hooks)
+        editor.init(editorHooks)
 
-        bossBar = bar
+        editorBossBar = bar
     }
 }

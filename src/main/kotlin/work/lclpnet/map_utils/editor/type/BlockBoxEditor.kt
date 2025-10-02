@@ -6,6 +6,7 @@ import net.minecraft.block.Block
 import net.minecraft.block.Blocks
 import net.minecraft.dialog.body.DialogBody
 import net.minecraft.entity.EntityType
+import net.minecraft.entity.decoration.Brightness
 import net.minecraft.entity.decoration.DisplayEntity
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.server.network.ServerPlayerEntity
@@ -20,7 +21,6 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 import org.joml.Matrix4f
 import work.lclpnet.gaco.ds.BlockBox
-import work.lclpnet.gaco.dynamic_entities.PlayerSpecificDynamicEntity
 import work.lclpnet.kibu.hook.HookRegistrar
 import work.lclpnet.kibu.hook.entity.PlayerInteractionHooks
 import work.lclpnet.kibu.translate.Translations
@@ -28,11 +28,13 @@ import work.lclpnet.kibu.translate.text.FormatWrapper.styled
 import work.lclpnet.map_utils.data.DataEditor
 import work.lclpnet.map_utils.data.type.BlockBoxData
 import work.lclpnet.map_utils.editor.SessionArgs
+import work.lclpnet.map_utils.editor.Visualizer
 import work.lclpnet.map_utils.util.keybind
 
 class BlockBoxEditor(
     val data: BlockBoxData,
     override val args: SessionArgs,
+    override val visualizer: Visualizer,
     override var propertyId: String?,
     override var prevPropertyId: String?
 ) : DataEditor<BlockBox> {
@@ -131,7 +133,7 @@ class BlockBoxEditor(
         marker.isGlowing = true
         marker.glowColorOverride = color
 
-        args.dynamicEntityManager.add(PlayerSpecificDynamicEntity(marker, args.player().uuid))
+        visualizer.addEntity(marker)
 
         return marker
     }
@@ -159,6 +161,7 @@ class BlockBoxEditor(
 
         marker = DisplayEntity.BlockDisplayEntity(EntityType.BLOCK_DISPLAY, args.world)
         marker.blockState = Blocks.GREEN_STAINED_GLASS.defaultState
+        marker.setBrightness(Brightness(15, 15))
         marker.setPos(box.min().x.toDouble(), box.min().y.toDouble(), box.min().z.toDouble())
         marker.setTransformation(
             AffineTransformation(
@@ -169,7 +172,7 @@ class BlockBoxEditor(
 
         boxMarker = marker
 
-        args.dynamicEntityManager.add(PlayerSpecificDynamicEntity(marker, args.player().uuid))
+        visualizer.addEntity(marker)
     }
 
     override fun create(): BlockBox? {
