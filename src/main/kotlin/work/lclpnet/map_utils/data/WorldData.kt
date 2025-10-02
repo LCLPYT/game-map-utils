@@ -1,30 +1,36 @@
 package work.lclpnet.map_utils.data
 
 import com.mojang.serialization.Codec
-import java.util.function.Function
+import com.mojang.serialization.codecs.RecordCodecBuilder
 
-class WorldData(private val dataMap: MutableMap<String, DataInstance<*>> = mutableMapOf()) {
+class WorldData(private val properties: MutableMap<String, DataInstance<*>> = mutableMapOf()) {
 
     @Synchronized
     operator fun set(propertyId: String, instance: DataInstance<*>) {
-        dataMap[propertyId] = instance
+        properties[propertyId] = instance
     }
 
     operator fun get(propertyId: String): DataInstance<*>? {
-        return dataMap[propertyId]
+        return properties[propertyId]
     }
 
     @Synchronized
     fun copyFrom(source: WorldData) {
-        dataMap.clear()
-        dataMap.putAll(source.dataMap)
+        properties.clear()
+        properties.putAll(source.properties)
     }
 
     companion object {
         @JvmField
-        val CODEC: Codec<WorldData> = Codec.unboundedMap(Codec.STRING, DataInstance.CODEC).xmap(
-            Function { WorldData(it) },
-            Function { it.dataMap }
-        )
+        val PROPERTY_MAP_CODEC: Codec<MutableMap<String, DataInstance<*>>> = Codec.unboundedMap(Codec.STRING, DataInstance.CODEC)
+
+        @JvmField
+        val CODEC: Codec<WorldData> = RecordCodecBuilder.create { it ->
+            it.group(
+                PROPERTY_MAP_CODEC.fieldOf("properties").forGetter { it.properties }
+            ).apply(it) { properties ->
+                WorldData(properties)
+            }
+        }
     }
 }
