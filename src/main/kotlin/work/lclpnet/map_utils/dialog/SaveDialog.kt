@@ -7,8 +7,8 @@ import net.minecraft.dialog.DialogCommonData
 import net.minecraft.dialog.action.DynamicCustomDialogAction
 import net.minecraft.dialog.body.DialogBody
 import net.minecraft.dialog.input.TextInputControl
-import net.minecraft.dialog.type.ConfirmationDialog
 import net.minecraft.dialog.type.DialogInput
+import net.minecraft.dialog.type.MultiActionDialog
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.nbt.NbtElement
 import net.minecraft.registry.entry.RegistryEntry
@@ -29,7 +29,7 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
 
     fun init(hooks: HookRegistrar) {
         hooks.registerHook(PlayerInventoryHooks.SWAP_HANDS, PlayerInventoryHooks.SwapHands { player, _ ->
-            if (sessionManager.isEditing(player)) {
+            if (sessionManager.isEditing(player) && !player.isSneaking) {
                 openSaveDialog(player)
                 true
             } else {
@@ -67,18 +67,26 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
             )
         ))
 
-        val dialog = ConfirmationDialog(
+        val dialog = MultiActionDialog(
             DialogCommonData(
                 title, Optional.empty(), true, true, AfterAction.CLOSE, body, inputs
             ),
-            DialogActionButtonData(
-                DialogButtonData(translations.translateText("save").translateFor(player), 150),
-                Optional.of(DynamicCustomDialogAction(SAVE_ID, Optional.empty()))
+            listOf(
+                DialogActionButtonData(
+                    DialogButtonData(translations.translateText("save").translateFor(player), 150),
+                    Optional.of(DynamicCustomDialogAction(SAVE_ID, Optional.empty()))
+                ),
+                DialogActionButtonData(
+                    DialogButtonData(Text.translatable("gui.cancel"), 150),
+                    Optional.empty()
+                ),
+                DialogActionButtonData(
+                    DialogButtonData(translations.translateText("discard").formatted(RED).translateFor(player), 150),
+                    Optional.of(DynamicCustomDialogAction(DISCARD_ID, Optional.empty()))
+                )
             ),
-            DialogActionButtonData(
-                DialogButtonData(Text.translatable("gui.cancel"), 150),
-                Optional.empty()
-            ),
+            Optional.empty(),
+            1
         )
 
         player.openDialog(RegistryEntry.of(dialog))
@@ -139,8 +147,14 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
         session.destroyEditor()
     }
 
+    fun discard(player: ServerPlayerEntity) {
+        val session = sessionManager.optSession(player) ?: return
+        session.destroyEditor()
+    }
+
     companion object {
         val SAVE_ID = identifier("save")
+        val DISCARD_ID = identifier("save_discard")
         val CONFIRM_ID = identifier("save_confirm")
     }
 }

@@ -30,5 +30,6 @@
         "id": "game-map-utils:list"
       }
     }
-  ]
+  ],
+  "columns": 1
 }
