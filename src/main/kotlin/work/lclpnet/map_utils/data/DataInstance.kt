@@ -26,8 +26,10 @@ private fun <T> dataInstanceMapCodec(data: Data<T>) = data.codec().fieldOf("valu
 
 data class DataInstance<T>(val data: Data<T>, val value: T) {
 
-    fun restore(session: Session): DataEditor<T> {
+    fun restore(session: Session, propertyId: String): DataEditor<T> {
         val editor = session.createEditor(data)
+        editor.propertyId = propertyId
+        editor.prevPropertyId = propertyId
 
         editor.load(value)
 

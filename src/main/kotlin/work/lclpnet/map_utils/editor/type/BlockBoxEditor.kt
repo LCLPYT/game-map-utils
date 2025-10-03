@@ -31,12 +31,11 @@ import work.lclpnet.map_utils.util.Visualizer
 import work.lclpnet.map_utils.util.keybind
 
 class BlockBoxEditor(
-    data: BlockBoxData,
     override val args: SessionArgs,
     override val visualizer: Visualizer,
     override var propertyId: String? = null,
     override var prevPropertyId: String? = null
-) : BaseDataEditor<BlockBox>(data) {
+) : BaseDataEditor<BlockBox>(BlockBoxData) {
 
     var pos1: BlockPos? = null
     var pos2: BlockPos? = null

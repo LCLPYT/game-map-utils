@@ -6,9 +6,6 @@ import net.minecraft.entity.EntityType
 import net.minecraft.entity.decoration.Brightness
 import net.minecraft.entity.decoration.DisplayEntity
 import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.text.Text
-import net.minecraft.util.Formatting.AQUA
-import net.minecraft.util.Formatting.YELLOW
 import net.minecraft.util.math.AffineTransformation
 import org.joml.Matrix4f
 import work.lclpnet.gaco.ds.BlockBox
@@ -18,6 +15,7 @@ import work.lclpnet.map_utils.editor.SessionArgs
 import work.lclpnet.map_utils.editor.type.BlockBoxEditor
 import work.lclpnet.map_utils.util.Removable
 import work.lclpnet.map_utils.util.Visualizer
+import work.lclpnet.map_utils.util.createDataLabelDisplay
 
 object BlockBoxData : Data<BlockBox> {
 
@@ -26,7 +24,7 @@ object BlockBoxData : Data<BlockBox> {
     override fun codec(): Codec<BlockBox> = BlockBox.CODEC
 
     override fun createEditor(args: SessionArgs, visualizer: Visualizer) =
-        BlockBoxEditor(this, args, visualizer)
+        BlockBoxEditor(args, visualizer)
 
     override fun display(
         value: BlockBox,
@@ -49,25 +47,9 @@ object BlockBoxData : Data<BlockBox> {
 
         visualizer.addEntity(marker)
 
-        var textRef: DisplayEntity.TextDisplayEntity? = null
-
-        if (propertyId != null) {
-            val textDisplay = DisplayEntity.TextDisplayEntity(EntityType.TEXT_DISPLAY, visualizer.world())
-            textDisplay.setBrightness(Brightness(15, 15))
-
-            textDisplay.text = Text.empty()
-                .append(translations.translateText("type.${id()}").formatted(AQUA).translateFor(player))
-                .append(Text.literal("\n\"$propertyId\"").formatted(YELLOW))
-
-            val center = value.toBox().center
-            textDisplay.setPos(center.x, center.y, center.z)
-
-            textDisplay.billboardMode = DisplayEntity.BillboardMode.CENTER
-            textDisplay.isGlowing = true
-
-            visualizer.addEntity(textDisplay)
-            textRef = textDisplay
-        }
+        val textRef = if (propertyId != null)
+            createDataLabelDisplay(visualizer, player, translations, propertyId, this, value.toBox().center)
+        else null
 
         return Removable {
             visualizer.removeEntity(marker)

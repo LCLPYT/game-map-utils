@@ -20,7 +20,7 @@ object PositionedBlockSetData : Data<PositionedBlockSet> {
     override fun codec(): Codec<PositionedBlockSet> = PositionedBlockSet.CODEC
 
     override fun createEditor(args: SessionArgs, visualizer: Visualizer) =
-        PositionedBlockSetEditor(this, args, visualizer)
+        PositionedBlockSetEditor(args, visualizer)
 
     override fun display(
         value: PositionedBlockSet,

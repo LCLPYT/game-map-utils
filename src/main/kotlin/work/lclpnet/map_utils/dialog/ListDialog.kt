@@ -110,14 +110,12 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
         val worldData = dataManager.getWorldData(player.world)
         val dataInstance = worldData[propertyId] ?: return
 
-        sessionManager.getSession(player).removeSessionDisplay(propertyId)
-
         val session = sessionManager.getSession(player)
         session.destroyEditor()
 
-        val editor = dataInstance.restore(session)
-        editor.propertyId = propertyId
-        editor.prevPropertyId = propertyId
+        sessionManager.getSession(player).removeSessionDisplay(propertyId)
+
+        val editor = dataInstance.restore(session, propertyId)
 
         session.setEditor(editor)
     }
@@ -144,6 +142,8 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
         sessionManager.getSession(player).removeSessionDisplay(propertyId)
         worldData.remove(propertyId)
 
+        dataManager.save(player.world)
+
         translations.translateText(
             "list.deleted",
             Text.literal(propertyId).formatted(YELLOW)
@@ -161,6 +161,8 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
 
         worldData.setIndex(propertyId, index - 1)
 
+        dataManager.save(player.world)
+
         open(player)
     }
 
@@ -174,6 +176,8 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
         if (index == -1 || index >= worldData.properties().size - 1) return
 
         worldData.setIndex(propertyId, index + 1)
+
+        dataManager.save(player.world)
 
         open(player)
     }
@@ -191,12 +195,11 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
 
         session.showAll = showAll
 
-        if (!showAll) {
-            session.clearSessionRemovables()
-            return
-        }
+        session.clearSessionRemovables()
 
-        session.displayWorldData(dataManager)
+        if (showAll) {
+            session.displayWorldData()
+        }
     }
 
     companion object {

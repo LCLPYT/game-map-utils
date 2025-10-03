@@ -33,12 +33,11 @@ import work.lclpnet.map_utils.util.Visualizer
 import work.lclpnet.map_utils.util.keybind
 
 class PositionedBlockSetEditor(
-    data: PositionedBlockSetData,
     override val args: SessionArgs,
     override val visualizer: Visualizer,
     override var propertyId: String? = null,
     override var prevPropertyId: String? = null
-) : BaseDataEditor<PositionedBlockSet>(data) {
+) : BaseDataEditor<PositionedBlockSet>(PositionedBlockSetData) {
 
     val blocks = mutableMapOf<BlockPos, BlockState>()
     val markers = mutableMapOf<BlockPos, DisplayEntity.BlockDisplayEntity>()

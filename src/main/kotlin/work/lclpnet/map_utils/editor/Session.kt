@@ -14,7 +14,7 @@ import work.lclpnet.map_utils.util.BossBarContainer
 import work.lclpnet.map_utils.util.Removable
 import work.lclpnet.map_utils.util.keybind
 
-class Session(val args: SessionArgs, dynamicEntityManager: DynamicEntityManager) {
+class Session(val args: SessionArgs, dynamicEntityManager: DynamicEntityManager, val dataManager: DataManager) {
 
     private val bossBars = BossBarContainer()
     private val hooks = HookContainer()
@@ -51,6 +51,11 @@ class Session(val args: SessionArgs, dynamicEntityManager: DynamicEntityManager)
 
         this.editor = null
         editorBossBar = null
+
+        if (showAll) {
+            clearSessionRemovables()
+            displayWorldData()
+        }
     }
 
     fun player(): ServerPlayerEntity = args.player()
@@ -102,7 +107,7 @@ class Session(val args: SessionArgs, dynamicEntityManager: DynamicEntityManager)
     }
 
     @Synchronized
-    fun displayWorldData(dataManager: DataManager) {
+    fun displayWorldData() {
         val worldData = dataManager.getWorldData(args.world)
 
         for ((propertyId, dataInstance) in worldData.properties()) {

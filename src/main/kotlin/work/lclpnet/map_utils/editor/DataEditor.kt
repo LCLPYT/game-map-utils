@@ -49,7 +49,7 @@ interface DataEditor<T> {
         val detail = if (value != null) toText(value).copy().formatted(Formatting.YELLOW)
         else translations.translateText("required").formatted(Formatting.YELLOW).translateFor(player)
 
-        val text = translations.translateText(player, "type.${data().id()}.$key").append(": ")
+        val text = translations.translateText(player, key(key)).append(": ")
             .formatted(if (value == null) Formatting.RED else Formatting.GREEN)
             .append(detail)
 

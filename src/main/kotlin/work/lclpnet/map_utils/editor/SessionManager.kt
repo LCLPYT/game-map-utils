@@ -16,9 +16,10 @@ import work.lclpnet.kibu.scheduler.KibuScheduling
 import work.lclpnet.kibu.scheduler.api.Scheduler
 import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.map_utils.LOGGER
+import work.lclpnet.map_utils.data.DataManager
 import java.util.*
 
-class SessionManager(val translations: Translations) {
+class SessionManager(val translations: Translations, val dataManager: DataManager) {
 
     private val sessions = mutableMapOf<UUID, MutableMap<RegistryKey<World>, Session>>()
     private val worldSessions = mutableMapOf<RegistryKey<World>, WorldSession>()
@@ -67,7 +68,7 @@ class SessionManager(val translations: Translations) {
         return sessions.computeIfAbsent(player.uuid) { mutableMapOf() }.computeIfAbsent(world.registryKey) {
             val worldData = getWorldSession(world)
 
-            Session(SessionArgs(translations, world, player.networkHandler), worldData.dynamicEntityManager).also { it.init() }
+            Session(SessionArgs(translations, world, player.networkHandler), worldData.dynamicEntityManager, dataManager).also { it.init() }
         }
     }
 

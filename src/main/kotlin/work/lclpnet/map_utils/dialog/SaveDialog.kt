@@ -28,7 +28,7 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
 
     fun init(hooks: HookRegistrar) {
         hooks.registerHook(PlayerInventoryHooks.SWAP_HANDS, PlayerInventoryHooks.SwapHands { player, _ ->
-            if (sessionManager.isEditing(player) && !player.isSneaking) {
+            if (sessionManager.isEditing(player) && !player.isSneaking && !player.playerInput.sprint) {
                 openSaveDialog(player)
                 true
             } else {
@@ -151,11 +151,6 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
         dataManager.save(player.world)
 
         session.destroyEditor()
-
-        if (session.showAll) {
-            session.clearSessionRemovables()
-            session.displayWorldData(dataManager)
-        }
     }
 
     fun discard(player: ServerPlayerEntity, nbt: NbtCompound) {

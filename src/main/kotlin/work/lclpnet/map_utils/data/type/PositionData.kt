@@ -1,0 +1,76 @@
+package work.lclpnet.map_utils.data.type
+
+import com.mojang.serialization.Codec
+import com.mojang.serialization.codecs.RecordCodecBuilder
+import net.minecraft.block.Blocks
+import net.minecraft.block.ObserverBlock
+import net.minecraft.entity.EntityType
+import net.minecraft.entity.decoration.DisplayEntity
+import net.minecraft.server.network.ServerPlayerEntity
+import net.minecraft.util.math.AffineTransformation
+import net.minecraft.util.math.Direction
+import net.minecraft.util.math.Vec3d
+import org.joml.Matrix4f
+import work.lclpnet.kibu.hook.util.PositionRotation
+import work.lclpnet.kibu.translate.Translations
+import work.lclpnet.map_utils.data.Data
+import work.lclpnet.map_utils.editor.SessionArgs
+import work.lclpnet.map_utils.editor.type.PositionEditor
+import work.lclpnet.map_utils.util.Removable
+import work.lclpnet.map_utils.util.Visualizer
+import work.lclpnet.map_utils.util.createDataLabelDisplay
+import work.lclpnet.map_utils.util.getRandomHsvColor
+import java.util.*
+
+private val VALUE_CODEC: Codec<PositionRotation> = RecordCodecBuilder.create { instance -> instance.group(
+    Vec3d.CODEC.fieldOf("pos").forGetter { Vec3d(it.x, it.y, it.z) },
+    Codec.FLOAT.fieldOf("yaw").forGetter { it.yaw },
+    Codec.FLOAT.fieldOf("pitch").forGetter { it.pitch }
+).apply(instance) { pos, yaw, pitch ->
+    PositionRotation(pos.x, pos.y, pos.z, yaw, pitch)
+}}
+
+object PositionData : Data<PositionRotation> {
+    override fun id() = "position"
+
+    override fun codec() = VALUE_CODEC
+
+    override fun createEditor(args: SessionArgs, visualizer: Visualizer) = PositionEditor(args, visualizer)
+
+    override fun display(
+        value: PositionRotation,
+        visualizer: Visualizer,
+        player: ServerPlayerEntity,
+        translations: Translations,
+        propertyId: String?
+    ): Removable {
+        val random = if (propertyId != null) Random(propertyId.hashCode().toLong()) else Random()
+
+        val marker = DisplayEntity.BlockDisplayEntity(EntityType.BLOCK_DISPLAY, visualizer.world())
+        marker.setPosition(value.x, value.y + 0.125, value.z)
+        marker.setTransformation(AffineTransformation(Matrix4f()
+            .scale(.25f)
+            .rotate(Math.toRadians(-value.yaw.toDouble()).toFloat(), 0f, 1f, 0f)
+            .rotate(Math.toRadians(value.pitch.toDouble()).toFloat(), 1f, 0f, 0f)
+            .translate(-0.5f, -0.5f, -0.5f)
+        ))
+
+        marker.blockState = Blocks.OBSERVER.defaultState.with(ObserverBlock.FACING, Direction.SOUTH)
+        marker.isGlowing = true
+        marker.glowColorOverride = getRandomHsvColor(random)
+
+        visualizer.addEntity(marker)
+
+        val textRef = if (propertyId != null)
+            createDataLabelDisplay(visualizer, player, translations, propertyId, this, Vec3d(value.x, value.y + 0.35, value.z))
+        else null
+
+        return Removable {
+            visualizer.removeEntity(marker)
+
+            if (textRef != null) {
+                visualizer.removeEntity(textRef)
+            }
+        }
+    }
+}
