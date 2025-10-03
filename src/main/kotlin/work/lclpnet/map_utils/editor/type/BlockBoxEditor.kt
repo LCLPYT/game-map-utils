@@ -61,11 +61,11 @@ class BlockBoxEditor(
             args.translations.translateText(key("pos1"))
                 .formatted(BLUE)
                 .translateFor(args.player()),
-            keybind("sneak", "attack").formatted(Formatting.YELLOW),
+            keybind("sprint", "attack").formatted(Formatting.YELLOW),
             args.translations.translateText(key("pos2"))
                 .formatted(RED)
                 .translateFor(args.player()),
-            keybind("sneak", "use").formatted(Formatting.YELLOW),
+            keybind("sprint", "use").formatted(Formatting.YELLOW),
             keybind("swapOffhand").formatted(Formatting.YELLOW)
         ).formatted(Formatting.AQUA).sendTo(args.player())
 
@@ -85,7 +85,7 @@ class BlockBoxEditor(
         result: BlockHitResult,
         args: SessionArgs
     ): ActionResult {
-        if (entity != args.player() || world != args.world || !entity.isSneaking || hand != Hand.MAIN_HAND) return ActionResult.PASS
+        if (entity != args.player() || world != args.world || !args.player().playerInput.sprint || hand != Hand.MAIN_HAND) return ActionResult.PASS
 
         val pos = result.blockPos
 
@@ -105,7 +105,7 @@ class BlockBoxEditor(
         pos: BlockPos,
         args: SessionArgs
     ): ActionResult {
-        if (entity != args.player() || world != args.world || !entity.isSneaking) return ActionResult.PASS
+        if (entity != args.player() || world != args.world || !args.player().playerInput.sprint) return ActionResult.PASS
 
         pos1 = pos.toImmutable()
         sendPosChanged(args, key("set_pos1"), pos)

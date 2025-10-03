@@ -80,8 +80,8 @@ class PositionedBlockSetEditor(
     override fun init(hooks: HookRegistrar) {
         args.translations.translateText(
             key("init"),
-            keybind("sneak", "use").formatted(YELLOW),
-            keybind("sneak", "attack").formatted(YELLOW),
+            keybind("sprint", "use").formatted(YELLOW),
+            keybind("sprint", "attack").formatted(YELLOW),
             keybind("swapOffhand").formatted(YELLOW)
         ).formatted(AQUA).sendTo(args.player())
 
@@ -101,7 +101,7 @@ class PositionedBlockSetEditor(
         result: BlockHitResult,
         args: SessionArgs
     ): ActionResult {
-        if (entity != args.player() || world != args.world || !entity.isSneaking || hand != Hand.MAIN_HAND) return ActionResult.PASS
+        if (entity != args.player() || world != args.world || !args.player().playerInput.sprint || hand != Hand.MAIN_HAND) return ActionResult.PASS
 
         val pos = result.blockPos
         val state = world.getBlockState(pos)
@@ -128,7 +128,7 @@ class PositionedBlockSetEditor(
         pos: BlockPos,
         args: SessionArgs
     ): ActionResult {
-        if (entity != args.player() || world != args.world || !entity.isSneaking) return ActionResult.PASS
+        if (entity != args.player() || world != args.world || !args.player().playerInput.sprint) return ActionResult.PASS
 
         val state = blocks.remove(pos) ?: return ActionResult.FAIL
 
