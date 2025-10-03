@@ -1,6 +1,8 @@
 package work.lclpnet.map_utils.data
 
 import com.mojang.serialization.Codec
+import work.lclpnet.map_utils.editor.DataEditor
+import work.lclpnet.map_utils.editor.Session
 import java.util.function.Function
 
 private fun <T> makeDataInstanceUnsafe(data: Data<T>, value: Any?): DataInstance<T> {
@@ -20,6 +22,15 @@ private fun <T> dataInstanceMapCodec(data: Data<T>) = data.codec().fieldOf("valu
 )
 
 data class DataInstance<T>(val data: Data<T>, val value: T) {
+
+    fun restore(session: Session): DataEditor<T> {
+        val editor = session.createEditor(data)
+
+        editor.load(value)
+
+        return editor
+    }
+
     companion object {
         @JvmField
         val CODEC: Codec<DataInstance<*>> = DATA_CODEC.dispatch("type", Function { it.data }, Function { data ->

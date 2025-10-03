@@ -117,6 +117,7 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
                 "save.overwrite",
                 styled(propertyId, YELLOW)
             ).formatted(RED).translateFor(player)
+
             openConfirmDialog(player, translations, msg, CONFIRM_ID)
             return
         }
@@ -133,7 +134,8 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
 
         val oldPropertyId = editor.prevPropertyId
 
-        if (oldPropertyId != null) {
+        if (oldPropertyId != null && oldPropertyId != propertyId) {
+            // renamed
             dataManager.removeData(player.world, oldPropertyId)
         }
 

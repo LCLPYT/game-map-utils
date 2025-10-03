@@ -1,6 +1,5 @@
 package work.lclpnet.map_utils.util;
 
-import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.block.BlockState;
@@ -8,8 +7,6 @@ import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 public class PositionedBlockSet implements Iterable<PositionedBlockSet.PositionedBlock> {
 
@@ -42,10 +39,6 @@ public class PositionedBlockSet implements Iterable<PositionedBlockSet.Positione
         return Objects.hashCode(blocks);
     }
 
-    private static Collector<Pair<BlockPos, BlockState>, ?, LinkedHashMap<BlockPos, BlockState>> toLinkedHashMap() {
-        return Collectors.toMap(Pair::getFirst, Pair::getSecond, (x, y) -> y, LinkedHashMap::new);
-    }
-
     @Override
     public @NotNull Iterator<PositionedBlock> iterator() {
         return blocks.iterator();
@@ -56,5 +49,13 @@ public class PositionedBlockSet implements Iterable<PositionedBlockSet.Positione
                 BlockPos.CODEC.fieldOf("pos").forGetter(PositionedBlock::pos),
                 BlockState.CODEC.fieldOf("state").forGetter(PositionedBlock::state)
         ).apply(instance, PositionedBlock::new));
+
+        public BlockPos component1() {
+            return pos;
+        }
+
+        public BlockState component2() {
+            return state;
+        }
     }
 }

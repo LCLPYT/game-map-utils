@@ -8,6 +8,7 @@ import net.minecraft.dialog.action.DynamicCustomDialogAction
 import net.minecraft.dialog.body.DialogBody
 import net.minecraft.dialog.body.PlainMessageDialogBody
 import net.minecraft.dialog.type.ConfirmationDialog
+import net.minecraft.nbt.NbtCompound
 import net.minecraft.registry.entry.RegistryEntry
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.Text
@@ -16,9 +17,15 @@ import net.minecraft.util.Identifier
 import work.lclpnet.kibu.translate.Translations
 import java.util.*
 
-fun openConfirmDialog(player: ServerPlayerEntity, translations: Translations, msg: Text, confirmId: Identifier) {
+fun openConfirmDialog(
+    player: ServerPlayerEntity,
+    translations: Translations,
+    msg: Text,
+    confirmId: Identifier,
+    confirmLabel: Text = translations.translateText("discard").formatted(RED).translateFor(player),
+    payload: Optional<NbtCompound> = Optional.empty()
+) {
     val title = translations.translateText("warning").formatted(YELLOW, BOLD).translateFor(player)
-    val discardLabel = translations.translateText("discard").formatted(RED).translateFor(player)
 
     val body = listOf<DialogBody>(
         PlainMessageDialogBody(msg, 400)
@@ -29,8 +36,8 @@ fun openConfirmDialog(player: ServerPlayerEntity, translations: Translations, ms
             title, Optional.empty(), true, true, AfterAction.CLOSE, body, listOf()
         ),
         DialogActionButtonData(
-            DialogButtonData(discardLabel, 150),
-            Optional.of(DynamicCustomDialogAction(confirmId, Optional.empty()))
+            DialogButtonData(confirmLabel, 150),
+            Optional.of(DynamicCustomDialogAction(confirmId, payload))
         ),
         DialogActionButtonData(
             DialogButtonData(Text.translatable("gui.cancel"), 150),

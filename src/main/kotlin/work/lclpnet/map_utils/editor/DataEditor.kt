@@ -32,6 +32,8 @@ interface DataEditor<T> {
 
     fun init(hooks: HookRegistrar)
 
+    fun load(value: T)
+
     fun create(): T?
 
     fun saveToWorld(world: ServerWorld, dataManager: DataManager, propertyId: String): Boolean {

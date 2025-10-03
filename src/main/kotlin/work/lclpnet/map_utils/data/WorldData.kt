@@ -27,6 +27,8 @@ class WorldData(private val properties: MutableMap<String, DataInstance<*>> = mu
     @Synchronized
     fun has(propertyId: String) = properties.contains(propertyId)
 
+    fun properties(): Map<String, DataInstance<*>> = properties.toMap()
+
     companion object {
         @JvmField
         val PROPERTY_MAP_CODEC: Codec<MutableMap<String, DataInstance<*>>> = Codec.unboundedMap(Codec.STRING, DataInstance.CODEC)

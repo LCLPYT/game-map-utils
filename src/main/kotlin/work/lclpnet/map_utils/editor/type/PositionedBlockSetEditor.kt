@@ -36,8 +36,8 @@ class PositionedBlockSetEditor(
     data: PositionedBlockSetData,
     override val args: SessionArgs,
     override val visualizer: Visualizer,
-    override var propertyId: String?,
-    override var prevPropertyId: String?
+    override var propertyId: String? = null,
+    override var prevPropertyId: String? = null
 ) : BaseDataEditor<PositionedBlockSet>(data) {
 
     val blocks = mutableMapOf<BlockPos, BlockState>()
@@ -61,7 +61,7 @@ class PositionedBlockSetEditor(
                 "placeBlocks",
                 BooleanInputControl(
                     translations.translateText(key("place_blocks")).translateFor(player),
-                    true,
+                    blocksPlaced,
                     "true",
                     "false"
                 )
@@ -92,8 +92,6 @@ class PositionedBlockSetEditor(
         hooks.registerHook(PlayerInteractionHooks.USE_BLOCK, UseBlockCallback { entity, world, hand, result ->
             useBlock(entity, world, hand, result, args)
         })
-
-        placeBlocks()
     }
 
     private fun useBlock(
@@ -105,11 +103,12 @@ class PositionedBlockSetEditor(
     ): ActionResult {
         if (entity != args.player() || world != args.world || !entity.isSneaking || hand != Hand.MAIN_HAND) return ActionResult.PASS
 
-        val state = world.getBlockState(result.blockPos)
-        blocks[result.blockPos] = state
+        val pos = result.blockPos
+        val state = world.getBlockState(pos)
+        blocks[pos] = state
 
-        val marker = visualizer.markBlock(result.blockPos, state, DyeColor.LIGHT_BLUE.entityColor)
-        val prev = markers.put(result.blockPos, marker)
+        val marker = visualizer.markBlock(pos, state, DyeColor.LIGHT_BLUE.entityColor)
+        val prev = markers.put(pos, marker)
 
         if (prev != null) {
             visualizer.removeEntity(prev)
@@ -117,7 +116,7 @@ class PositionedBlockSetEditor(
 
         args.translations.translateText(
             key("added"),
-            label(result.blockPos, state)
+            label(pos, state)
         ).formatted(GREEN).sendTo(args.player())
 
         return ActionResult.FAIL
@@ -146,6 +145,24 @@ class PositionedBlockSetEditor(
     }
 
     override fun create() = PositionedBlockSet(blocks)
+
+    override fun load(value: PositionedBlockSet) {
+        removeBlocks()
+        blocks.clear()
+
+        for ((_, entity) in markers) {
+            visualizer.removeEntity(entity)
+        }
+
+        markers.clear()
+
+        for ((pos, state) in value) {
+            blocks[pos] = state
+            markers[pos] = visualizer.markBlock(pos, state, DyeColor.LIGHT_BLUE.entityColor)
+        }
+
+        placeBlocks()
+    }
 
     override fun onDataChanged(nbt: NbtCompound) {
         nbt.getBoolean("placeBlocks").ifPresent {

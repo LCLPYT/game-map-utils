@@ -7,12 +7,12 @@ import work.lclpnet.map_utils.editor.SessionArgs
 import work.lclpnet.map_utils.editor.Visualizer
 import work.lclpnet.map_utils.editor.type.BlockBoxEditor
 
-class BlockBoxData() : Data<BlockBox> {
+object BlockBoxData : Data<BlockBox> {
 
     override fun id() = "block_box"
 
     override fun codec(): Codec<BlockBox> = BlockBox.CODEC
 
-    override fun createEditor(args: SessionArgs, visualizer: Visualizer, propertyId: String?) =
-        BlockBoxEditor(this, args, visualizer, propertyId, propertyId)
+    override fun createEditor(args: SessionArgs, visualizer: Visualizer) =
+        BlockBoxEditor(this, args, visualizer)
 }

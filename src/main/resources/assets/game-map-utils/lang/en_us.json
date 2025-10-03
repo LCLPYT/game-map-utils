@@ -1,7 +1,7 @@
 {
   "game-map-utils.editor.title": "Map data overview",
   "game-map-utils.editor.create": "Create data",
-  "game-map-utils.editor.list": "List data",
+  "game-map-utils.editor.list": "Edit data",
   "game-map-utils.create.title": "Create map data",
   "game-map-utils.create.type": "Type",
   "game-map-utils.create.confirm": "Create",
@@ -17,7 +17,7 @@
   "game-map-utils.save.overwrite": "Data \"%s\" already exists, do you want to overwrite it?",
   "game-map-utils.create.active_editor": "You are currently editing another element, do yo really want to discard the current changes?",
   "game-map-utils.type.block_box": "Block Box",
-  "game-map-utils.type.block_box.init": "Set start position: %s\nSet end position: %s\nSave / info: %s",
+  "game-map-utils.type.block_box.init": "Set %s: %s\nSet %s: %s\nSave / info: %s",
   "game-map-utils.type.block_box.pos1": "Start position",
   "game-map-utils.type.block_box.pos2": "End position",
   "game-map-utils.type.block_box.set_pos1": "Set start position to %s",
@@ -31,5 +31,8 @@
   "game-map-utils.missing_permission": "You need to be an operator in creative mode to do this",
   "game-map-utils.creating": "Creating %s %s",
   "game-map-utils.editing": "Editing \"%s\" %s",
-  "game-map-utils.required": "required"
+  "game-map-utils.required": "required",
+  "game-map-utils.list.title": "Data of world %s",
+  "game-map-utils.list.replace_editor": "You currently have another editor open. Are you sure you want to discard your current editor?",
+  "game-map-utils.list.replace": "Data of world %s"
 }

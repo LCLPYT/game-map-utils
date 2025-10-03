@@ -8,6 +8,6 @@ import work.lclpnet.map_utils.editor.Visualizer
 interface Data<T> {
     fun id(): String
     fun codec(): Codec<T>
-    fun createEditor(args: SessionArgs, visualizer: Visualizer, propertyId: String?): DataEditor<T>
+    fun createEditor(args: SessionArgs, visualizer: Visualizer): DataEditor<T>
 }
 

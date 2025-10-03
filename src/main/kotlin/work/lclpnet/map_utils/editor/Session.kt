@@ -7,6 +7,7 @@ import net.minecraft.util.Formatting.YELLOW
 import work.lclpnet.gaco.dynamic_entities.DynamicEntityManager
 import work.lclpnet.kibu.hook.HookContainer
 import work.lclpnet.kibu.translate.bossbar.TranslatedBossBar
+import work.lclpnet.map_utils.data.Data
 import work.lclpnet.map_utils.identifier
 import work.lclpnet.map_utils.util.BossBarContainer
 import work.lclpnet.map_utils.util.keybind
@@ -69,4 +70,6 @@ class Session(val args: SessionArgs, dynamicEntityManager: DynamicEntityManager)
 
         editorBossBar = bar
     }
+
+    fun <T> createEditor(data: Data<T>): DataEditor<T> = data.createEditor(args, editorVisualizer)
 }

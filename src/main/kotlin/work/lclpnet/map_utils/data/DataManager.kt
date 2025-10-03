@@ -26,8 +26,8 @@ import java.util.function.Function
 const val WORLD_DATA_FILENAME = "gaco-map.json"
 
 val DATA_TYPES = listOf<Data<*>>(
-    BlockBoxData(),
-    PositionedBlockSetData()
+    BlockBoxData,
+    PositionedBlockSetData
 ).associateBy { it.id() }
 
 val DATA_CODEC: Codec<Data<*>> = Codec.STRING.comapFlatMap(

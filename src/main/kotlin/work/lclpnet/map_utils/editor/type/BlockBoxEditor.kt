@@ -14,6 +14,8 @@ import net.minecraft.text.Text
 import net.minecraft.util.ActionResult
 import net.minecraft.util.DyeColor
 import net.minecraft.util.Formatting
+import net.minecraft.util.Formatting.BLUE
+import net.minecraft.util.Formatting.RED
 import net.minecraft.util.Hand
 import net.minecraft.util.hit.BlockHitResult
 import net.minecraft.util.math.AffineTransformation
@@ -35,8 +37,8 @@ class BlockBoxEditor(
     data: BlockBoxData,
     override val args: SessionArgs,
     override val visualizer: Visualizer,
-    override var propertyId: String?,
-    override var prevPropertyId: String?
+    override var propertyId: String? = null,
+    override var prevPropertyId: String? = null
 ) : BaseDataEditor<BlockBox>(data) {
 
     var pos1: BlockPos? = null
@@ -59,7 +61,13 @@ class BlockBoxEditor(
     override fun init(hooks: HookRegistrar) {
         args.translations.translateText(
             key("init"),
+            args.translations.translateText(key("pos1"))
+                .formatted(BLUE)
+                .translateFor(args.player()),
             keybind("sneak", "attack").formatted(Formatting.YELLOW),
+            args.translations.translateText(key("pos2"))
+                .formatted(RED)
+                .translateFor(args.player()),
             keybind("sneak", "use").formatted(Formatting.YELLOW),
             keybind("swapOffhand").formatted(Formatting.YELLOW)
         ).formatted(Formatting.AQUA).sendTo(args.player())
@@ -82,16 +90,12 @@ class BlockBoxEditor(
     ): ActionResult {
         if (entity != args.player() || world != args.world || !entity.isSneaking || hand != Hand.MAIN_HAND) return ActionResult.PASS
 
-        pos2 = result.blockPos.toImmutable()
-        sendPosChanged(args, key("set_pos2"), result.blockPos)
+        val pos = result.blockPos
 
-        val marker = pos2Marker
+        pos2 = pos.toImmutable()
+        sendPosChanged(args, key("set_pos2"), pos)
 
-        if (marker != null) {
-            visualizer.removeEntity(marker)
-        }
-
-        pos2Marker = visualizer.markBlock(result.blockPos, world.getBlockState(result.blockPos), DyeColor.RED.entityColor)
+        pos2Marker = updatePosMarker(pos, world, pos2Marker, DyeColor.RED.entityColor)
 
         updateBox(args)
 
@@ -109,17 +113,19 @@ class BlockBoxEditor(
         pos1 = pos.toImmutable()
         sendPosChanged(args, key("set_pos1"), pos)
 
-        val marker = pos1Marker
-
-        if (marker != null) {
-            visualizer.removeEntity(marker)
-        }
-
-        pos1Marker = visualizer.markBlock(pos, world.getBlockState(pos), DyeColor.BLUE.entityColor)
+        pos1Marker = updatePosMarker(pos, world, pos1Marker, DyeColor.BLUE.entityColor)
 
         updateBox(args)
 
         return ActionResult.FAIL
+    }
+
+    private fun updatePosMarker(pos: BlockPos, world: World, marker: DisplayEntity.BlockDisplayEntity?, color: Int): DisplayEntity.BlockDisplayEntity {
+        if (marker != null) {
+            visualizer.removeEntity(marker)
+        }
+
+        return visualizer.markBlock(pos, world.getBlockState(pos), color)
     }
 
     private fun sendPosChanged(args: SessionArgs, key: String, pos: BlockPos) {
@@ -181,5 +187,15 @@ class BlockBoxEditor(
         }
 
         return BlockBox(pos1, pos2)
+    }
+
+    override fun load(value: BlockBox) {
+        pos1 = value.min()
+        pos2 = value.max()
+
+        pos1Marker = updatePosMarker(value.min(), args.world, pos1Marker, DyeColor.BLUE.entityColor)
+        pos2Marker = updatePosMarker(value.max(), args.world, pos2Marker, DyeColor.RED.entityColor)
+
+        updateBox(args)
     }
 }
