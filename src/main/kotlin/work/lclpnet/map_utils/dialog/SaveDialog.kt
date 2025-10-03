@@ -151,6 +151,11 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
         dataManager.save(player.world)
 
         session.destroyEditor()
+
+        if (session.showAll) {
+            session.clearSessionRemovables()
+            session.displayWorldData(dataManager)
+        }
     }
 
     fun discard(player: ServerPlayerEntity, nbt: NbtCompound) {

@@ -5,17 +5,21 @@ import net.minecraft.block.Blocks
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityType
 import net.minecraft.entity.decoration.DisplayEntity
+import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.math.AffineTransformation
 import net.minecraft.util.math.Vec3i
 import org.joml.Matrix4f
 import work.lclpnet.gaco.dynamic_entities.DynamicEntity
 import work.lclpnet.gaco.dynamic_entities.DynamicEntityManager
 import work.lclpnet.gaco.dynamic_entities.PlayerSpecificDynamicEntity
+import work.lclpnet.map_utils.util.Visualizer
 
 class EditorVisualizer(val args: SessionArgs, val dynamicEntityManager: DynamicEntityManager) : Visualizer {
 
     val entities = mutableSetOf<DynamicEntity>()
     val mapping = mutableMapOf<Entity, DynamicEntity>()
+
+    override fun world(): ServerWorld = args.world
 
     override fun addEntity(entity: Entity) {
         val dynamicEntity = PlayerSpecificDynamicEntity(entity, args.player().uuid)

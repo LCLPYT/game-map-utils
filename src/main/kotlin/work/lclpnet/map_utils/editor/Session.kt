@@ -8,8 +8,10 @@ import work.lclpnet.gaco.dynamic_entities.DynamicEntityManager
 import work.lclpnet.kibu.hook.HookContainer
 import work.lclpnet.kibu.translate.bossbar.TranslatedBossBar
 import work.lclpnet.map_utils.data.Data
+import work.lclpnet.map_utils.data.DataManager
 import work.lclpnet.map_utils.identifier
 import work.lclpnet.map_utils.util.BossBarContainer
+import work.lclpnet.map_utils.util.Removable
 import work.lclpnet.map_utils.util.keybind
 
 class Session(val args: SessionArgs, dynamicEntityManager: DynamicEntityManager) {
@@ -19,6 +21,9 @@ class Session(val args: SessionArgs, dynamicEntityManager: DynamicEntityManager)
     private val editorHooks = HookContainer()
     private var editorBossBar: TranslatedBossBar? = null
     val editorVisualizer = EditorVisualizer(args, dynamicEntityManager)
+    val sessionVisualizer = EditorVisualizer(args, dynamicEntityManager)
+    val sessionRemovables = mutableMapOf<String, Removable>()
+    var showAll = false
 
     var editor: DataEditor<*>? = null
         private set
@@ -29,6 +34,10 @@ class Session(val args: SessionArgs, dynamicEntityManager: DynamicEntityManager)
 
     fun destroy() {
         destroyEditor()
+
+        sessionRemovables.clear()
+        sessionVisualizer.destroy()
+
         bossBars.destroy()
         hooks.unload()
     }
@@ -69,6 +78,37 @@ class Session(val args: SessionArgs, dynamicEntityManager: DynamicEntityManager)
         editor.init(editorHooks)
 
         editorBossBar = bar
+    }
+
+    @Synchronized
+    fun addSessionRemovable(propertyId: String, removable: Removable) {
+        sessionRemovables[propertyId] = removable
+    }
+
+    @Synchronized
+    fun clearSessionRemovables() {
+        for ((_, removable) in sessionRemovables) {
+            removable.remove()
+        }
+
+        sessionRemovables.clear()
+    }
+
+    @Synchronized
+    fun removeSessionDisplay(propertyId: String) {
+        val removable = sessionRemovables.remove(propertyId) ?: return
+
+        removable.remove()
+    }
+
+    @Synchronized
+    fun displayWorldData(dataManager: DataManager) {
+        val worldData = dataManager.getWorldData(args.world)
+
+        for ((propertyId, dataInstance) in worldData.properties()) {
+            val removable = dataInstance.display(sessionVisualizer, args.player(), args.translations, propertyId)
+            addSessionRemovable(propertyId, removable)
+        }
     }
 
     fun <T> createEditor(data: Data<T>): DataEditor<T> = data.createEditor(args, editorVisualizer)

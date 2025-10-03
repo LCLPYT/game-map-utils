@@ -12,6 +12,7 @@ import work.lclpnet.kibu.hook.HookRegistrar
 import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.map_utils.data.Data
 import work.lclpnet.map_utils.data.DataManager
+import work.lclpnet.map_utils.util.Visualizer
 
 interface DataEditor<T> {
     val args: SessionArgs

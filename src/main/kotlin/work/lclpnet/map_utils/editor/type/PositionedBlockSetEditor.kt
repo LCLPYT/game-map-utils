@@ -28,8 +28,8 @@ import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.map_utils.data.type.PositionedBlockSetData
 import work.lclpnet.map_utils.editor.BaseDataEditor
 import work.lclpnet.map_utils.editor.SessionArgs
-import work.lclpnet.map_utils.editor.Visualizer
 import work.lclpnet.map_utils.util.PositionedBlockSet
+import work.lclpnet.map_utils.util.Visualizer
 import work.lclpnet.map_utils.util.keybind
 
 class PositionedBlockSetEditor(

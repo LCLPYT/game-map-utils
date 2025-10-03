@@ -38,5 +38,6 @@
   "game-map-utils.list.replace_editor": "You currently have another editor open. Are you sure you want to discard your current editor?",
   "game-map-utils.list.replace": "Data of world %s",
   "game-map-utils.list.confirm_delete": "Do you really want to delete data \"%s\"?",
-  "game-map-utils.list.deleted": "Data \"%s\" deleted"
+  "game-map-utils.list.deleted": "Data \"%s\" deleted",
+  "game-map-utils.list.show_all": "Show all in world"
 }

@@ -2,11 +2,8 @@ package work.lclpnet.map_utils.editor.type
 
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback
 import net.fabricmc.fabric.api.event.player.UseBlockCallback
-import net.minecraft.block.Blocks
 import net.minecraft.dialog.body.DialogBody
 import net.minecraft.dialog.type.DialogInput
-import net.minecraft.entity.EntityType
-import net.minecraft.entity.decoration.Brightness
 import net.minecraft.entity.decoration.DisplayEntity
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.nbt.NbtCompound
@@ -19,10 +16,8 @@ import net.minecraft.util.Formatting.BLUE
 import net.minecraft.util.Formatting.RED
 import net.minecraft.util.Hand
 import net.minecraft.util.hit.BlockHitResult
-import net.minecraft.util.math.AffineTransformation
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
-import org.joml.Matrix4f
 import work.lclpnet.gaco.ds.BlockBox
 import work.lclpnet.kibu.hook.HookRegistrar
 import work.lclpnet.kibu.hook.entity.PlayerInteractionHooks
@@ -31,7 +26,8 @@ import work.lclpnet.kibu.translate.text.FormatWrapper.styled
 import work.lclpnet.map_utils.data.type.BlockBoxData
 import work.lclpnet.map_utils.editor.BaseDataEditor
 import work.lclpnet.map_utils.editor.SessionArgs
-import work.lclpnet.map_utils.editor.Visualizer
+import work.lclpnet.map_utils.util.Removable
+import work.lclpnet.map_utils.util.Visualizer
 import work.lclpnet.map_utils.util.keybind
 
 class BlockBoxEditor(
@@ -47,7 +43,7 @@ class BlockBoxEditor(
 
     var pos1Marker: DisplayEntity.BlockDisplayEntity? = null
     var pos2Marker: DisplayEntity.BlockDisplayEntity? = null
-    var boxMarker: DisplayEntity.BlockDisplayEntity? = null
+    var boxMarker: Removable? = null
 
     override fun modifyDialog(
         body: MutableList<DialogBody>,
@@ -98,7 +94,7 @@ class BlockBoxEditor(
 
         pos2Marker = updatePosMarker(pos, world, pos2Marker, DyeColor.RED.entityColor)
 
-        updateBox(args)
+        updateBox()
 
         return ActionResult.FAIL
     }
@@ -116,7 +112,7 @@ class BlockBoxEditor(
 
         pos1Marker = updatePosMarker(pos, world, pos1Marker, DyeColor.BLUE.entityColor)
 
-        updateBox(args)
+        updateBox()
 
         return ActionResult.FAIL
     }
@@ -136,7 +132,7 @@ class BlockBoxEditor(
         ).formatted(Formatting.GREEN).sendTo(args.player())
     }
 
-    private fun updateBox(args: SessionArgs) {
+    private fun updateBox() {
         val pos1 = pos1
         val pos2 = pos2
 
@@ -144,33 +140,9 @@ class BlockBoxEditor(
 
         val box = BlockBox(pos1, pos2)
 
-        var marker = boxMarker
+        boxMarker?.remove()
 
-        if (marker != null) {
-            marker.setPos(box.min().x.toDouble(), box.min().y.toDouble(), box.min().z.toDouble())
-            marker.setTransformation(
-                AffineTransformation(
-                    Matrix4f()
-                        .scale(box.width().toFloat(), box.height().toFloat(), box.length().toFloat())
-                )
-            )
-            return
-        }
-
-        marker = DisplayEntity.BlockDisplayEntity(EntityType.BLOCK_DISPLAY, args.world)
-        marker.blockState = Blocks.GREEN_STAINED_GLASS.defaultState
-        marker.setBrightness(Brightness(15, 15))
-        marker.setPos(box.min().x.toDouble(), box.min().y.toDouble(), box.min().z.toDouble())
-        marker.setTransformation(
-            AffineTransformation(
-                Matrix4f()
-                    .scale(box.width().toFloat(), box.height().toFloat(), box.length().toFloat())
-            )
-        )
-
-        boxMarker = marker
-
-        visualizer.addEntity(marker)
+        boxMarker = data.display(box, visualizer, args.player(), args.translations, propertyId)
     }
 
     override fun create(nbt: NbtCompound): BlockBox? {
@@ -197,6 +169,6 @@ class BlockBoxEditor(
         pos1Marker = updatePosMarker(value.min(), args.world, pos1Marker, DyeColor.BLUE.entityColor)
         pos2Marker = updatePosMarker(value.max(), args.world, pos2Marker, DyeColor.RED.entityColor)
 
-        updateBox(args)
+        updateBox()
     }
 }

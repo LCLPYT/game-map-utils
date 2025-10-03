@@ -1,7 +1,10 @@
 package work.lclpnet.map_utils.data
 
 import com.mojang.serialization.Codec
+import net.minecraft.server.network.ServerPlayerEntity
+import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.map_utils.editor.DataEditor
+import work.lclpnet.map_utils.editor.EditorVisualizer
 import work.lclpnet.map_utils.editor.Session
 import java.util.function.Function
 
@@ -30,6 +33,13 @@ data class DataInstance<T>(val data: Data<T>, val value: T) {
 
         return editor
     }
+
+    fun display(
+        visualizer: EditorVisualizer,
+        player: ServerPlayerEntity,
+        translations: Translations,
+        propertyId: String
+    ) = data.display(value, visualizer, player, translations, propertyId)
 
     companion object {
         @JvmField

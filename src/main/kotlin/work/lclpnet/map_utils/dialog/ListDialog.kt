@@ -5,6 +5,8 @@ import net.minecraft.dialog.DialogActionButtonData
 import net.minecraft.dialog.DialogButtonData
 import net.minecraft.dialog.DialogCommonData
 import net.minecraft.dialog.action.DynamicCustomDialogAction
+import net.minecraft.dialog.input.BooleanInputControl
+import net.minecraft.dialog.type.DialogInput
 import net.minecraft.dialog.type.MultiActionDialog
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.registry.entry.RegistryEntry
@@ -21,6 +23,7 @@ import java.util.*
 class ListDialog(val translations: Translations, val dataManager: DataManager, val sessionManager: SessionManager) {
 
     fun open(player: ServerPlayerEntity) {
+        val session = sessionManager.getSession(player)
         val worldData = dataManager.getWorldData(player.world)
 
         val actions = mutableListOf<DialogActionButtonData>()
@@ -58,16 +61,26 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
             ))
         }
 
+        val inputs = listOf(DialogInput(
+            "showAll",
+            BooleanInputControl(
+                translations.translateText("list.show_all").translateFor(player),
+                session.showAll,
+                "true",
+                "false"
+            )
+        ))
+
         val title = translations.translateText("list.title", player.world.registryKey.value).translateFor(player)
 
         val dialog = MultiActionDialog(
             DialogCommonData(
-                title, Optional.empty(), true, true, AfterAction.CLOSE, listOf(), listOf()
+                title, Optional.empty(), true, true, AfterAction.CLOSE, listOf(), inputs
             ),
             actions,
             Optional.of(DialogActionButtonData(
-                DialogButtonData(Text.translatable("gui.close"), 150),
-                Optional.empty()
+                DialogButtonData(Text.translatable("gui.cancel"), 150),
+                Optional.of(DynamicCustomDialogAction(CLOSE_ID, Optional.empty()))
             )),
             4
         )
@@ -76,6 +89,8 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
     }
 
     fun select(player: ServerPlayerEntity, nbt: NbtCompound) {
+        onDataChange(player, nbt)
+
         val session = sessionManager.getSession(player)
         
         if (session.editor != null) {
@@ -95,6 +110,8 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
         val worldData = dataManager.getWorldData(player.world)
         val dataInstance = worldData[propertyId] ?: return
 
+        sessionManager.getSession(player).removeSessionDisplay(propertyId)
+
         val session = sessionManager.getSession(player)
         session.destroyEditor()
 
@@ -106,6 +123,8 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
     }
 
     fun delete(player: ServerPlayerEntity, nbt: NbtCompound) {
+        onDataChange(player, nbt)
+
         val propertyId = nbt.getString("propertyId", null) ?: return
 
         val msg = translations.translateText(
@@ -122,6 +141,7 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
         val propertyId = nbt.getString("propertyId", null) ?: return
         val worldData = dataManager.getWorldData(player.world)
 
+        sessionManager.getSession(player).removeSessionDisplay(propertyId)
         worldData.remove(propertyId)
 
         translations.translateText(
@@ -131,6 +151,8 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
     }
 
     fun moveUp(player: ServerPlayerEntity, nbt: NbtCompound) {
+        onDataChange(player, nbt)
+
         val propertyId = nbt.getString("propertyId", null) ?: return
         val worldData = dataManager.getWorldData(player.world)
 
@@ -143,6 +165,8 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
     }
 
     fun moveDown(player: ServerPlayerEntity, nbt: NbtCompound) {
+        onDataChange(player, nbt)
+
         val propertyId = nbt.getString("propertyId", null) ?: return
         val worldData = dataManager.getWorldData(player.world)
 
@@ -154,6 +178,27 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
         open(player)
     }
 
+    fun onClose(player: ServerPlayerEntity, nbt: NbtCompound) {
+        onDataChange(player, nbt)
+    }
+
+    private fun onDataChange(player: ServerPlayerEntity, nbt: NbtCompound) {
+        val session = sessionManager.getSession(player)
+
+        val showAll = nbt.getBoolean("showAll", session.showAll)
+
+        if (showAll == session.showAll) return
+
+        session.showAll = showAll
+
+        if (!showAll) {
+            session.clearSessionRemovables()
+            return
+        }
+
+        session.displayWorldData(dataManager)
+    }
+
     companion object {
         val LIST_ID = identifier("list")
         val SELECT_ID = identifier("list_select")
@@ -162,5 +207,6 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
         val CONFIRM_DELETE_ID = identifier("list_confirm_delete")
         val MOVE_UP_ID = identifier("list_move_up")
         val MOVE_DOWN_ID = identifier("list_move_down")
+        val CLOSE_ID = identifier("list_close")
     }
 }
