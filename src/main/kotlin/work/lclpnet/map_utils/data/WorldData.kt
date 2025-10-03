@@ -20,13 +20,40 @@ class WorldData(private val properties: MutableMap<String, DataInstance<*>> = mu
     }
 
     @Synchronized
-    fun remove(propertyId: String) {
-        properties.remove(propertyId)
-    }
+    fun remove(propertyId: String): DataInstance<*>? = properties.remove(propertyId)
 
     @Synchronized
     fun has(propertyId: String) = properties.contains(propertyId)
 
+    @Synchronized
+    fun getIndex(propertyId: String): Int {
+        val list = properties.entries.toMutableList()
+        return list.indexOfFirst { it.key == propertyId }
+    }
+
+    @Synchronized
+    fun setIndex(propertyId: String, index: Int) {
+        if (index < 0 || index >= properties.size) {
+            throw IndexOutOfBoundsException("Index $index is out of bounds for size ${properties.size}")
+        }
+
+        val list = properties.entries.toMutableList()
+        val oldIndex = list.indexOfFirst { it.key == propertyId }
+
+        if (oldIndex == -1 || oldIndex == index) return
+
+        val removed = list.removeAt(oldIndex)
+
+        list.add(index, removed)
+
+        properties.clear()
+
+        for ((k, v) in list) {
+            properties[k] = v
+        }
+    }
+
+    @Synchronized
     fun properties(): Map<String, DataInstance<*>> = properties.toMap()
 
     companion object {

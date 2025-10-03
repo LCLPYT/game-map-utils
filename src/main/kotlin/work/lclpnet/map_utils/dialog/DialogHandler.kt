@@ -32,6 +32,8 @@ class DialogHandler(val createDialog: CreateDialog, val saveDialog: SaveDialog, 
             ListDialog.CONFIRM_SELECT_ID -> listDialog.confirmSelect(player, nbt)
             ListDialog.DELETE_ID -> listDialog.delete(player, nbt)
             ListDialog.CONFIRM_DELETE_ID -> listDialog.confirmDelete(player, nbt)
+            ListDialog.MOVE_UP_ID -> listDialog.moveUp(player, nbt)
+            ListDialog.MOVE_DOWN_ID -> listDialog.moveDown(player, nbt)
         }
     }
 }

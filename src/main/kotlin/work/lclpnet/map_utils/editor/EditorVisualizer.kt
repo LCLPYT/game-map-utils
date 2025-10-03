@@ -1,6 +1,7 @@
 package work.lclpnet.map_utils.editor
 
 import net.minecraft.block.BlockState
+import net.minecraft.block.Blocks
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityType
 import net.minecraft.entity.decoration.DisplayEntity
@@ -33,6 +34,10 @@ class EditorVisualizer(val args: SessionArgs, val dynamicEntityManager: DynamicE
     }
 
     override fun markBlock(pos: Vec3i, state: BlockState, glowColor: Int): DisplayEntity.BlockDisplayEntity {
+        val state = if (state.isAir || state.isOf(Blocks.BARRIER) || state.isOf(Blocks.STRUCTURE_VOID)) {
+            Blocks.GLASS.defaultState
+        } else state
+
         val margin = 0.015f
         val marker = DisplayEntity.BlockDisplayEntity(EntityType.BLOCK_DISPLAY, args.world)
         marker.setPosition(

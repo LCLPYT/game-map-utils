@@ -43,6 +43,16 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
             ))
 
             actions.add(DialogActionButtonData(
+                DialogButtonData(Text.literal("↑"), 20),
+                Optional.of(DynamicCustomDialogAction(MOVE_UP_ID, Optional.of(nbt)))
+            ))
+
+            actions.add(DialogActionButtonData(
+                DialogButtonData(Text.literal("↓"), 20),
+                Optional.of(DynamicCustomDialogAction(MOVE_DOWN_ID, Optional.of(nbt)))
+            ))
+
+            actions.add(DialogActionButtonData(
                 DialogButtonData(Text.literal("\uD83D\uDDD1").formatted(RED), 20),
                 Optional.of(DynamicCustomDialogAction(DELETE_ID, Optional.of(nbt)))
             ))
@@ -59,7 +69,7 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
                 DialogButtonData(Text.translatable("gui.close"), 150),
                 Optional.empty()
             )),
-            2
+            4
         )
 
         player.openDialog(RegistryEntry.of(dialog))
@@ -120,11 +130,37 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
         ).formatted(GREEN).sendTo(player)
     }
 
+    fun moveUp(player: ServerPlayerEntity, nbt: NbtCompound) {
+        val propertyId = nbt.getString("propertyId", null) ?: return
+        val worldData = dataManager.getWorldData(player.world)
+
+        val index = worldData.getIndex(propertyId)
+        if (index == -1 || index == 0) return
+
+        worldData.setIndex(propertyId, index - 1)
+
+        open(player)
+    }
+
+    fun moveDown(player: ServerPlayerEntity, nbt: NbtCompound) {
+        val propertyId = nbt.getString("propertyId", null) ?: return
+        val worldData = dataManager.getWorldData(player.world)
+
+        val index = worldData.getIndex(propertyId)
+        if (index == -1 || index >= worldData.properties().size - 1) return
+
+        worldData.setIndex(propertyId, index + 1)
+
+        open(player)
+    }
+
     companion object {
         val LIST_ID = identifier("list")
         val SELECT_ID = identifier("list_select")
         val CONFIRM_SELECT_ID = identifier("list_confirm_select")
         val DELETE_ID = identifier("list_delete")
         val CONFIRM_DELETE_ID = identifier("list_confirm_delete")
+        val MOVE_UP_ID = identifier("list_move_up")
+        val MOVE_DOWN_ID = identifier("list_move_down")
     }
 }
