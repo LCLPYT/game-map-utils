@@ -1,7 +1,6 @@
 package work.lclpnet.map_utils.editor
 
 import work.lclpnet.map_utils.data.Data
-import work.lclpnet.map_utils.data.DataEditor
 
 abstract class BaseDataEditor<T>(val data: Data<T>) : DataEditor<T> {
 
@@ -9,6 +8,4 @@ abstract class BaseDataEditor<T>(val data: Data<T>) : DataEditor<T> {
 
     override fun data() = data
     override fun isNew() = new
-
-
 }

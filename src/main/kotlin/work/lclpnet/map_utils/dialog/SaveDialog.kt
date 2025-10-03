@@ -53,19 +53,21 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
 
         val body = mutableListOf<DialogBody>()
 
-        editor.addBody(body, translations, player)
+        val inputs = mutableListOf(
+            DialogInput(
+                "propertyId",
+                TextInputControl(
+                    200,
+                    translations.translateText("save.property_id").translateFor(player),
+                    true,
+                    propertyId ?: "",
+                    64,
+                    Optional.empty()
+                )
+            ),
+        )
 
-        val inputs = listOf(DialogInput(
-            "propertyId",
-            TextInputControl(
-                200,
-                translations.translateText("save.property_id").translateFor(player),
-                true,
-                propertyId ?: "",
-                64,
-                Optional.empty()
-            )
-        ))
+        editor.modifyDialog(body, inputs, translations, player)
 
         val dialog = MultiActionDialog(
             DialogCommonData(
@@ -77,15 +79,14 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
                     Optional.of(DynamicCustomDialogAction(SAVE_ID, Optional.empty()))
                 ),
                 DialogActionButtonData(
-                    DialogButtonData(Text.translatable("gui.cancel"), 150),
-                    Optional.empty()
-                ),
-                DialogActionButtonData(
                     DialogButtonData(translations.translateText("discard").formatted(RED).translateFor(player), 150),
                     Optional.of(DynamicCustomDialogAction(DISCARD_ID, Optional.empty()))
                 )
             ),
-            Optional.empty(),
+            Optional.of(DialogActionButtonData(
+                DialogButtonData(Text.translatable("gui.cancel"), 150),
+                Optional.of(DynamicCustomDialogAction(CLOSE_ID, Optional.empty()))
+            )),
             1
         )
 
@@ -152,9 +153,21 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
         session.destroyEditor()
     }
 
+    fun onClose(player: ServerPlayerEntity, payload: Optional<NbtElement>) {
+        val nbt = payload.map { it as? NbtCompound }.orElseGet { NbtCompound() }!!
+
+        val session = sessionManager.optSession(player) ?: return
+        val editor = session.editor ?: return
+
+        nbt.getString("propertyId").ifPresent { editor.propertyId = it }
+
+        editor.onDataChanged(nbt)
+    }
+
     companion object {
         val SAVE_ID = identifier("save")
         val DISCARD_ID = identifier("save_discard")
         val CONFIRM_ID = identifier("save_confirm")
+        val CLOSE_ID = identifier("save_close")
     }
 }

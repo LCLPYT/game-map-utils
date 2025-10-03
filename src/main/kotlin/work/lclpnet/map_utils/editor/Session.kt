@@ -7,12 +7,11 @@ import net.minecraft.util.Formatting.YELLOW
 import work.lclpnet.gaco.dynamic_entities.DynamicEntityManager
 import work.lclpnet.kibu.hook.HookContainer
 import work.lclpnet.kibu.translate.bossbar.TranslatedBossBar
-import work.lclpnet.map_utils.data.DataEditor
 import work.lclpnet.map_utils.identifier
 import work.lclpnet.map_utils.util.BossBarContainer
 import work.lclpnet.map_utils.util.keybind
 
-class Session(val args: SessionArgs, val dynamicEntityManager: DynamicEntityManager) {
+class Session(val args: SessionArgs, dynamicEntityManager: DynamicEntityManager) {
 
     private val bossBars = BossBarContainer()
     private val hooks = HookContainer()

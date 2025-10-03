@@ -2,10 +2,15 @@ package work.lclpnet.map_utils.editor.type
 
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback
 import net.fabricmc.fabric.api.event.player.UseBlockCallback
+import net.minecraft.block.Block
 import net.minecraft.block.BlockState
+import net.minecraft.block.Blocks
 import net.minecraft.dialog.body.DialogBody
+import net.minecraft.dialog.input.BooleanInputControl
+import net.minecraft.dialog.type.DialogInput
 import net.minecraft.entity.decoration.DisplayEntity
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.nbt.NbtCompound
 import net.minecraft.registry.Registries
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.MutableText
@@ -37,17 +42,31 @@ class PositionedBlockSetEditor(
 
     val blocks = mutableMapOf<BlockPos, BlockState>()
     val markers = mutableMapOf<BlockPos, DisplayEntity.BlockDisplayEntity>()
+    var blocksPlaced = true
 
-    override fun addBody(
+    override fun modifyDialog(
         body: MutableList<DialogBody>,
+        inputs: MutableList<DialogInput>,
         translations: Translations,
         player: ServerPlayerEntity
     ) {
-        body.add(messageBody(translations.translateText(player, "type.positioned_block_set.header", blocks.size)))
+        body.add(messageBody(translations.translateText(player, key("header"), blocks.size)))
 
         for ((pos, state) in blocks) {
             body.add(messageBody(label(pos, state)))
         }
+
+        inputs.add(
+            DialogInput(
+                "placeBlocks",
+                BooleanInputControl(
+                    translations.translateText(key("place_blocks")).translateFor(player),
+                    true,
+                    "true",
+                    "false"
+                )
+            )
+        )
     }
 
     private fun label(pos: BlockPos, state: BlockState): MutableText {
@@ -60,7 +79,7 @@ class PositionedBlockSetEditor(
 
     override fun init(hooks: HookRegistrar) {
         args.translations.translateText(
-            "type.${data.id()}.init",
+            key("init"),
             keybind("sneak", "use").formatted(YELLOW),
             keybind("sneak", "attack").formatted(YELLOW),
             keybind("swapOffhand").formatted(YELLOW)
@@ -73,6 +92,8 @@ class PositionedBlockSetEditor(
         hooks.registerHook(PlayerInteractionHooks.USE_BLOCK, UseBlockCallback { entity, world, hand, result ->
             useBlock(entity, world, hand, result, args)
         })
+
+        placeBlocks()
     }
 
     private fun useBlock(
@@ -95,7 +116,7 @@ class PositionedBlockSetEditor(
         }
 
         args.translations.translateText(
-            "type.positioned_block_set.added",
+            key("added"),
             label(result.blockPos, state)
         ).formatted(GREEN).sendTo(args.player())
 
@@ -117,7 +138,7 @@ class PositionedBlockSetEditor(
         if (entity != null) visualizer.removeEntity(entity)
 
         args.translations.translateText(
-            "type.positioned_block_set.removed",
+            key("removed"),
             label(pos, state)
         ).formatted(RED).sendTo(args.player())
 
@@ -125,4 +146,33 @@ class PositionedBlockSetEditor(
     }
 
     override fun create() = PositionedBlockSet(blocks)
+
+    override fun onDataChanged(nbt: NbtCompound) {
+        nbt.getBoolean("placeBlocks").ifPresent {
+            if (it != blocksPlaced) {
+                if (it) placeBlocks()
+                else removeBlocks()
+            }
+        }
+    }
+
+    private fun placeBlocks() {
+        blocksPlaced = true
+
+        val world = args.world
+
+        for ((pos, state) in blocks) {
+            world.setBlockState(pos, state, Block.FORCE_STATE or Block.NOTIFY_LISTENERS)
+        }
+    }
+
+    private fun removeBlocks() {
+        blocksPlaced = false
+
+        val world = args.world
+
+        for ((pos, _) in blocks) {
+            world.setBlockState(pos, Blocks.AIR.defaultState, Block.FORCE_STATE or Block.NOTIFY_LISTENERS or Block.SKIP_DROPS)
+        }
+    }
 }

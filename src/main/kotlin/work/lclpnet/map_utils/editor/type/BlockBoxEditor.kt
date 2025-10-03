@@ -4,6 +4,7 @@ import net.fabricmc.fabric.api.event.player.AttackBlockCallback
 import net.fabricmc.fabric.api.event.player.UseBlockCallback
 import net.minecraft.block.Blocks
 import net.minecraft.dialog.body.DialogBody
+import net.minecraft.dialog.type.DialogInput
 import net.minecraft.entity.EntityType
 import net.minecraft.entity.decoration.Brightness
 import net.minecraft.entity.decoration.DisplayEntity
@@ -45,14 +46,19 @@ class BlockBoxEditor(
     var pos2Marker: DisplayEntity.BlockDisplayEntity? = null
     var boxMarker: DisplayEntity.BlockDisplayEntity? = null
 
-    override fun addBody(body: MutableList<DialogBody>, translations: Translations, player: ServerPlayerEntity) {
+    override fun modifyDialog(
+        body: MutableList<DialogBody>,
+        inputs: MutableList<DialogInput>,
+        translations: Translations,
+        player: ServerPlayerEntity
+    ) {
         body.add(required(pos1, "pos1", translations, player) { Text.literal(it.toShortString()) })
         body.add(required(pos2, "pos2", translations, player) { Text.literal(it.toShortString()) })
     }
 
     override fun init(hooks: HookRegistrar) {
         args.translations.translateText(
-            "type.${data.id()}.init",
+            key("init"),
             keybind("sneak", "attack").formatted(Formatting.YELLOW),
             keybind("sneak", "use").formatted(Formatting.YELLOW),
             keybind("swapOffhand").formatted(Formatting.YELLOW)
@@ -77,7 +83,7 @@ class BlockBoxEditor(
         if (entity != args.player() || world != args.world || !entity.isSneaking || hand != Hand.MAIN_HAND) return ActionResult.PASS
 
         pos2 = result.blockPos.toImmutable()
-        sendPosChanged(args, "type.block_box.set_pos2", result.blockPos)
+        sendPosChanged(args, key("set_pos2"), result.blockPos)
 
         val marker = pos2Marker
 
@@ -101,7 +107,7 @@ class BlockBoxEditor(
         if (entity != args.player() || world != args.world || !entity.isSneaking) return ActionResult.PASS
 
         pos1 = pos.toImmutable()
-        sendPosChanged(args, "type.block_box.set_pos1", pos)
+        sendPosChanged(args, key("set_pos1"), pos)
 
         val marker = pos1Marker
 
@@ -170,12 +176,7 @@ class BlockBoxEditor(
         if (pos2 == null) missing.add("pos2")
 
         if (missing.isNotEmpty()) {
-            args.translations.translateText(
-                "save.missing",
-                Text.literal(missing.joinToString {
-                    args.translations.translate(args.player(), "type.${data.id()}.$it")
-                }).formatted(Formatting.YELLOW)
-            ).formatted(Formatting.RED).sendTo(args.player())
+            sendMissing(missing)
             return null
         }
 
