@@ -8,6 +8,8 @@
   "game-map-utils.create": "Create",
   "game-map-utils.warning": "Warning",
   "game-map-utils.discard": "Discard",
+  "game-map-utils.discard_changes": "Discard changes",
+  "game-map-utils.delete": "Delete",
   "game-map-utils.save": "Save",
   "game-map-utils.save.title": "Save \"%s\"",
   "game-map-utils.save.title_new": "Save new %s",
@@ -34,5 +36,7 @@
   "game-map-utils.required": "required",
   "game-map-utils.list.title": "Data of world %s",
   "game-map-utils.list.replace_editor": "You currently have another editor open. Are you sure you want to discard your current editor?",
-  "game-map-utils.list.replace": "Data of world %s"
+  "game-map-utils.list.replace": "Data of world %s",
+  "game-map-utils.list.confirm_delete": "Do you really want to delete data \"%s\"?",
+  "game-map-utils.list.deleted": "Data \"%s\" deleted"
 }

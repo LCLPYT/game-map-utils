@@ -10,8 +10,7 @@ import net.minecraft.nbt.NbtCompound
 import net.minecraft.registry.entry.RegistryEntry
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.Text
-import net.minecraft.util.Formatting.AQUA
-import net.minecraft.util.Formatting.YELLOW
+import net.minecraft.util.Formatting.*
 import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.map_utils.data.DataManager
 import work.lclpnet.map_utils.editor.SessionManager
@@ -42,6 +41,11 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
                 DialogButtonData(label, 200),
                 Optional.of(DynamicCustomDialogAction(SELECT_ID, Optional.of(nbt)))
             ))
+
+            actions.add(DialogActionButtonData(
+                DialogButtonData(Text.literal("\uD83D\uDDD1").formatted(RED), 20),
+                Optional.of(DynamicCustomDialogAction(DELETE_ID, Optional.of(nbt)))
+            ))
         }
 
         val title = translations.translateText("list.title", player.world.registryKey.value).translateFor(player)
@@ -52,10 +56,10 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
             ),
             actions,
             Optional.of(DialogActionButtonData(
-                DialogButtonData(Text.translatable("gui.cancel"), 150),
+                DialogButtonData(Text.translatable("gui.close"), 150),
                 Optional.empty()
             )),
-            1
+            2
         )
 
         player.openDialog(RegistryEntry.of(dialog))
@@ -91,9 +95,36 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
         session.setEditor(editor)
     }
 
+    fun delete(player: ServerPlayerEntity, nbt: NbtCompound) {
+        val propertyId = nbt.getString("propertyId", null) ?: return
+
+        val msg = translations.translateText(
+            "list.confirm_delete",
+            Text.literal(propertyId).formatted(YELLOW)
+        ).formatted(RED).translateFor(player)
+
+        val label = translations.translateText("delete").formatted(RED).translateFor(player)
+
+        openConfirmDialog(player, translations, msg, CONFIRM_DELETE_ID, label, Optional.of(nbt))
+    }
+
+    fun confirmDelete(player: ServerPlayerEntity, nbt: NbtCompound) {
+        val propertyId = nbt.getString("propertyId", null) ?: return
+        val worldData = dataManager.getWorldData(player.world)
+
+        worldData.remove(propertyId)
+
+        translations.translateText(
+            "list.deleted",
+            Text.literal(propertyId).formatted(YELLOW)
+        ).formatted(GREEN).sendTo(player)
+    }
+
     companion object {
         val LIST_ID = identifier("list")
         val SELECT_ID = identifier("list_select")
         val CONFIRM_SELECT_ID = identifier("list_confirm_select")
+        val DELETE_ID = identifier("list_delete")
+        val CONFIRM_DELETE_ID = identifier("list_confirm_delete")
     }
 }

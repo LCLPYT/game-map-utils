@@ -78,7 +78,9 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
                     Optional.of(DynamicCustomDialogAction(SAVE_ID, Optional.empty()))
                 ),
                 DialogActionButtonData(
-                    DialogButtonData(translations.translateText("discard").formatted(RED).translateFor(player), 150),
+                    DialogButtonData(translations.translateText(if (editor.isNew()) "discard" else "discard_changes")
+                        .formatted(RED)
+                        .translateFor(player), 150),
                     Optional.of(DynamicCustomDialogAction(DISCARD_ID, Optional.empty()))
                 )
             ),

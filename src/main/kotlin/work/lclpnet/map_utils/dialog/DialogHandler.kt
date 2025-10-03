@@ -30,6 +30,8 @@ class DialogHandler(val createDialog: CreateDialog, val saveDialog: SaveDialog, 
             ListDialog.LIST_ID -> listDialog.open(player)
             ListDialog.SELECT_ID -> listDialog.select(player, nbt)
             ListDialog.CONFIRM_SELECT_ID -> listDialog.confirmSelect(player, nbt)
+            ListDialog.DELETE_ID -> listDialog.delete(player, nbt)
+            ListDialog.CONFIRM_DELETE_ID -> listDialog.confirmDelete(player, nbt)
         }
     }
 }
