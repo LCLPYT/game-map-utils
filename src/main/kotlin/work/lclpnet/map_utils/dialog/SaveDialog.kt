@@ -10,7 +10,6 @@ import net.minecraft.dialog.input.TextInputControl
 import net.minecraft.dialog.type.DialogInput
 import net.minecraft.dialog.type.MultiActionDialog
 import net.minecraft.nbt.NbtCompound
-import net.minecraft.nbt.NbtElement
 import net.minecraft.registry.entry.RegistryEntry
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.Text
@@ -93,14 +92,16 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
         player.openDialog(RegistryEntry.of(dialog))
     }
 
-    fun save(player: ServerPlayerEntity, payload: Optional<NbtElement>) {
+    fun save(player: ServerPlayerEntity, nbt: NbtCompound) {
         val session = sessionManager.optSession(player) ?: return
         val editor = session.editor ?: return
 
-        val nbt = payload.map { it as? NbtCompound }.orElseGet { NbtCompound() }!!
-        val propertyId = nbt.getString("propertyId", null)
+        val propertyId = nbt.getString("propertyId", "")
 
-        if (propertyId == null || propertyId.isBlank()) {
+        editor.propertyId = propertyId
+        editor.onDataChanged(nbt)
+
+        if (propertyId.isBlank()) {
             translations.translateText(
                 "save.missing",
                 translations.translateText("save.property_id").formatted(YELLOW)
@@ -108,9 +109,7 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
             return
         }
 
-        editor.propertyId = propertyId
-
-        if (editor.create() == null) return
+        if (editor.create(nbt) == null) return
 
         if (dataManager.hasData(player.world, propertyId) && editor.prevPropertyId != propertyId) {
             val msg = translations.translateText(
@@ -118,19 +117,21 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
                 styled(propertyId, YELLOW)
             ).formatted(RED).translateFor(player)
 
-            openConfirmDialog(player, translations, msg, CONFIRM_ID)
+            openConfirmDialog(player, translations, msg, CONFIRM_ID, payload = Optional.of(nbt))
             return
         }
 
-        saveDataToWorld(player)
+        saveDataToWorld(player, nbt)
     }
 
-    fun saveDataToWorld(player: ServerPlayerEntity) {
+    fun saveDataToWorld(player: ServerPlayerEntity, nbt: NbtCompound) {
         val session = sessionManager.optSession(player) ?: return
         val editor = session.editor ?: return
         val propertyId = editor.propertyId ?: return
 
-        if (!editor.saveToWorld(player.world, dataManager, propertyId)) return
+        if (!editor.saveToWorld(player.world, dataManager, propertyId, nbt)) return
+
+        editor.onTerminate(nbt)
 
         val oldPropertyId = editor.prevPropertyId
 
@@ -150,14 +151,15 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
         session.destroyEditor()
     }
 
-    fun discard(player: ServerPlayerEntity) {
+    fun discard(player: ServerPlayerEntity, nbt: NbtCompound) {
         val session = sessionManager.optSession(player) ?: return
+
+        session.editor?.onDataChanged(nbt)
+        session.editor?.onTerminate(nbt)
         session.destroyEditor()
     }
 
-    fun onClose(player: ServerPlayerEntity, payload: Optional<NbtElement>) {
-        val nbt = payload.map { it as? NbtCompound }.orElseGet { NbtCompound() }!!
-
+    fun onClose(player: ServerPlayerEntity, nbt: NbtCompound) {
         val session = sessionManager.optSession(player) ?: return
         val editor = session.editor ?: return
 

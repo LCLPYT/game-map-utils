@@ -42,7 +42,7 @@ class PositionedBlockSetEditor(
 
     val blocks = mutableMapOf<BlockPos, BlockState>()
     val markers = mutableMapOf<BlockPos, DisplayEntity.BlockDisplayEntity>()
-    var blocksPlaced = true
+    var blocksPlaced = false
 
     override fun modifyDialog(
         body: MutableList<DialogBody>,
@@ -144,7 +144,20 @@ class PositionedBlockSetEditor(
         return ActionResult.FAIL
     }
 
-    override fun create() = PositionedBlockSet(blocks)
+    override fun create(nbt: NbtCompound): PositionedBlockSet = PositionedBlockSet(blocks)
+
+    override fun onDataChanged(nbt: NbtCompound) {
+        nbt.getBoolean("placeBlocks").ifPresent {
+            blocksPlaced = it
+        }
+    }
+
+    override fun onTerminate(nbt: NbtCompound) {
+        nbt.getBoolean("placeBlocks").ifPresent {
+            if (it) placeBlocks()
+            else removeBlocks()
+        }
+    }
 
     override fun load(value: PositionedBlockSet) {
         removeBlocks()
@@ -164,18 +177,7 @@ class PositionedBlockSetEditor(
         placeBlocks()
     }
 
-    override fun onDataChanged(nbt: NbtCompound) {
-        nbt.getBoolean("placeBlocks").ifPresent {
-            if (it != blocksPlaced) {
-                if (it) placeBlocks()
-                else removeBlocks()
-            }
-        }
-    }
-
     private fun placeBlocks() {
-        blocksPlaced = true
-
         val world = args.world
 
         for ((pos, state) in blocks) {
@@ -184,8 +186,6 @@ class PositionedBlockSetEditor(
     }
 
     private fun removeBlocks() {
-        blocksPlaced = false
-
         val world = args.world
 
         for ((pos, _) in blocks) {

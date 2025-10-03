@@ -1,5 +1,6 @@
 package work.lclpnet.map_utils.dialog
 
+import net.minecraft.nbt.NbtCompound
 import net.minecraft.nbt.NbtElement
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.Identifier
@@ -16,17 +17,19 @@ class DialogHandler(val createDialog: CreateDialog, val saveDialog: SaveDialog, 
     }
 
     fun onCustomClick(player: ServerPlayerEntity, id: Identifier, payload: Optional<NbtElement>) {
+        val nbt = payload.map { it as? NbtCompound }.orElseGet { NbtCompound() }!!
+
         when (id) {
             CreateDialog.OPEN_ID -> createDialog.openOrConfirm(player)
-            CreateDialog.START_ID -> createDialog.startEditing(player, payload)
+            CreateDialog.START_ID -> createDialog.startEditing(player, nbt)
             CreateDialog.CONFIRM_ID -> createDialog.discardAndOpen(player)
-            SaveDialog.SAVE_ID -> saveDialog.save(player, payload)
-            SaveDialog.CONFIRM_ID -> saveDialog.saveDataToWorld(player)
-            SaveDialog.DISCARD_ID -> saveDialog.discard(player)
-            SaveDialog.CLOSE_ID -> saveDialog.onClose(player, payload)
+            SaveDialog.SAVE_ID -> saveDialog.save(player, nbt)
+            SaveDialog.CONFIRM_ID -> saveDialog.saveDataToWorld(player, nbt)
+            SaveDialog.DISCARD_ID -> saveDialog.discard(player, nbt)
+            SaveDialog.CLOSE_ID -> saveDialog.onClose(player, nbt)
             ListDialog.LIST_ID -> listDialog.open(player)
-            ListDialog.SELECT_ID -> listDialog.select(player, payload)
-            ListDialog.CONFIRM_SELECT_ID -> listDialog.confirmSelect(player, payload)
+            ListDialog.SELECT_ID -> listDialog.select(player, nbt)
+            ListDialog.CONFIRM_SELECT_ID -> listDialog.confirmSelect(player, nbt)
         }
     }
 }

@@ -9,6 +9,7 @@ import net.minecraft.entity.EntityType
 import net.minecraft.entity.decoration.Brightness
 import net.minecraft.entity.decoration.DisplayEntity
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.nbt.NbtCompound
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.Text
 import net.minecraft.util.ActionResult
@@ -172,7 +173,7 @@ class BlockBoxEditor(
         visualizer.addEntity(marker)
     }
 
-    override fun create(): BlockBox? {
+    override fun create(nbt: NbtCompound): BlockBox? {
         val pos1 = this.pos1
         val pos2 = this.pos2
 

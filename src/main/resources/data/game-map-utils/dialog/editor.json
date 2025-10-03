@@ -22,8 +22,8 @@
     },
     {
       "label": {
-        "translate": "game-map-utils.editor.list_data",
-        "fallback": "List data"
+        "translate": "game-map-utils.editor.edit_data",
+        "fallback": "Edit data"
       },
       "action": {
         "type": "minecraft:custom",

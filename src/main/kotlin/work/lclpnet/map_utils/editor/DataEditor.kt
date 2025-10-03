@@ -34,10 +34,10 @@ interface DataEditor<T> {
 
     fun load(value: T)
 
-    fun create(): T?
+    fun create(nbt: NbtCompound): T?
 
-    fun saveToWorld(world: ServerWorld, dataManager: DataManager, propertyId: String): Boolean {
-        val value = create() ?: return false
+    fun saveToWorld(world: ServerWorld, dataManager: DataManager, propertyId: String, nbt: NbtCompound): Boolean {
+        val value = create(nbt) ?: return false
 
         dataManager.setData(world, propertyId, data(), value)
 
@@ -71,4 +71,6 @@ interface DataEditor<T> {
     }
 
     fun onDataChanged(nbt: NbtCompound) {}
+
+    fun onTerminate(nbt: NbtCompound) {}
 }

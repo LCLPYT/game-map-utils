@@ -10,7 +10,6 @@ import net.minecraft.dialog.input.SingleOptionInputControl
 import net.minecraft.dialog.type.ConfirmationDialog
 import net.minecraft.dialog.type.DialogInput
 import net.minecraft.nbt.NbtCompound
-import net.minecraft.nbt.NbtElement
 import net.minecraft.registry.entry.RegistryEntry
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.Text
@@ -82,8 +81,7 @@ class CreateDialog(val translations: Translations, val sessionManager: SessionMa
         )
     }
 
-    fun startEditing(player: ServerPlayerEntity, payload: Optional<NbtElement>) {
-        val nbt = payload.map { it as? NbtCompound }.orElseGet { NbtCompound() }!!
+    fun startEditing(player: ServerPlayerEntity, nbt: NbtCompound) {
         val typeId = nbt.getString("type", null)
 
         val type = DATA_TYPES[typeId] ?: return

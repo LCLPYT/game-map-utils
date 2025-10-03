@@ -7,7 +7,6 @@ import net.minecraft.dialog.DialogCommonData
 import net.minecraft.dialog.action.DynamicCustomDialogAction
 import net.minecraft.dialog.type.MultiActionDialog
 import net.minecraft.nbt.NbtCompound
-import net.minecraft.nbt.NbtElement
 import net.minecraft.registry.entry.RegistryEntry
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.Text
@@ -62,8 +61,7 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
         player.openDialog(RegistryEntry.of(dialog))
     }
 
-    fun select(player: ServerPlayerEntity, payload: Optional<NbtElement>) {
-        val nbt = payload.map { it as? NbtCompound }.orElseGet { NbtCompound() }!!
+    fun select(player: ServerPlayerEntity, nbt: NbtCompound) {
         val session = sessionManager.getSession(player)
         
         if (session.editor != null) {
@@ -75,15 +73,10 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
             return
         }
 
-        confirmSelect(player, payload)
+        confirmSelect(player, nbt)
     }
 
-    fun confirmSelect(
-        player: ServerPlayerEntity,
-        payload: Optional<NbtElement>
-    ) {
-        val nbt = payload.map { it as? NbtCompound }.orElseGet { NbtCompound() }!!
-
+    fun confirmSelect(player: ServerPlayerEntity, nbt: NbtCompound) {
         val propertyId = nbt.getString("propertyId", null) ?: return
         val worldData = dataManager.getWorldData(player.world)
         val dataInstance = worldData[propertyId] ?: return
