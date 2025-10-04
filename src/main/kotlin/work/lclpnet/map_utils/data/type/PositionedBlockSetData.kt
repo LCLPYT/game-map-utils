@@ -3,11 +3,11 @@ package work.lclpnet.map_utils.data.type
 import com.mojang.serialization.Codec
 import net.minecraft.entity.Entity
 import net.minecraft.server.network.ServerPlayerEntity
+import work.lclpnet.gaco.ds.PositionedBlockSet
 import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.map_utils.data.Data
 import work.lclpnet.map_utils.editor.SessionArgs
 import work.lclpnet.map_utils.editor.type.PositionedBlockSetEditor
-import work.lclpnet.map_utils.util.PositionedBlockSet
 import work.lclpnet.map_utils.util.Removable
 import work.lclpnet.map_utils.util.Visualizer
 import work.lclpnet.map_utils.util.getRandomHsvColor
