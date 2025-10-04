@@ -14,8 +14,8 @@ import work.lclpnet.map_utils.data.Data
 import work.lclpnet.map_utils.editor.SessionArgs
 import work.lclpnet.map_utils.editor.type.BlockBoxEditor
 import work.lclpnet.map_utils.util.Removable
-import work.lclpnet.map_utils.util.Visualizer
-import work.lclpnet.map_utils.util.createDataLabelDisplay
+import work.lclpnet.map_utils.visual.Visualizer
+import work.lclpnet.map_utils.visual.createDataLabelDisplay
 
 object BlockBoxData : Data<BlockBox> {
 

@@ -87,7 +87,7 @@ class CreateDialog(val translations: Translations, val sessionManager: SessionMa
         val type = DATA_TYPES[typeId] ?: return
 
         val session = sessionManager.getSession(player)
-        session.setEditor(type.createEditor(session.args, session.editorVisualizer))
+        session.setEditor(type.createEditor(session.args, session.playerVisualizer))
     }
 
     fun discardAndOpen(player: ServerPlayerEntity) {

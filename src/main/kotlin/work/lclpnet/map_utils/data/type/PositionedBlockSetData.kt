@@ -9,8 +9,8 @@ import work.lclpnet.map_utils.data.Data
 import work.lclpnet.map_utils.editor.SessionArgs
 import work.lclpnet.map_utils.editor.type.PositionedBlockSetEditor
 import work.lclpnet.map_utils.util.Removable
-import work.lclpnet.map_utils.util.Visualizer
 import work.lclpnet.map_utils.util.getRandomHsvColor
+import work.lclpnet.map_utils.visual.Visualizer
 import java.util.*
 
 object PositionedBlockSetData : Data<PositionedBlockSet> {
@@ -42,6 +42,8 @@ object PositionedBlockSetData : Data<PositionedBlockSet> {
             for (entity in displays) {
                 visualizer.removeEntity(entity)
             }
+
+            displays.clear()
         }
     }
 }

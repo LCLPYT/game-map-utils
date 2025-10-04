@@ -6,7 +6,7 @@ import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.map_utils.editor.DataEditor
 import work.lclpnet.map_utils.editor.SessionArgs
 import work.lclpnet.map_utils.util.Removable
-import work.lclpnet.map_utils.util.Visualizer
+import work.lclpnet.map_utils.visual.Visualizer
 
 interface Data<T> {
 

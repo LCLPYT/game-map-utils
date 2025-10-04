@@ -1,4 +1,4 @@
-package work.lclpnet.map_utils.util
+package work.lclpnet.map_utils.visual
 
 import net.minecraft.block.BlockState
 import net.minecraft.entity.Entity
@@ -6,7 +6,7 @@ import net.minecraft.entity.decoration.DisplayEntity
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.math.Vec3i
 
-interface Visualizer {
+interface Visualizer : SceneRenderer {
 
     fun world(): ServerWorld
 

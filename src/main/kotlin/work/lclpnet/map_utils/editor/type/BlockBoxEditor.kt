@@ -27,8 +27,8 @@ import work.lclpnet.map_utils.data.type.BlockBoxData
 import work.lclpnet.map_utils.editor.BaseDataEditor
 import work.lclpnet.map_utils.editor.SessionArgs
 import work.lclpnet.map_utils.util.Removable
-import work.lclpnet.map_utils.util.Visualizer
 import work.lclpnet.map_utils.util.keybind
+import work.lclpnet.map_utils.visual.Visualizer
 
 class BlockBoxEditor(
     override val args: SessionArgs,
@@ -56,27 +56,27 @@ class BlockBoxEditor(
     }
 
     override fun sendTutorial() {
-        args.translations.translateText(
+        translations.translateText(
             key("init"),
-            args.translations.translateText(key("pos1"))
+            translations.translateText(key("pos1"))
                 .formatted(BLUE)
-                .translateFor(args.player()),
+                .translateFor(player),
             keybind("sprint", "attack").formatted(Formatting.YELLOW),
-            args.translations.translateText(key("pos2"))
+            translations.translateText(key("pos2"))
                 .formatted(RED)
-                .translateFor(args.player()),
+                .translateFor(player),
             keybind("sprint", "use").formatted(Formatting.YELLOW),
             keybind("swapOffhand").formatted(Formatting.YELLOW)
-        ).formatted(Formatting.AQUA).sendTo(args.player())
+        ).formatted(Formatting.AQUA).sendTo(player)
     }
 
     override fun init(hooks: HookRegistrar) {
         hooks.registerHook(PlayerInteractionHooks.ATTACK_BLOCK, AttackBlockCallback { entity, world, _, pos, _ ->
-            attackBlock(entity, world, pos, args)
+            attackBlock(entity, world, pos)
         })
 
         hooks.registerHook(PlayerInteractionHooks.USE_BLOCK, UseBlockCallback { entity, world, hand, result ->
-            useBlock(entity, world, hand, result, args)
+            useBlock(entity, world, hand, result)
         })
     }
 
@@ -85,14 +85,13 @@ class BlockBoxEditor(
         world: World,
         hand: Hand,
         result: BlockHitResult,
-        args: SessionArgs
     ): ActionResult {
-        if (entity != args.player() || world != args.world || !args.player().playerInput.sprint || hand != Hand.MAIN_HAND) return ActionResult.PASS
+        if (entity != player || world != args.world || !player.playerInput.sprint || hand != Hand.MAIN_HAND) return ActionResult.PASS
 
         val pos = result.blockPos
 
         pos2 = pos.toImmutable()
-        sendPosChanged(args, key("set_pos2"), pos)
+        sendPosChanged(key("set_pos2"), pos)
 
         pos2Marker = updatePosMarker(pos, world, pos2Marker, DyeColor.RED.entityColor)
 
@@ -105,12 +104,11 @@ class BlockBoxEditor(
         entity: PlayerEntity,
         world: World,
         pos: BlockPos,
-        args: SessionArgs
     ): ActionResult {
-        if (entity != args.player() || world != args.world || !args.player().playerInput.sprint) return ActionResult.PASS
+        if (entity != player || world != args.world || !player.playerInput.sprint) return ActionResult.PASS
 
         pos1 = pos.toImmutable()
-        sendPosChanged(args, key("set_pos1"), pos)
+        sendPosChanged(key("set_pos1"), pos)
 
         pos1Marker = updatePosMarker(pos, world, pos1Marker, DyeColor.BLUE.entityColor)
 
@@ -127,11 +125,11 @@ class BlockBoxEditor(
         return visualizer.markBlock(pos, world.getBlockState(pos), color)
     }
 
-    private fun sendPosChanged(args: SessionArgs, key: String, pos: BlockPos) {
-        args.translations.translateText(
+    private fun sendPosChanged(key: String, pos: BlockPos) {
+        translations.translateText(
             key,
             styled(pos.toShortString(), Formatting.YELLOW)
-        ).formatted(Formatting.GREEN).sendTo(args.player())
+        ).formatted(Formatting.GREEN).sendTo(player)
     }
 
     private fun updateBox() {
@@ -144,7 +142,7 @@ class BlockBoxEditor(
 
         boxMarker?.remove()
 
-        boxMarker = data.display(box, visualizer, args.player(), args.translations, id, propertyId)
+        boxMarker = data.display(box, visualizer, player, translations, id, propertyId)
     }
 
     override fun create(nbt: NbtCompound): BlockBox? {

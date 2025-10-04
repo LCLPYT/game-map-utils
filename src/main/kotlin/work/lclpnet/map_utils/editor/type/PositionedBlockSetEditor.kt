@@ -29,8 +29,8 @@ import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.map_utils.data.type.PositionedBlockSetData
 import work.lclpnet.map_utils.editor.BaseDataEditor
 import work.lclpnet.map_utils.editor.SessionArgs
-import work.lclpnet.map_utils.util.Visualizer
 import work.lclpnet.map_utils.util.keybind
+import work.lclpnet.map_utils.visual.Visualizer
 
 class PositionedBlockSetEditor(
     override val args: SessionArgs,
@@ -78,12 +78,12 @@ class PositionedBlockSetEditor(
     }
 
     override fun sendTutorial() {
-        args.translations.translateText(
+        translations.translateText(
             key("init"),
             keybind("sprint", "use").formatted(YELLOW),
             keybind("sprint", "attack").formatted(YELLOW),
             keybind("swapOffhand").formatted(YELLOW)
-        ).formatted(AQUA).sendTo(args.player())
+        ).formatted(AQUA).sendTo(player)
     }
 
     override fun init(hooks: HookRegistrar) {
@@ -103,7 +103,7 @@ class PositionedBlockSetEditor(
         result: BlockHitResult,
         args: SessionArgs
     ): ActionResult {
-        if (entity != args.player() || world != args.world || !args.player().playerInput.sprint || hand != Hand.MAIN_HAND) return ActionResult.PASS
+        if (entity != player || world != args.world || !player.playerInput.sprint || hand != Hand.MAIN_HAND) return ActionResult.PASS
 
         val pos = result.blockPos
         val state = world.getBlockState(pos)
@@ -116,10 +116,10 @@ class PositionedBlockSetEditor(
             visualizer.removeEntity(prev)
         }
 
-        args.translations.translateText(
+        translations.translateText(
             key("added"),
             label(pos, state)
-        ).formatted(GREEN).sendTo(args.player())
+        ).formatted(GREEN).sendTo(player)
 
         return ActionResult.FAIL
     }
@@ -130,7 +130,7 @@ class PositionedBlockSetEditor(
         pos: BlockPos,
         args: SessionArgs
     ): ActionResult {
-        if (entity != args.player() || world != args.world || !args.player().playerInput.sprint) return ActionResult.PASS
+        if (entity != player || world != args.world || !player.playerInput.sprint) return ActionResult.PASS
 
         val state = blocks.remove(pos) ?: return ActionResult.FAIL
 
@@ -138,10 +138,10 @@ class PositionedBlockSetEditor(
 
         if (entity != null) visualizer.removeEntity(entity)
 
-        args.translations.translateText(
+        translations.translateText(
             key("removed"),
             label(pos, state)
-        ).formatted(RED).sendTo(args.player())
+        ).formatted(RED).sendTo(player)
 
         return ActionResult.FAIL
     }

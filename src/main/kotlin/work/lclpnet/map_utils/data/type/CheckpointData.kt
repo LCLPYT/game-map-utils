@@ -9,7 +9,7 @@ import work.lclpnet.map_utils.data.Data
 import work.lclpnet.map_utils.editor.SessionArgs
 import work.lclpnet.map_utils.editor.type.CheckpointEditor
 import work.lclpnet.map_utils.util.Removable
-import work.lclpnet.map_utils.util.Visualizer
+import work.lclpnet.map_utils.visual.Visualizer
 
 object CheckpointData : Data<Checkpoint> {
 

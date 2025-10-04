@@ -13,6 +13,8 @@ import work.lclpnet.map_utils.identifier
 import work.lclpnet.map_utils.util.BossBarContainer
 import work.lclpnet.map_utils.util.Removable
 import work.lclpnet.map_utils.util.keybind
+import work.lclpnet.map_utils.visual.PlayerSceneRenderer
+import work.lclpnet.map_utils.visual.PlayerVisualizer
 
 class Session(val args: SessionArgs, dynamicEntityManager: DynamicEntityManager, val dataManager: DataManager) {
 
@@ -20,8 +22,8 @@ class Session(val args: SessionArgs, dynamicEntityManager: DynamicEntityManager,
     private val hooks = HookContainer()
     private val editorHooks = HookContainer()
     private var editorBossBar: TranslatedBossBar? = null
-    val editorVisualizer = EditorVisualizer(args, dynamicEntityManager)
-    val sessionVisualizer = EditorVisualizer(args, dynamicEntityManager)
+    val playerVisualizer = PlayerVisualizer(args, dynamicEntityManager, PlayerSceneRenderer(args, dynamicEntityManager))
+    val sessionVisualizer = PlayerVisualizer(args, dynamicEntityManager, PlayerSceneRenderer(args, dynamicEntityManager))
     val sessionRemovables = mutableMapOf<String, Removable>()
     var showAll = false
 
@@ -44,7 +46,7 @@ class Session(val args: SessionArgs, dynamicEntityManager: DynamicEntityManager,
 
     fun destroyEditor() {
         editorHooks.unload()
-        editorVisualizer.destroy()
+        playerVisualizer.destroy()
 
         editorBossBar?.removePlayer(args.player())
         bossBars.destroy()
@@ -117,5 +119,5 @@ class Session(val args: SessionArgs, dynamicEntityManager: DynamicEntityManager,
         }
     }
 
-    fun <T> createEditor(data: Data<T>): DataEditor<T> = data.createEditor(args, editorVisualizer)
+    fun <T> createEditor(data: Data<T>): DataEditor<T> = data.createEditor(args, playerVisualizer)
 }

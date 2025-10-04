@@ -1,4 +1,4 @@
-package work.lclpnet.map_utils.editor
+package work.lclpnet.map_utils.visual
 
 import net.minecraft.block.BlockState
 import net.minecraft.block.Blocks
@@ -12,9 +12,13 @@ import org.joml.Matrix4f
 import work.lclpnet.gaco.dynamic_entities.DynamicEntity
 import work.lclpnet.gaco.dynamic_entities.DynamicEntityManager
 import work.lclpnet.gaco.dynamic_entities.PlayerSpecificDynamicEntity
-import work.lclpnet.map_utils.util.Visualizer
+import work.lclpnet.map_utils.editor.SessionArgs
 
-class EditorVisualizer(val args: SessionArgs, val dynamicEntityManager: DynamicEntityManager) : Visualizer {
+class PlayerVisualizer(
+    val args: SessionArgs,
+    val dynamicEntityManager: DynamicEntityManager,
+    val sceneRenderer: PlayerSceneRenderer
+) : Visualizer, SceneRenderer by sceneRenderer {
 
     val entities = mutableSetOf<DynamicEntity>()
     val mapping = mutableMapOf<Entity, DynamicEntity>()
@@ -59,9 +63,11 @@ class EditorVisualizer(val args: SessionArgs, val dynamicEntityManager: DynamicE
         return marker
     }
 
-    fun destroy() {
+    override fun destroy() {
         for (entity in entities) {
             dynamicEntityManager.remove(entity)
         }
+
+        sceneRenderer.destroy()
     }
 }

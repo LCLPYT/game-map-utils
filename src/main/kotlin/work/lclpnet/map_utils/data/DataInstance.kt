@@ -4,8 +4,8 @@ import com.mojang.serialization.Codec
 import net.minecraft.server.network.ServerPlayerEntity
 import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.map_utils.editor.DataEditor
-import work.lclpnet.map_utils.editor.EditorVisualizer
 import work.lclpnet.map_utils.editor.Session
+import work.lclpnet.map_utils.visual.PlayerVisualizer
 import java.util.function.Function
 
 private fun <T> makeDataInstanceUnsafe(data: Data<T>, value: Any?): DataInstance<T> {
@@ -37,7 +37,7 @@ data class DataInstance<T>(val data: Data<T>, val value: T) {
     }
 
     fun display(
-        visualizer: EditorVisualizer,
+        visualizer: PlayerVisualizer,
         player: ServerPlayerEntity,
         translations: Translations,
         propertyId: String

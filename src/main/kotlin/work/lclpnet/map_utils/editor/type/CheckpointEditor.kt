@@ -13,8 +13,8 @@ import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.map_utils.data.type.CheckpointData
 import work.lclpnet.map_utils.editor.BaseDataEditor
 import work.lclpnet.map_utils.editor.SessionArgs
-import work.lclpnet.map_utils.util.Visualizer
 import work.lclpnet.map_utils.util.keybind
+import work.lclpnet.map_utils.visual.Visualizer
 
 class CheckpointEditor(
     override val args: SessionArgs,
@@ -38,21 +38,21 @@ class CheckpointEditor(
     }
 
     override fun sendTutorial() {
-        args.translations.translateText(
+        translations.translateText(
             key("init"),
-            args.translations.translateText(key("pos"))
-                .translateFor(args.player()),
+            translations.translateText(key("pos"))
+                .translateFor(player),
             keybind("sprint", "swapOffhand").formatted(YELLOW),
-            args.translations.translateText(key("pos1"))
+            translations.translateText(key("pos1"))
                 .formatted(BLUE)
-                .translateFor(args.player()),
+                .translateFor(player),
             keybind("sprint", "attack").formatted(YELLOW),
-            args.translations.translateText(key("pos2"))
+            translations.translateText(key("pos2"))
                 .formatted(RED)
-                .translateFor(args.player()),
+                .translateFor(player),
             keybind("sprint", "use").formatted(YELLOW),
             keybind("swapOffhand").formatted(YELLOW)
-        ).formatted(AQUA).sendTo(args.player())
+        ).formatted(AQUA).sendTo(player)
     }
 
     override fun init(hooks: HookRegistrar) {

@@ -19,8 +19,9 @@ import work.lclpnet.map_utils.data.type.PositionData
 import work.lclpnet.map_utils.editor.BaseDataEditor
 import work.lclpnet.map_utils.editor.SessionArgs
 import work.lclpnet.map_utils.util.Removable
-import work.lclpnet.map_utils.util.Visualizer
 import work.lclpnet.map_utils.util.keybind
+import work.lclpnet.map_utils.util.toLocalizedShortString
+import work.lclpnet.map_utils.visual.Visualizer
 
 class PositionEditor(
     override val args: SessionArgs,
@@ -56,11 +57,11 @@ class PositionEditor(
     }
 
     override fun sendTutorial() {
-        args.translations.translateText(
+        translations.translateText(
             key("init"),
             keybind("sprint", "swapOffhand").formatted(YELLOW),
             keybind("swapOffhand").formatted(YELLOW)
-        ).formatted(Formatting.AQUA).sendTo(args.player())
+        ).formatted(Formatting.AQUA).sendTo(player)
     }
 
     override fun init(hooks: HookRegistrar) {
@@ -70,12 +71,12 @@ class PositionEditor(
     }
 
     private fun onSwapHands(player: ServerPlayerEntity): Boolean {
-        if (player != args.player() || player.world != args.world || !args.player().playerInput.sprint) return false
+        if (player != this.player || player.world != args.world || !player.playerInput.sprint) return false
 
         val posRot = PositionRotation(player.x, player.y, player.z, player.yaw, player.pitch)
         this.posRot = posRot
 
-        args.translations.translateText(
+        translations.translateText(
             key("set_pos"),
             styled(player.pos.toLocalizedShortString(), YELLOW),
             styled(format("%.2f", player.yaw), YELLOW),
@@ -83,7 +84,7 @@ class PositionEditor(
         ).formatted(GREEN).sendTo(player)
 
         marker?.remove()
-        marker = data.display(posRot, visualizer, args.player(), args.translations, id, prevPropertyId)
+        marker = data.display(posRot, visualizer, player, translations, id, prevPropertyId)
 
         return true
     }
@@ -92,7 +93,7 @@ class PositionEditor(
         posRot = value
 
         marker?.remove()
-        marker = data.display(value, visualizer, args.player(), args.translations, id, prevPropertyId)
+        marker = data.display(value, visualizer, player, translations, id, prevPropertyId)
     }
 
     override fun create(nbt: NbtCompound): PositionRotation? {
@@ -103,5 +104,3 @@ class PositionEditor(
         return posRot
     }
 }
-
-private fun Vec3d.toLocalizedShortString() = format("%.2f, %.2f, %.2f", x, y, z)

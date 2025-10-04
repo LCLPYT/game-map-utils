@@ -17,9 +17,9 @@ import work.lclpnet.map_utils.data.Data
 import work.lclpnet.map_utils.editor.SessionArgs
 import work.lclpnet.map_utils.editor.type.PositionEditor
 import work.lclpnet.map_utils.util.Removable
-import work.lclpnet.map_utils.util.Visualizer
-import work.lclpnet.map_utils.util.createDataLabelDisplay
 import work.lclpnet.map_utils.util.getRandomHsvColor
+import work.lclpnet.map_utils.visual.Visualizer
+import work.lclpnet.map_utils.visual.createDataLabelDisplay
 import java.util.*
 
 private val VALUE_CODEC: Codec<PositionRotation> = RecordCodecBuilder.create { instance -> instance.group(

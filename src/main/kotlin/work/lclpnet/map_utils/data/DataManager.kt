@@ -13,10 +13,7 @@ import net.minecraft.world.World
 import org.slf4j.Logger
 import work.lclpnet.kibu.hook.HookContainer
 import work.lclpnet.kibu.hook.world.ServerWorldHooks
-import work.lclpnet.map_utils.data.type.BlockBoxData
-import work.lclpnet.map_utils.data.type.CheckpointData
-import work.lclpnet.map_utils.data.type.PositionData
-import work.lclpnet.map_utils.data.type.PositionedBlockSetData
+import work.lclpnet.map_utils.data.type.*
 import work.lclpnet.map_utils.mixin.MinecraftServerAccessor
 import work.lclpnet.map_utils.util.toPrettyString
 import java.nio.charset.StandardCharsets
@@ -30,8 +27,9 @@ const val WORLD_DATA_FILENAME = "gaco-map.json"
 val DATA_TYPES = listOf<Data<*>>(
     BlockBoxData,
     PositionData,
-    PositionedBlockSetData,
     CheckpointData,
+    PositionedBlockSetData,
+    SplinePathData
 ).associateBy { it.id() }
 
 val DATA_CODEC: Codec<Data<*>> = Codec.STRING.comapFlatMap(
