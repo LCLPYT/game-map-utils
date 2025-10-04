@@ -88,11 +88,11 @@ class PositionedBlockSetEditor(
 
     override fun init(hooks: HookRegistrar) {
         hooks.registerHook(PlayerInteractionHooks.ATTACK_BLOCK, AttackBlockCallback { entity, world, _, pos, _ ->
-            attackBlock(entity, world, pos, args)
+            attackBlock(entity, world, pos)
         })
 
         hooks.registerHook(PlayerInteractionHooks.USE_BLOCK, UseBlockCallback { entity, world, hand, result ->
-            useBlock(entity, world, hand, result, args)
+            useBlock(entity, world, hand, result)
         })
     }
 
@@ -100,10 +100,9 @@ class PositionedBlockSetEditor(
         entity: PlayerEntity,
         world: World,
         hand: Hand,
-        result: BlockHitResult,
-        args: SessionArgs
+        result: BlockHitResult
     ): ActionResult {
-        if (entity != player || world != args.world || !player.playerInput.sprint || hand != Hand.MAIN_HAND) return ActionResult.PASS
+        if (entity != player || world != this.world || !player.playerInput.sprint || hand != Hand.MAIN_HAND) return ActionResult.PASS
 
         val pos = result.blockPos
         val state = world.getBlockState(pos)
@@ -127,10 +126,9 @@ class PositionedBlockSetEditor(
     fun attackBlock(
         entity: PlayerEntity,
         world: World,
-        pos: BlockPos,
-        args: SessionArgs
+        pos: BlockPos
     ): ActionResult {
-        if (entity != player || world != args.world || !player.playerInput.sprint) return ActionResult.PASS
+        if (entity != player || world != this.world || !player.playerInput.sprint) return ActionResult.PASS
 
         val state = blocks.remove(pos) ?: return ActionResult.FAIL
 
@@ -180,7 +178,7 @@ class PositionedBlockSetEditor(
     }
 
     private fun placeBlocks() {
-        val world = args.world
+        val world = world
 
         for ((pos, state) in blocks) {
             world.setBlockState(pos, state, Block.FORCE_STATE or Block.NOTIFY_LISTENERS)
@@ -188,7 +186,7 @@ class PositionedBlockSetEditor(
     }
 
     private fun removeBlocks() {
-        val world = args.world
+        val world = world
 
         for ((pos, _) in blocks) {
             world.setBlockState(pos, Blocks.AIR.defaultState, Block.FORCE_STATE or Block.NOTIFY_LISTENERS or Block.SKIP_DROPS)

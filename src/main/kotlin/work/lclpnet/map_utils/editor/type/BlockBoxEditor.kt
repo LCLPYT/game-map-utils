@@ -86,7 +86,7 @@ class BlockBoxEditor(
         hand: Hand,
         result: BlockHitResult,
     ): ActionResult {
-        if (entity != player || world != args.world || !player.playerInput.sprint || hand != Hand.MAIN_HAND) return ActionResult.PASS
+        if (entity != player || world != this.world || !player.playerInput.sprint || hand != Hand.MAIN_HAND) return ActionResult.PASS
 
         val pos = result.blockPos
 
@@ -105,7 +105,7 @@ class BlockBoxEditor(
         world: World,
         pos: BlockPos,
     ): ActionResult {
-        if (entity != player || world != args.world || !player.playerInput.sprint) return ActionResult.PASS
+        if (entity != player || world != this.world || !player.playerInput.sprint) return ActionResult.PASS
 
         pos1 = pos.toImmutable()
         sendPosChanged(key("set_pos1"), pos)
@@ -166,8 +166,8 @@ class BlockBoxEditor(
         pos1 = value.min()
         pos2 = value.max()
 
-        pos1Marker = updatePosMarker(value.min(), args.world, pos1Marker, DyeColor.BLUE.entityColor)
-        pos2Marker = updatePosMarker(value.max(), args.world, pos2Marker, DyeColor.RED.entityColor)
+        pos1Marker = updatePosMarker(value.min(), world, pos1Marker, DyeColor.BLUE.entityColor)
+        pos2Marker = updatePosMarker(value.max(), world, pos2Marker, DyeColor.RED.entityColor)
 
         updateBox()
     }

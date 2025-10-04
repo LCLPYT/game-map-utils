@@ -71,7 +71,7 @@ class PositionEditor(
     }
 
     private fun onSwapHands(player: ServerPlayerEntity): Boolean {
-        if (player != this.player || player.world != args.world || !player.playerInput.sprint) return false
+        if (player != this.player || player.world != world || !player.playerInput.sprint) return false
 
         val posRot = PositionRotation(player.x, player.y, player.z, player.yaw, player.pitch)
         this.posRot = posRot

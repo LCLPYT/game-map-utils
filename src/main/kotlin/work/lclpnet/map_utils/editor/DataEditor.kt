@@ -83,4 +83,7 @@ interface DataEditor<T> {
 
     val translations: Translations
         get() = args.translations
+
+    val world: ServerWorld
+        get() = args.world
 }
