@@ -15,6 +15,7 @@ import work.lclpnet.map_utils.data.DataManager
 import work.lclpnet.map_utils.util.Visualizer
 
 interface DataEditor<T> {
+    val id: String
     val args: SessionArgs
     val visualizer: Visualizer
     var propertyId: String?
@@ -30,6 +31,8 @@ interface DataEditor<T> {
         translations: Translations,
         player: ServerPlayerEntity
     )
+
+    fun sendTutorial()
 
     fun init(hooks: HookRegistrar)
 
@@ -60,9 +63,9 @@ interface DataEditor<T> {
         return PlainMessageDialogBody(text, 200)
     }
 
-    fun key(suffix: String): String = "type.${data().id()}.$suffix"
+    fun key(suffix: String): String = "type.${id}.$suffix"
 
-    fun sendMissing(missing: MutableSet<String>) {
+    fun sendMissing(missing: Set<String>) {
         args.translations.translateText(
             "save.missing",
             Text.literal(missing.joinToString {

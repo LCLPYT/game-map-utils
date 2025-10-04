@@ -25,6 +25,7 @@ import work.lclpnet.map_utils.util.keybind
 class PositionEditor(
     override val args: SessionArgs,
     override val visualizer: Visualizer,
+    override val id: String = PositionData.id(),
     override var propertyId: String? = null,
     override var prevPropertyId: String? = null
 ) : BaseDataEditor<PositionRotation>(PositionData) {
@@ -54,13 +55,15 @@ class PositionEditor(
         })
     }
 
-    override fun init(hooks: HookRegistrar) {
+    override fun sendTutorial() {
         args.translations.translateText(
             key("init"),
             keybind("sprint", "swapOffhand").formatted(YELLOW),
             keybind("swapOffhand").formatted(YELLOW)
         ).formatted(Formatting.AQUA).sendTo(args.player())
+    }
 
+    override fun init(hooks: HookRegistrar) {
         hooks.registerHook(PlayerInventoryHooks.SWAP_HANDS, PlayerInventoryHooks.SwapHands { player, _ ->
             onSwapHands(player)
         })
@@ -73,14 +76,14 @@ class PositionEditor(
         this.posRot = posRot
 
         args.translations.translateText(
-            key("changed"),
+            key("set_pos"),
             styled(player.pos.toLocalizedShortString(), YELLOW),
             styled(format("%.2f", player.yaw), YELLOW),
             styled(format("%.2f", player.pitch), YELLOW)
         ).formatted(GREEN).sendTo(player)
 
         marker?.remove()
-        marker = data.display(posRot, visualizer, args.player(), args.translations, prevPropertyId)
+        marker = data.display(posRot, visualizer, args.player(), args.translations, id, prevPropertyId)
 
         return true
     }
@@ -89,10 +92,16 @@ class PositionEditor(
         posRot = value
 
         marker?.remove()
-        marker = data.display(value, visualizer, args.player(), args.translations, prevPropertyId)
+        marker = data.display(value, visualizer, args.player(), args.translations, id, prevPropertyId)
     }
 
-    override fun create(nbt: NbtCompound): PositionRotation? = posRot
+    override fun create(nbt: NbtCompound): PositionRotation? {
+        if (posRot == null) {
+            sendMissing(setOf("pos"))
+        }
+
+        return posRot
+    }
 }
 
 private fun Vec3d.toLocalizedShortString() = format("%.2f, %.2f, %.2f", x, y, z)

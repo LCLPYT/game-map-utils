@@ -33,8 +33,9 @@ import work.lclpnet.map_utils.util.keybind
 class BlockBoxEditor(
     override val args: SessionArgs,
     override val visualizer: Visualizer,
+    override val id: String = BlockBoxData.id(),
     override var propertyId: String? = null,
-    override var prevPropertyId: String? = null
+    override var prevPropertyId: String? = null,
 ) : BaseDataEditor<BlockBox>(BlockBoxData) {
 
     var pos1: BlockPos? = null
@@ -54,7 +55,7 @@ class BlockBoxEditor(
         body.add(required(pos2, "pos2", translations, player) { Text.literal(it.toShortString()) })
     }
 
-    override fun init(hooks: HookRegistrar) {
+    override fun sendTutorial() {
         args.translations.translateText(
             key("init"),
             args.translations.translateText(key("pos1"))
@@ -67,7 +68,9 @@ class BlockBoxEditor(
             keybind("sprint", "use").formatted(Formatting.YELLOW),
             keybind("swapOffhand").formatted(Formatting.YELLOW)
         ).formatted(Formatting.AQUA).sendTo(args.player())
+    }
 
+    override fun init(hooks: HookRegistrar) {
         hooks.registerHook(PlayerInteractionHooks.ATTACK_BLOCK, AttackBlockCallback { entity, world, _, pos, _ ->
             attackBlock(entity, world, pos, args)
         })
@@ -141,7 +144,7 @@ class BlockBoxEditor(
 
         boxMarker?.remove()
 
-        boxMarker = data.display(box, visualizer, args.player(), args.translations, propertyId)
+        boxMarker = data.display(box, visualizer, args.player(), args.translations, id, propertyId)
     }
 
     override fun create(nbt: NbtCompound): BlockBox? {

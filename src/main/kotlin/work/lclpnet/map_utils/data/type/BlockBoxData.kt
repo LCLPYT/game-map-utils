@@ -31,6 +31,7 @@ object BlockBoxData : Data<BlockBox> {
         visualizer: Visualizer,
         player: ServerPlayerEntity,
         translations: Translations,
+        id: String,
         propertyId: String?
     ): Removable {
         val marker = DisplayEntity.BlockDisplayEntity(EntityType.BLOCK_DISPLAY, visualizer.world())
@@ -48,7 +49,7 @@ object BlockBoxData : Data<BlockBox> {
         visualizer.addEntity(marker)
 
         val textRef = if (propertyId != null)
-            createDataLabelDisplay(visualizer, player, translations, propertyId, this, value.toBox().center)
+            createDataLabelDisplay(visualizer, player, translations, propertyId, id, value.toBox().center)
         else null
 
         return Removable {

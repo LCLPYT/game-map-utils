@@ -81,6 +81,7 @@ class Session(val args: SessionArgs, dynamicEntityManager: DynamicEntityManager,
         bar.addPlayer(player())
 
         editor.init(editorHooks)
+        editor.sendTutorial()
 
         editorBossBar = bar
     }

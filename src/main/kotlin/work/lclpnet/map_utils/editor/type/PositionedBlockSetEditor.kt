@@ -35,6 +35,7 @@ import work.lclpnet.map_utils.util.keybind
 class PositionedBlockSetEditor(
     override val args: SessionArgs,
     override val visualizer: Visualizer,
+    override val id: String = PositionedBlockSetData.id(),
     override var propertyId: String? = null,
     override var prevPropertyId: String? = null
 ) : BaseDataEditor<PositionedBlockSet>(PositionedBlockSetData) {
@@ -76,14 +77,16 @@ class PositionedBlockSetEditor(
             .append(Text.literal(id.toString()).formatted(YELLOW))
     }
 
-    override fun init(hooks: HookRegistrar) {
+    override fun sendTutorial() {
         args.translations.translateText(
             key("init"),
             keybind("sprint", "use").formatted(YELLOW),
             keybind("sprint", "attack").formatted(YELLOW),
             keybind("swapOffhand").formatted(YELLOW)
         ).formatted(AQUA).sendTo(args.player())
+    }
 
+    override fun init(hooks: HookRegistrar) {
         hooks.registerHook(PlayerInteractionHooks.ATTACK_BLOCK, AttackBlockCallback { entity, world, _, pos, _ ->
             attackBlock(entity, world, pos, args)
         })

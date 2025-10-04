@@ -1,0 +1,40 @@
+package work.lclpnet.map_utils.data.type
+
+import com.mojang.serialization.Codec
+import net.minecraft.server.network.ServerPlayerEntity
+import work.lclpnet.gaco.ds.Checkpoint
+import work.lclpnet.kibu.hook.util.PositionRotation
+import work.lclpnet.kibu.translate.Translations
+import work.lclpnet.map_utils.data.Data
+import work.lclpnet.map_utils.editor.SessionArgs
+import work.lclpnet.map_utils.editor.type.CheckpointEditor
+import work.lclpnet.map_utils.util.Removable
+import work.lclpnet.map_utils.util.Visualizer
+
+object CheckpointData : Data<Checkpoint> {
+
+    override fun id(): String = "checkpoint"
+
+    override fun codec(): Codec<Checkpoint> = Checkpoint.CODEC
+
+    override fun createEditor(args: SessionArgs, visualizer: Visualizer) = CheckpointEditor(args, visualizer)
+
+    override fun display(
+        value: Checkpoint,
+        visualizer: Visualizer,
+        player: ServerPlayerEntity,
+        translations: Translations,
+        id: String,
+        propertyId: String?
+    ): Removable {
+        val posRot = PositionRotation(value.pos.x, value.pos.y, value.pos.z, value.yaw, value.pitch)
+
+        val respawnPosRemovable = PositionData.display(posRot, visualizer, player, translations, id, propertyId)
+        val boundsRemovable = BlockBoxData.display(value.bounds, visualizer, player, translations, id, null)
+
+        return Removable {
+            respawnPosRemovable.remove()
+            boundsRemovable.remove()
+        }
+    }
+}

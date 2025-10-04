@@ -21,6 +21,7 @@ interface Data<T> {
         visualizer: Visualizer,
         player: ServerPlayerEntity,
         translations: Translations,
+        id: String,
         propertyId: String? = null
     ): Removable
 }

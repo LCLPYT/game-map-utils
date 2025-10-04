@@ -42,6 +42,7 @@ object PositionData : Data<PositionRotation> {
         visualizer: Visualizer,
         player: ServerPlayerEntity,
         translations: Translations,
+        id: String,
         propertyId: String?
     ): Removable {
         val random = if (propertyId != null) Random(propertyId.hashCode().toLong()) else Random()
@@ -62,7 +63,7 @@ object PositionData : Data<PositionRotation> {
         visualizer.addEntity(marker)
 
         val textRef = if (propertyId != null)
-            createDataLabelDisplay(visualizer, player, translations, propertyId, this, Vec3d(value.x, value.y + 0.35, value.z))
+            createDataLabelDisplay(visualizer, player, translations, propertyId, id, Vec3d(value.x, value.y + 0.35, value.z))
         else null
 
         return Removable {

@@ -27,6 +27,7 @@ object PositionedBlockSetData : Data<PositionedBlockSet> {
         visualizer: Visualizer,
         player: ServerPlayerEntity,
         translations: Translations,
+        id: String,
         propertyId: String?
     ): Removable {
         val displays = mutableListOf<Entity>()

@@ -41,7 +41,7 @@ data class DataInstance<T>(val data: Data<T>, val value: T) {
         player: ServerPlayerEntity,
         translations: Translations,
         propertyId: String
-    ) = data.display(value, visualizer, player, translations, propertyId)
+    ) = data.display(value, visualizer, player, translations, data.id(), propertyId)
 
     companion object {
         @JvmField
