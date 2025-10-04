@@ -6,9 +6,7 @@ import net.minecraft.dialog.DialogButtonData
 import net.minecraft.dialog.DialogCommonData
 import net.minecraft.dialog.action.DynamicCustomDialogAction
 import net.minecraft.dialog.body.DialogBody
-import net.minecraft.dialog.input.SingleOptionInputControl
-import net.minecraft.dialog.type.ConfirmationDialog
-import net.minecraft.dialog.type.DialogInput
+import net.minecraft.dialog.type.MultiActionDialog
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.registry.entry.RegistryEntry
 import net.minecraft.server.network.ServerPlayerEntity
@@ -44,41 +42,30 @@ class CreateDialog(val translations: Translations, val sessionManager: SessionMa
 
         val body = listOf<DialogBody>()
 
-        val inputs = listOf(typeInput(player))
+        val buttons = DATA_TYPES.map { (id, _) ->
+            val label = translations.translateText("type.$id").translateFor(player)
 
-        val dialog = ConfirmationDialog(
+            val nbt = NbtCompound()
+            nbt.putString("type", id)
+
+            DialogActionButtonData(
+                DialogButtonData(label, 150),
+                Optional.of(DynamicCustomDialogAction(START_ID, Optional.of(nbt))))
+        }
+
+        val dialog = MultiActionDialog(
             DialogCommonData(
-                title, Optional.empty(), true, true, AfterAction.CLOSE, body, inputs
+                title, Optional.empty(), true, true, AfterAction.CLOSE, body, listOf()
             ),
-            DialogActionButtonData(
-                DialogButtonData(translations.translateText("create").translateFor(player), 150),
-                Optional.of(DynamicCustomDialogAction(START_ID, Optional.empty()))
-            ),
-            DialogActionButtonData(
+            buttons,
+            Optional.of(DialogActionButtonData(
                 DialogButtonData(Text.translatable("gui.cancel"), 150),
                 Optional.empty()
-            ),
+            )),
+            1
         )
 
         player.openDialog(RegistryEntry.of(dialog))
-    }
-
-    private fun typeInput(player: ServerPlayerEntity): DialogInput {
-        val types = DATA_TYPES.map { (id, _) ->
-            val label = translations.translateText("type.$id").translateFor(player)
-
-            SingleOptionInputControl.Entry(id, Optional.of(label), false)
-        }
-
-        return DialogInput(
-            "type",
-            SingleOptionInputControl(
-                200,
-                types,
-                translations.translateText("create.type").translateFor(player),
-                true
-            )
-        )
     }
 
     fun startEditing(player: ServerPlayerEntity, nbt: NbtCompound) {
