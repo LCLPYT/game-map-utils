@@ -1,4 +1,4 @@
-package work.lclpnet.map_utils.visual
+package work.lclpnet.map_api.visual
 
 import net.minecraft.entity.EntityType
 import net.minecraft.entity.decoration.Brightness

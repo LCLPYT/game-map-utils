@@ -15,8 +15,8 @@ import work.lclpnet.kibu.hook.world.ServerWorldHooks
 import work.lclpnet.kibu.scheduler.KibuScheduling
 import work.lclpnet.kibu.scheduler.api.Scheduler
 import work.lclpnet.kibu.translate.Translations
-import work.lclpnet.map_utils.LOGGER
-import work.lclpnet.map_utils.data.DataManager
+import work.lclpnet.map_api.LOGGER
+import work.lclpnet.map_api.data.DataManager
 import java.util.*
 
 class SessionManager(val translations: Translations, val dataManager: DataManager) {

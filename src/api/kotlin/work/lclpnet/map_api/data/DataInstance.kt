@@ -1,13 +1,11 @@
-package work.lclpnet.map_utils.data
+package work.lclpnet.map_api.data
 
 import com.mojang.serialization.Codec
 import com.mojang.serialization.MapCodec
 import com.mojang.serialization.codecs.RecordCodecBuilder
 import net.minecraft.server.network.ServerPlayerEntity
 import work.lclpnet.kibu.translate.Translations
-import work.lclpnet.map_utils.editor.DataEditor
-import work.lclpnet.map_utils.editor.Session
-import work.lclpnet.map_utils.visual.PlayerVisualizer
+import work.lclpnet.map_api.visual.Visualizer
 import java.util.*
 import java.util.function.Function
 
@@ -29,18 +27,9 @@ data class DataInstance<T>(
     val value: T,
     val role: String?
 ) {
-    fun restore(session: Session, propertyId: String): DataEditor<T> {
-        val editor = session.createEditor(data)
-        editor.propertyId = propertyId
-        editor.prevPropertyId = propertyId
-
-        editor.load(value)
-
-        return editor
-    }
 
     fun display(
-        visualizer: PlayerVisualizer,
+        visualizer: Visualizer,
         player: ServerPlayerEntity,
         translations: Translations,
         propertyId: String

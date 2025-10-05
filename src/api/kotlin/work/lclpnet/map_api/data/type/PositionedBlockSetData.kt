@@ -1,16 +1,14 @@
-package work.lclpnet.map_utils.data.type
+package work.lclpnet.map_api.data.type
 
 import com.mojang.serialization.Codec
 import net.minecraft.entity.Entity
 import net.minecraft.server.network.ServerPlayerEntity
 import work.lclpnet.gaco.ds.PositionedBlockSet
 import work.lclpnet.kibu.translate.Translations
-import work.lclpnet.map_utils.data.Data
-import work.lclpnet.map_utils.editor.SessionArgs
-import work.lclpnet.map_utils.editor.type.PositionedBlockSetEditor
-import work.lclpnet.map_utils.util.Removable
-import work.lclpnet.map_utils.util.getRandomHsvColor
-import work.lclpnet.map_utils.visual.Visualizer
+import work.lclpnet.map_api.data.Data
+import work.lclpnet.map_api.util.getRandomHsvColor
+import work.lclpnet.map_api.visual.Removable
+import work.lclpnet.map_api.visual.Visualizer
 import java.util.*
 
 object PositionedBlockSetData : Data<PositionedBlockSet> {
@@ -18,9 +16,6 @@ object PositionedBlockSetData : Data<PositionedBlockSet> {
     override fun id() = "positioned_block_set"
 
     override fun codec(): Codec<PositionedBlockSet> = PositionedBlockSet.CODEC
-
-    override fun createEditor(args: SessionArgs, visualizer: Visualizer) =
-        PositionedBlockSetEditor(args, visualizer)
 
     override fun display(
         value: PositionedBlockSet,

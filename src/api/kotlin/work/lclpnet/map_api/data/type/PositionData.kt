@@ -1,4 +1,4 @@
-package work.lclpnet.map_utils.data.type
+package work.lclpnet.map_api.data.type
 
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
@@ -13,13 +13,11 @@ import net.minecraft.util.math.Vec3d
 import org.joml.Matrix4f
 import work.lclpnet.kibu.hook.util.PositionRotation
 import work.lclpnet.kibu.translate.Translations
-import work.lclpnet.map_utils.data.Data
-import work.lclpnet.map_utils.editor.SessionArgs
-import work.lclpnet.map_utils.editor.type.PositionEditor
-import work.lclpnet.map_utils.util.Removable
-import work.lclpnet.map_utils.util.getRandomHsvColor
-import work.lclpnet.map_utils.visual.Visualizer
-import work.lclpnet.map_utils.visual.createDataLabelDisplay
+import work.lclpnet.map_api.data.Data
+import work.lclpnet.map_api.util.getRandomHsvColor
+import work.lclpnet.map_api.visual.Removable
+import work.lclpnet.map_api.visual.Visualizer
+import work.lclpnet.map_api.visual.createDataLabelDisplay
 import java.util.*
 
 private val VALUE_CODEC: Codec<PositionRotation> = RecordCodecBuilder.create { instance -> instance.group(
@@ -34,8 +32,6 @@ object PositionData : Data<PositionRotation> {
     override fun id() = "position"
 
     override fun codec() = VALUE_CODEC
-
-    override fun createEditor(args: SessionArgs, visualizer: Visualizer) = PositionEditor(args, visualizer)
 
     override fun display(
         value: PositionRotation,

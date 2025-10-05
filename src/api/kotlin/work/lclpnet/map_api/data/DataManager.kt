@@ -1,4 +1,4 @@
-package work.lclpnet.map_utils.data
+package work.lclpnet.map_api.data
 
 import com.google.gson.Gson
 import com.google.gson.JsonElement
@@ -13,9 +13,9 @@ import net.minecraft.world.World
 import org.slf4j.Logger
 import work.lclpnet.kibu.hook.HookContainer
 import work.lclpnet.kibu.hook.world.ServerWorldHooks
-import work.lclpnet.map_utils.data.type.*
-import work.lclpnet.map_utils.mixin.MinecraftServerAccessor
-import work.lclpnet.map_utils.util.toPrettyString
+import work.lclpnet.map_api.data.type.*
+import work.lclpnet.map_api.mixin.MinecraftServerAccessor
+import work.lclpnet.map_api.util.toPrettyString
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path

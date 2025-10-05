@@ -1,4 +1,4 @@
-package work.lclpnet.map_utils.util
+package work.lclpnet.map_api.util
 
 import java.util.*
 import kotlin.math.max

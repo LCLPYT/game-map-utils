@@ -1,4 +1,4 @@
-package work.lclpnet.map_utils.data
+package work.lclpnet.map_api.data
 
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder

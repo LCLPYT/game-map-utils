@@ -10,11 +10,11 @@ import work.lclpnet.gaco.ds.Checkpoint
 import work.lclpnet.kibu.hook.HookRegistrar
 import work.lclpnet.kibu.hook.util.PositionRotation
 import work.lclpnet.kibu.translate.Translations
-import work.lclpnet.map_utils.data.type.CheckpointData
+import work.lclpnet.map_api.data.type.CheckpointData
+import work.lclpnet.map_api.visual.Visualizer
 import work.lclpnet.map_utils.editor.BaseDataEditor
 import work.lclpnet.map_utils.editor.SessionArgs
 import work.lclpnet.map_utils.util.keybind
-import work.lclpnet.map_utils.visual.Visualizer
 
 class CheckpointEditor(
     override val args: SessionArgs,

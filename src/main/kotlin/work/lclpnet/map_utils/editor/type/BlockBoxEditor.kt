@@ -23,12 +23,12 @@ import work.lclpnet.kibu.hook.HookRegistrar
 import work.lclpnet.kibu.hook.entity.PlayerInteractionHooks
 import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.kibu.translate.text.FormatWrapper.styled
-import work.lclpnet.map_utils.data.type.BlockBoxData
+import work.lclpnet.map_api.data.type.BlockBoxData
+import work.lclpnet.map_api.visual.Removable
+import work.lclpnet.map_api.visual.Visualizer
 import work.lclpnet.map_utils.editor.BaseDataEditor
 import work.lclpnet.map_utils.editor.SessionArgs
-import work.lclpnet.map_utils.util.Removable
 import work.lclpnet.map_utils.util.keybind
-import work.lclpnet.map_utils.visual.Visualizer
 
 class BlockBoxEditor(
     override val args: SessionArgs,

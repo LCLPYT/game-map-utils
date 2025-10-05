@@ -1,4 +1,4 @@
-package work.lclpnet.map_utils.visual
+package work.lclpnet.map_api.visual
 
 import net.minecraft.block.BlockState
 import net.minecraft.entity.Entity

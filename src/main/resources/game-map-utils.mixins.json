@@ -3,7 +3,6 @@
   "package": "work.lclpnet.map_utils.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "MinecraftServerAccessor",
     "PlayerInteractEntityC2SPacketAccessor",
     "ServerPlayNetworkHandlerMixin"
   ],

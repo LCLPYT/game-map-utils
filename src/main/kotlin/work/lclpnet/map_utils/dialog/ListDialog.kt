@@ -5,6 +5,7 @@ import net.minecraft.dialog.DialogActionButtonData
 import net.minecraft.dialog.DialogButtonData
 import net.minecraft.dialog.DialogCommonData
 import net.minecraft.dialog.action.DynamicCustomDialogAction
+import net.minecraft.dialog.body.PlainMessageDialogBody
 import net.minecraft.dialog.input.SingleOptionInputControl
 import net.minecraft.dialog.type.DialogInput
 import net.minecraft.dialog.type.MultiActionDialog
@@ -14,8 +15,8 @@ import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting.*
 import work.lclpnet.kibu.translate.Translations
-import work.lclpnet.map_utils.data.Data
-import work.lclpnet.map_utils.data.DataManager
+import work.lclpnet.map_api.data.Data
+import work.lclpnet.map_api.data.DataManager
 import work.lclpnet.map_utils.editor.SessionManager
 import work.lclpnet.map_utils.identifier
 import work.lclpnet.map_utils.util.openConfirmDialog
@@ -103,16 +104,37 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
 
         val title = translations.translateText("list.title", player.world.registryKey.value).translateFor(player)
 
-        val dialog = MultiActionDialog(
-            DialogCommonData(
-                title, Optional.empty(), true, true, AfterAction.CLOSE, listOf(), inputs
-            ),
-            actions,
-            Optional.of(DialogActionButtonData(
-                DialogButtonData(Text.translatable("gui.cancel"), 150),
-                Optional.of(DynamicCustomDialogAction(CLOSE_ID, Optional.empty()))
+        val commonData = DialogCommonData(
+            title,
+            Optional.empty(),
+            true,
+            true,
+            AfterAction.CLOSE,
+            if (actions.isNotEmpty()) listOf() else listOf(PlainMessageDialogBody(
+                translations.translateText("list.no_data").formatted(YELLOW).translateFor(player),
+                200
             )),
+            if (actions.isNotEmpty()) inputs else listOf()
+        )
+
+        val cancelButton = DialogActionButtonData(
+            DialogButtonData(Text.translatable("gui.cancel"), 150),
+            Optional.of(DynamicCustomDialogAction(CLOSE_ID, Optional.empty()))
+        )
+
+        val dialog = if (actions.isNotEmpty()) MultiActionDialog(
+            commonData,
+            actions,
+            Optional.of(cancelButton),
             5
+        ) else MultiActionDialog(
+            commonData,
+            listOf(DialogActionButtonData(
+                DialogButtonData(translations.translateText("editor.create_data").translateFor(player), 150),
+                Optional.of(DynamicCustomDialogAction(CreateDialog.OPEN_ID, Optional.empty()))
+            )),
+            Optional.of(cancelButton),
+            1
         )
 
         player.openDialog(RegistryEntry.of(dialog))
@@ -145,7 +167,7 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
 
         sessionManager.getSession(player).removeSessionDisplay(propertyId)
 
-        val editor = dataInstance.restore(session, propertyId)
+        val editor = session.createEditorFrom(dataInstance, propertyId)
 
         session.setEditor(editor)
     }

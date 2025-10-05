@@ -14,7 +14,7 @@ import net.minecraft.text.Text
 import net.minecraft.util.Formatting.RED
 import net.minecraft.util.Formatting.YELLOW
 import work.lclpnet.kibu.translate.Translations
-import work.lclpnet.map_utils.data.DATA_TYPES
+import work.lclpnet.map_api.data.DATA_TYPES
 import work.lclpnet.map_utils.editor.SessionManager
 import work.lclpnet.map_utils.identifier
 import work.lclpnet.map_utils.util.openConfirmDialog
@@ -71,10 +71,10 @@ class CreateDialog(val translations: Translations, val sessionManager: SessionMa
     fun startEditing(player: ServerPlayerEntity, nbt: NbtCompound) {
         val typeId = nbt.getString("type", null)
 
-        val type = DATA_TYPES[typeId] ?: return
+        val data = DATA_TYPES[typeId] ?: return
 
         val session = sessionManager.getSession(player)
-        session.setEditor(type.createEditor(session.args, session.playerVisualizer))
+        session.setEditor(session.createEditor(data))
     }
 
     fun discardAndOpen(player: ServerPlayerEntity) {

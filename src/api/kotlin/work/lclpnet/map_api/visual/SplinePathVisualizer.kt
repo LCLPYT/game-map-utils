@@ -1,9 +1,8 @@
-package work.lclpnet.map_utils.visual
+package work.lclpnet.map_api.visual
 
 import net.minecraft.block.Blocks
 import work.lclpnet.gaco.math.SplinePath
 import work.lclpnet.gaco.scene.Object3d
-import work.lclpnet.map_utils.util.Removable
 
 fun displaySplinePath(path: SplinePath, visualizer: Visualizer): Pair<Removable, List<Object3d>> {
     val samples = path.keypoints.size * 15

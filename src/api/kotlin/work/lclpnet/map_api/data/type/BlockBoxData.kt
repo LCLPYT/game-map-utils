@@ -1,4 +1,4 @@
-package work.lclpnet.map_utils.data.type
+package work.lclpnet.map_api.data.type
 
 import com.mojang.serialization.Codec
 import net.minecraft.block.Blocks
@@ -10,21 +10,16 @@ import net.minecraft.util.math.AffineTransformation
 import org.joml.Matrix4f
 import work.lclpnet.gaco.ds.BlockBox
 import work.lclpnet.kibu.translate.Translations
-import work.lclpnet.map_utils.data.Data
-import work.lclpnet.map_utils.editor.SessionArgs
-import work.lclpnet.map_utils.editor.type.BlockBoxEditor
-import work.lclpnet.map_utils.util.Removable
-import work.lclpnet.map_utils.visual.Visualizer
-import work.lclpnet.map_utils.visual.createDataLabelDisplay
+import work.lclpnet.map_api.data.Data
+import work.lclpnet.map_api.visual.Removable
+import work.lclpnet.map_api.visual.Visualizer
+import work.lclpnet.map_api.visual.createDataLabelDisplay
 
 object BlockBoxData : Data<BlockBox> {
 
     override fun id() = "block_box"
 
     override fun codec(): Codec<BlockBox> = BlockBox.CODEC
-
-    override fun createEditor(args: SessionArgs, visualizer: Visualizer) =
-        BlockBoxEditor(args, visualizer)
 
     override fun display(
         value: BlockBox,

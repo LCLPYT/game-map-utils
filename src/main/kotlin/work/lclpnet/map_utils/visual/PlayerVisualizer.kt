@@ -12,6 +12,8 @@ import org.joml.Matrix4f
 import work.lclpnet.gaco.dynamic_entities.DynamicEntity
 import work.lclpnet.gaco.dynamic_entities.DynamicEntityManager
 import work.lclpnet.gaco.dynamic_entities.PlayerSpecificDynamicEntity
+import work.lclpnet.map_api.visual.SceneRenderer
+import work.lclpnet.map_api.visual.Visualizer
 import work.lclpnet.map_utils.editor.SessionArgs
 
 class PlayerVisualizer(

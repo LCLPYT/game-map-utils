@@ -4,8 +4,9 @@ import net.minecraft.util.Identifier
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import work.lclpnet.kibu.hook.HookContainer
+import work.lclpnet.kibu.hook.ServerLifecycleHooks
 import work.lclpnet.kibu.translate.util.ModTranslations
-import work.lclpnet.map_utils.data.DataManager
+import work.lclpnet.map_api.GameMapApi
 import work.lclpnet.map_utils.dialog.CreateDialog
 import work.lclpnet.map_utils.dialog.DialogHandler
 import work.lclpnet.map_utils.dialog.ListDialog
@@ -21,21 +22,25 @@ fun identifier(path: String): Identifier {
 
 fun init() {
     val translations = ModTranslations.fromAssets(MOD_ID, LOGGER, true).translations
-    val dataManager = DataManager(LOGGER)
-    val sessionManager = SessionManager(translations, dataManager)
-    val hooks = HookContainer()
 
-    dataManager.init(hooks)
-    sessionManager.init(hooks)
+    ServerLifecycleHooks.SERVER_STARTED.register { server ->
+        val api = GameMapApi.get(server)
+        val dataManager = api.dataManager
 
-    val saveDialog = SaveDialog(translations, dataManager, sessionManager)
-    saveDialog.init(hooks)
+        val sessionManager = SessionManager(translations, dataManager)
+        val hooks = HookContainer()
 
-    DialogHandler(
-        CreateDialog(translations, sessionManager),
-        saveDialog,
-        ListDialog(translations, dataManager, sessionManager)
-    ).init(hooks)
+        sessionManager.init(hooks)
+
+        val saveDialog = SaveDialog(translations, dataManager, sessionManager)
+        saveDialog.init(hooks)
+
+        DialogHandler(
+            CreateDialog(translations, sessionManager),
+            saveDialog,
+            ListDialog(translations, dataManager, sessionManager)
+        ).init(hooks)
+    }
 
     LOGGER.info("Initialized")
 }

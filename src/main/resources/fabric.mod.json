@@ -1,45 +1,46 @@
 {
-	"schemaVersion": 1,
-	"id": "game-map-utils",
-	"version": "${version}",
-	"name": "Game Map Utils",
-	"description": "Utilities for creating mini game maps for Minecraft: Java edition",
-	"authors": [
-		"LCLP"
-	],
-	"contact": {
-		"homepage": "https://github.com/LCLPYT/game-map-utils",
-		"sources": "https://github.com/LCLPYT/game-map-utils"
-	},
-	"license": "MIT",
-	"icon": "assets/game-map-utils/icon.png",
-	"environment": "*",
-	"entrypoints": {
-		"main": [
-          {
-            "adapter": "kotlin",
-            "value": "work.lclpnet.map_utils.GameMapUtilInitKt::init"
-          }
-		],
-		"client": [
-          {
-            "adapter": "kotlin",
-            "value": "work.lclpnet.map_utils.GameMapUtilClientInitKt::initClient"
-          }
-		]
-	},
-	"mixins": [
-		"game-map-utils.mixins.json",
-		{
-			"config": "game-map-utils.client.mixins.json",
-			"environment": "client"
-		}
-	],
-	"depends": {
-		"fabricloader": ">=0.16.14",
-		"minecraft": "~1.21.7",
-		"java": ">=21",
-		"fabric-api": "*"
-	},
-	"suggests": {}
+  "schemaVersion": 1,
+  "id": "game-map-utils",
+  "version": "${version}",
+  "name": "Game Map Utils",
+  "description": "Utilities for creating mini game maps for Minecraft: Java edition",
+  "authors": [
+    "LCLP"
+  ],
+  "contact": {
+    "homepage": "https://github.com/LCLPYT/game-map-utils",
+    "sources": "https://github.com/LCLPYT/game-map-utils"
+  },
+  "license": "MIT",
+  "icon": "assets/game-map-utils/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      {
+        "adapter": "kotlin",
+        "value": "work.lclpnet.map_utils.GameMapUtilInitKt::init"
+      }
+    ],
+    "client": [
+      {
+        "adapter": "kotlin",
+        "value": "work.lclpnet.map_utils.GameMapUtilClientInitKt::initClient"
+      }
+    ]
+  },
+  "mixins": [
+    "game-map-utils.mixins.json",
+    {
+      "config": "game-map-utils.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.14",
+    "minecraft": "~1.21.7",
+    "java": ">=21",
+    "fabric-api": "*",
+    "game-map-api": "*"
+  },
+  "suggests": {}
 }

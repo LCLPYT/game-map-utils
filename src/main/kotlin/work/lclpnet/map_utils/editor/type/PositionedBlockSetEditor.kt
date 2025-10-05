@@ -26,11 +26,11 @@ import work.lclpnet.gaco.ds.PositionedBlockSet
 import work.lclpnet.kibu.hook.HookRegistrar
 import work.lclpnet.kibu.hook.entity.PlayerInteractionHooks
 import work.lclpnet.kibu.translate.Translations
-import work.lclpnet.map_utils.data.type.PositionedBlockSetData
+import work.lclpnet.map_api.data.type.PositionedBlockSetData
+import work.lclpnet.map_api.visual.Visualizer
 import work.lclpnet.map_utils.editor.BaseDataEditor
 import work.lclpnet.map_utils.editor.SessionArgs
 import work.lclpnet.map_utils.util.keybind
-import work.lclpnet.map_utils.visual.Visualizer
 
 class PositionedBlockSetEditor(
     override val args: SessionArgs,

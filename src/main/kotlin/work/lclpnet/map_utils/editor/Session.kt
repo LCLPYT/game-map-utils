@@ -7,11 +7,12 @@ import net.minecraft.util.Formatting.YELLOW
 import work.lclpnet.gaco.dynamic_entities.DynamicEntityManager
 import work.lclpnet.kibu.hook.HookContainer
 import work.lclpnet.kibu.translate.bossbar.TranslatedBossBar
-import work.lclpnet.map_utils.data.Data
-import work.lclpnet.map_utils.data.DataManager
+import work.lclpnet.map_api.data.Data
+import work.lclpnet.map_api.data.DataInstance
+import work.lclpnet.map_api.data.DataManager
+import work.lclpnet.map_api.visual.Removable
 import work.lclpnet.map_utils.identifier
 import work.lclpnet.map_utils.util.BossBarContainer
-import work.lclpnet.map_utils.util.Removable
 import work.lclpnet.map_utils.util.keybind
 import work.lclpnet.map_utils.visual.PlayerSceneRenderer
 import work.lclpnet.map_utils.visual.PlayerVisualizer
@@ -121,5 +122,15 @@ class Session(val args: SessionArgs, dynamicEntityManager: DynamicEntityManager,
         }
     }
 
-    fun <T> createEditor(data: Data<T>): DataEditor<T> = data.createEditor(args, playerVisualizer)
+    fun <T> createEditor(data: Data<T>): DataEditor<T> = createEditor(data, args, playerVisualizer)
+
+    fun <T> createEditorFrom(dataInstance: DataInstance<T>, propertyId: String): DataEditor<T> {
+        val editor = createEditor(dataInstance.data)
+        editor.propertyId = propertyId
+        editor.prevPropertyId = propertyId
+
+        editor.load(dataInstance.value)
+
+        return editor
+    }
 }

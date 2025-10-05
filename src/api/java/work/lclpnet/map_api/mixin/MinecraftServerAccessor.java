@@ -1,4 +1,4 @@
-package work.lclpnet.map_utils.mixin;
+package work.lclpnet.map_api.mixin;
 
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.storage.LevelStorage;

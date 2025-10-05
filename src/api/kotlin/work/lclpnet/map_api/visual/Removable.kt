@@ -1,6 +1,5 @@
-package work.lclpnet.map_utils.util
+package work.lclpnet.map_api.visual
 
 fun interface Removable {
-
     fun remove()
 }

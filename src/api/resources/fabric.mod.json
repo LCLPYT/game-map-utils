@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "game-map-api",
+  "version": "${version}",
+  "name": "Game Map API",
+  "description": "API for managing mini game map data for Minecraft: Java edition",
+  "authors": [
+    "LCLP"
+  ],
+  "contact": {
+    "homepage": "https://github.com/LCLPYT/game-map-utils",
+    "sources": "https://github.com/LCLPYT/game-map-utils"
+  },
+  "license": "MIT",
+  "icon": "assets/game-map-api/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      {
+        "adapter": "kotlin",
+        "value": "work.lclpnet.map_api.GameMapApiInitKt::init"
+      }
+    ]
+  },
+  "mixins": [
+    "game-map-api.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.14",
+    "minecraft": "~1.21.7",
+    "java": ">=21",
+    "fabric-api": "*"
+  },
+  "suggests": {}
+}

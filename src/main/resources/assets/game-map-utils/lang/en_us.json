@@ -65,5 +65,6 @@
   "game-map-utils.list.show_all": "Show all",
   "game-map-utils.list.show_selected": "Show selected",
   "game-map-utils.list.hide_all": "Hide all",
-  "game-map-utils.list.show_status": "Show data in world"
+  "game-map-utils.list.show_status": "Show data in world",
+  "game-map-utils.list.no_data": "No data exists for this world yet"
 }

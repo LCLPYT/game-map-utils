@@ -18,7 +18,7 @@ import work.lclpnet.kibu.hook.HookRegistrar
 import work.lclpnet.kibu.hook.player.PlayerInventoryHooks
 import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.kibu.translate.text.FormatWrapper.styled
-import work.lclpnet.map_utils.data.DataManager
+import work.lclpnet.map_api.data.DataManager
 import work.lclpnet.map_utils.editor.SessionManager
 import work.lclpnet.map_utils.identifier
 import work.lclpnet.map_utils.util.openConfirmDialog
@@ -156,8 +156,16 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
     fun discard(player: ServerPlayerEntity, nbt: NbtCompound) {
         val session = sessionManager.optSession(player) ?: return
 
-        session.editor?.onDataChanged(nbt)
-        session.editor?.onTerminate(nbt)
+        val editor = session.editor
+
+        if (editor != null) {
+            editor.onDataChanged(nbt)
+
+            if (!editor.isNew()) {
+                editor.onTerminate(nbt)
+            }
+        }
+
         session.destroyEditor()
     }
 
