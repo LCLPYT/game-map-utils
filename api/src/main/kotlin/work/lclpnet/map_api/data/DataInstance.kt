@@ -6,20 +6,15 @@ import com.mojang.serialization.codecs.RecordCodecBuilder
 import net.minecraft.server.network.ServerPlayerEntity
 import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.map_api.visual.Visualizer
-import java.util.*
 import java.util.function.Function
 
-private fun <T> dataInstanceMapCodec(data: Data<T>): MapCodec<DataInstance<T>> {
-    val codec: MapCodec<DataInstance<T>> = RecordCodecBuilder.mapCodec { instance ->
-        instance.group(
-            data.codec().fieldOf("value").forGetter { it.value },
-            Codec.STRING.optionalFieldOf("role").forGetter { Optional.ofNullable(it.role) }
-        ).apply(instance) { value, role ->
-            DataInstance(data, value, role.orElse(null))
-        }
+private fun <T> mapCodec(data: Data<T>): MapCodec<DataInstance<T>> = RecordCodecBuilder.mapCodec { instance ->
+    instance.group(
+        data.codec().fieldOf("value").forGetter { it.value },
+        Codec.STRING.optionalFieldOf("role", null).forGetter { it.role }
+    ).apply(instance) { value, role ->
+        DataInstance(data, value, role)
     }
-
-    return codec
 }
 
 data class DataInstance<T>(
@@ -27,7 +22,6 @@ data class DataInstance<T>(
     val value: T,
     val role: String?
 ) {
-
     fun display(
         visualizer: Visualizer,
         player: ServerPlayerEntity,
@@ -38,7 +32,7 @@ data class DataInstance<T>(
     companion object {
         @JvmField
         val CODEC: Codec<DataInstance<*>> = DATA_CODEC.dispatch("type", Function { it.data }, Function { data ->
-            dataInstanceMapCodec(data)
+            mapCodec(data)
         })
     }
 }
