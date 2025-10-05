@@ -25,7 +25,7 @@ class Session(val args: SessionArgs, dynamicEntityManager: DynamicEntityManager,
     val playerVisualizer = PlayerVisualizer(args, dynamicEntityManager, PlayerSceneRenderer(args, dynamicEntityManager))
     val sessionVisualizer = PlayerVisualizer(args, dynamicEntityManager, PlayerSceneRenderer(args, dynamicEntityManager))
     val sessionRemovables = mutableMapOf<String, Removable>()
-    var showAll = false
+    val shown = mutableSetOf<String>()
 
     var editor: DataEditor<*>? = null
         private set
@@ -54,10 +54,7 @@ class Session(val args: SessionArgs, dynamicEntityManager: DynamicEntityManager,
         this.editor = null
         editorBossBar = null
 
-        if (showAll) {
-            clearSessionRemovables()
-            displayWorldData()
-        }
+        updateShownDisplays()
     }
 
     fun player(): ServerPlayerEntity = args.player()
@@ -110,10 +107,15 @@ class Session(val args: SessionArgs, dynamicEntityManager: DynamicEntityManager,
     }
 
     @Synchronized
-    fun displayWorldData() {
-        val worldData = dataManager.getWorldData(args.world)
+    fun updateShownDisplays() {
+        clearSessionRemovables()
 
-        for ((propertyId, dataInstance) in worldData.properties()) {
+        val worldData = dataManager.getWorldData(args.world)
+        val properties = worldData.properties()
+
+        for (propertyId in shown) {
+            val dataInstance = properties[propertyId] ?: continue
+
             val removable = dataInstance.display(sessionVisualizer, args.player(), args.translations, propertyId)
             addSessionRemovable(propertyId, removable)
         }

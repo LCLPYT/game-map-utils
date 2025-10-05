@@ -5,7 +5,7 @@ import net.minecraft.dialog.DialogActionButtonData
 import net.minecraft.dialog.DialogButtonData
 import net.minecraft.dialog.DialogCommonData
 import net.minecraft.dialog.action.DynamicCustomDialogAction
-import net.minecraft.dialog.input.BooleanInputControl
+import net.minecraft.dialog.input.SingleOptionInputControl
 import net.minecraft.dialog.type.DialogInput
 import net.minecraft.dialog.type.MultiActionDialog
 import net.minecraft.nbt.NbtCompound
@@ -52,6 +52,12 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
             ))
 
             actions.add(DialogActionButtonData(
+                DialogButtonData(Text.literal("\uD83D\uDC41")
+                    .formatted(if (session.shown.contains(propertyId)) GREEN else STRIKETHROUGH), 20),
+                Optional.of(DynamicCustomDialogAction(TOGGLE_SHOWN_ID, Optional.of(nbt)))
+            ))
+
+            actions.add(DialogActionButtonData(
                 DialogButtonData(Text.literal("↑"), 20),
                 Optional.of(DynamicCustomDialogAction(MOVE_UP_ID, Optional.of(nbt)))
             ))
@@ -67,15 +73,33 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
             ))
         }
 
-        val inputs = listOf(DialogInput(
-            "showAll",
-            BooleanInputControl(
-                translations.translateText("list.show_all").translateFor(player),
-                session.showAll,
-                "true",
-                "false"
+        val inputs = listOf(
+            DialogInput(
+                "showStatus",
+                SingleOptionInputControl(
+                    150,
+                    listOf(
+                        SingleOptionInputControl.Entry(
+                            "show_all",
+                            Optional.of(translations.translateText("list.show_all").translateFor(player)),
+                            session.shown.isNotEmpty() && session.shown.size >= worldData.properties().size
+                        ),
+                        SingleOptionInputControl.Entry(
+                            "show_selected",
+                            Optional.of(translations.translateText("list.show_selected").translateFor(player)),
+                            session.shown.isNotEmpty() && session.shown.size < worldData.properties().size
+                        ),
+                        SingleOptionInputControl.Entry(
+                            "hide_all",
+                            Optional.of(translations.translateText("list.hide_all").translateFor(player)),
+                            session.shown.isEmpty()
+                        )
+                    ),
+                    translations.translateText("list.show_status").translateFor(player),
+                    true
+                )
             )
-        ))
+        )
 
         val title = translations.translateText("list.title", player.world.registryKey.value).translateFor(player)
 
@@ -88,7 +112,7 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
                 DialogButtonData(Text.translatable("gui.cancel"), 150),
                 Optional.of(DynamicCustomDialogAction(CLOSE_ID, Optional.empty()))
             )),
-            4
+            5
         )
 
         player.openDialog(RegistryEntry.of(dialog))
@@ -200,19 +224,46 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
         onDataChange(player, nbt)
     }
 
-    private fun onDataChange(player: ServerPlayerEntity, nbt: NbtCompound) {
+    fun toggleShown(player: ServerPlayerEntity, nbt: NbtCompound) {
+        val propertyId = nbt.getString("propertyId", null) ?: return
         val session = sessionManager.getSession(player)
 
-        val showAll = nbt.getBoolean("showAll", session.showAll)
+        if (session.shown.contains(propertyId)) {
+            session.shown.remove(propertyId)
+        } else {
+            session.shown.add(propertyId)
+        }
 
-        if (showAll == session.showAll) return
+        session.updateShownDisplays()
+        open(player)
+    }
 
-        session.showAll = showAll
+    fun showAll(player: ServerPlayerEntity) {
+        val session = sessionManager.getSession(player)
 
-        session.clearSessionRemovables()
+        val worldData = dataManager.getWorldData(player.world)
 
-        if (showAll) {
-            session.displayWorldData()
+        for ((propertyId, _) in worldData.properties()) {
+            session.shown.add(propertyId)
+        }
+
+        session.updateShownDisplays()
+    }
+
+    fun hideAll(player: ServerPlayerEntity) {
+        val session = sessionManager.getSession(player)
+
+        session.shown.clear()
+        session.updateShownDisplays()
+    }
+
+    private fun onDataChange(player: ServerPlayerEntity, nbt: NbtCompound) {
+        val showStatus = nbt.getString("showStatus", "show_selected")
+
+        when (showStatus) {
+            "show_all" -> showAll(player)
+            "show_selected" -> sessionManager.getSession(player).updateShownDisplays()
+            "hide_all" -> hideAll(player)
         }
     }
 
@@ -225,5 +276,6 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
         val MOVE_UP_ID = identifier("list_move_up")
         val MOVE_DOWN_ID = identifier("list_move_down")
         val CLOSE_ID = identifier("list_close")
+        val TOGGLE_SHOWN_ID = identifier("list_toggle_shown")
     }
 }

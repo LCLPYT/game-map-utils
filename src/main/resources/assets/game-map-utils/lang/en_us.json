@@ -62,5 +62,8 @@
   "game-map-utils.list.replace": "Data of world %s",
   "game-map-utils.list.confirm_delete": "Do you really want to delete data \"%s\"?",
   "game-map-utils.list.deleted": "Data \"%s\" deleted",
-  "game-map-utils.list.show_all": "Show all in world"
+  "game-map-utils.list.show_all": "Show all",
+  "game-map-utils.list.show_selected": "Show selected",
+  "game-map-utils.list.hide_all": "Hide all",
+  "game-map-utils.list.show_status": "Show data in world"
 }
