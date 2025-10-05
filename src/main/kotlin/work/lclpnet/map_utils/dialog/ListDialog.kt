@@ -14,6 +14,7 @@ import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting.*
 import work.lclpnet.kibu.translate.Translations
+import work.lclpnet.map_utils.data.Data
 import work.lclpnet.map_utils.data.DataManager
 import work.lclpnet.map_utils.editor.SessionManager
 import work.lclpnet.map_utils.identifier
@@ -28,9 +29,13 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
 
         val actions = mutableListOf<DialogActionButtonData>()
 
+        val counter = mutableMapOf<Data<*>, Int>()
+
         for ((propertyId, dataInstance) in worldData.properties()) {
             val nbt = NbtCompound()
             nbt.putString("propertyId", propertyId)
+
+            val num = counter.compute(dataInstance.data) { _, i -> if (i == null) 1 else i + 1 }
 
             val label = Text.empty()
                 .append(Text.literal(propertyId).formatted(YELLOW))
@@ -38,6 +43,7 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
                 .append(translations.translateText("type.${dataInstance.data.id()}")
                     .formatted(AQUA)
                     .translateFor(player))
+                .append(Text.literal(" #$num").formatted(AQUA))
                 .append(")")
 
             actions.add(DialogActionButtonData(
@@ -157,7 +163,11 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
         val worldData = dataManager.getWorldData(player.world)
 
         val index = worldData.getIndex(propertyId)
-        if (index == -1 || index == 0) return
+
+        if (index == -1 || index == 0) {
+            open(player)
+            return
+        }
 
         worldData.setIndex(propertyId, index - 1)
 
@@ -173,7 +183,11 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
         val worldData = dataManager.getWorldData(player.world)
 
         val index = worldData.getIndex(propertyId)
-        if (index == -1 || index >= worldData.properties().size - 1) return
+
+        if (index == -1 || index >= worldData.properties().size - 1) {
+            open(player)
+            return
+        }
 
         worldData.setIndex(propertyId, index + 1)
 
