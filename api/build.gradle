@@ -1,0 +1,19 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version "2.2.10"
+}
+
+// configure the maven publication
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = project.base.archivesName.get()
+
+            from components.java
+
+            pom {
+                name = 'game-map-api'
+                description = 'API for managing minigame map data for Minecraft: Java edition'
+            }
+        }
+    }
+}

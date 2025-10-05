@@ -3,7 +3,7 @@
   "id": "game-map-utils",
   "version": "${version}",
   "name": "Game Map Utils",
-  "description": "Utilities for creating mini game maps for Minecraft: Java edition",
+  "description": "Utilities for creating minigame maps for Minecraft: Java edition",
   "authors": [
     "LCLP"
   ],
@@ -36,9 +36,9 @@
     }
   ],
   "depends": {
-    "fabricloader": ">=0.16.14",
-    "minecraft": "~1.21.7",
-    "java": ">=21",
+    "fabricloader": ">=${loader_version}",
+    "minecraft": "~${minecraft_version}",
+    "java": ">=${java_version}",
     "fabric-api": "*",
     "game-map-api": "*"
   },

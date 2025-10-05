@@ -3,7 +3,7 @@
   "id": "game-map-api",
   "version": "${version}",
   "name": "Game Map API",
-  "description": "API for managing mini game map data for Minecraft: Java edition",
+  "description": "API for managing minigame map data for Minecraft: Java edition",
   "authors": [
     "LCLP"
   ],
@@ -26,9 +26,9 @@
     "game-map-api.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.16.14",
-    "minecraft": "~1.21.7",
-    "java": ">=21",
+    "fabricloader": ">=${loader_version}",
+    "minecraft": "~${minecraft_version}",
+    "java": ">=${java_version}",
     "fabric-api": "*"
   },
   "suggests": {}

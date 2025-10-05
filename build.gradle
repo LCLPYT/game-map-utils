@@ -1,36 +1,95 @@
-import net.fabricmc.loom.task.RemapJarTask
+import work.lclpnet.build.task.GithubDeploymentTask
 
 plugins {
-	id 'fabric-loom' version "${loom_version}"
-	id 'maven-publish'
+    id 'fabric-loom' version "${loom_version}" apply false
 	id 'gradle-build-utils' version '1.7.0'
     id 'org.jetbrains.kotlin.jvm' version "2.2.10"
 }
 
-Properties props = buildUtils.loadProperties('publish.properties')  // will be empty, if the file is missing
-
-version = "${project.mod_version}+${project.minecraft_version}"
-group = project.maven_group
-
-base {
-    archivesName = project.archives_base_name
+static def substitutions(Project project) {
+    return [
+            version          : project.version,
+            loader_version   : project.loader_version,
+            minecraft_version: project.minecraft_version,
+            java_version     : project.java_version
+    ]
 }
 
-repositories {
-    maven {
-        url "https://repo.lclpnet.work/repository/internal"
+def env = System.getenv()
+Properties props = buildUtils.loadProperties('publish.properties')  // will be empty if the file is missing
+
+boolean local = System.getProperty("build.local") == "true"
+def versionSuffix = (local ? '+local' : '')
+
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'maven-publish'
+    apply plugin: 'fabric-loom'
+
+    group = project.maven_group
+    version = "${project.mod_version}+${project.minecraft_version}${versionSuffix}"
+
+    base {
+        archivesName = project.archives_base_name
     }
 
-    exclusiveContent {
-        forRepository {
-            maven {
-                name = "Modrinth"
-                url = "https://api.modrinth.com/maven"
+    repositories {
+        maven {
+            url "https://repo.lclpnet.work/repository/internal"
+        }
+
+        exclusiveContent {
+            forRepository {
+                maven {
+                    name = "Modrinth"
+                    url = "https://api.modrinth.com/maven"
+                }
+            }
+            filter {
+                includeGroup "maven.modrinth"
             }
         }
-        filter {
-            includeGroup "maven.modrinth"
+    }
+
+    dependencies {
+        minecraft "com.mojang:minecraft:${project.minecraft_version}"
+        mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+        modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+        modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+        modImplementation("net.fabricmc:fabric-language-kotlin:${project.kotlin_version}")
+        modImplementation("work.lclpnet.mods.kibu:kibu:${project.kibu_version}")
+        modImplementation("work.lclpnet.mods.gaco:gaco:${project.gaco_version}")
+    }
+
+    configureSubstitutions(processResources, substitutions(it))
+
+    tasks.withType(JavaCompile).configureEach {
+        it.options.release.set(21)
+    }
+
+    java {
+        // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
+        withSourcesJar()
+
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
+
+    kotlin {
+        jvmToolchain(21)
+    }
+
+    [jar, sourcesJar].each {
+        it.from("LICENSE") {
+            rename { "${it}_${project.base.archivesName.get()}"}
         }
+    }
+
+    publishing {
+        // automatically use DEPLOY_URL, DEPLOY_USER and DEPLOY_PASSWORD environment variables
+        // or mavenHost, mavenUser and mavenPassword from props
+        buildUtils.setupPublishRepository(repositories, props)
     }
 }
 
@@ -45,98 +104,37 @@ loom {
     }
 }
 
-sourceSets {
-    api {
-        compileClasspath += main.compileClasspath
-        runtimeClasspath += main.runtimeClasspath
-    }
-
-    main {
-        compileClasspath += api.output
-        runtimeClasspath += api.output
-    }
-
-    client {
-        compileClasspath += api.output
-        runtimeClasspath += api.output
-    }
-}
-
 dependencies {
-    minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-    modImplementation("net.fabricmc:fabric-language-kotlin:${project.kotlin_version}")
-    modImplementation("work.lclpnet.mods.kibu:kibu:${project.kibu_version}")
-    modImplementation("work.lclpnet.mods.gaco:gaco:${project.gaco_version}")
-}
-
-[processResources, processApiResources].each { it.with {
-    inputs.property "version", project.version
-
-    filesMatching("fabric.mod.json") {
-        expand "version": project.version
-    }
-}}
-
-tasks.withType(JavaCompile).configureEach {
-	it.options.release.set(21)
-}
-
-java {
-    // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-    withSourcesJar()
-
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
-}
-
-// add extra jar task
-def apiJar = tasks.register("apiJar", Jar.class) {
-    from(sourceSets.api.output)
-    archiveClassifier.set("api-dev")
-
-    def buildDir = layout.buildDirectory.asFile.getOrElse(new File("build"))
-    destinationDirectory.set(new File(buildDir, "devlibs"))
-
-    description "Builds the standalone api jar."
-    group 'build'
-}.get()
-
-// add remap jar task
-def remapApiJar = tasks.register("remapApiJar", RemapJarTask.class) {
-    dependsOn apiJar
-
-    description "Remaps the built api jar to intermediary mappings."
-    group 'fabric'
-    archiveClassifier.set('api')
-    addNestedDependencies = false  // cannot add nested jars to non-mod jars produced by RemapJarTask
-
-    inputFile.convention(apiJar.archiveFile)
-}.get()
-
-[apiJar, remapApiJar].each {
-    tasks.assemble.dependsOn(it)
-}
-
-[jar, sourcesJar, apiJar].each {
-    it.from("LICENSE") {
-        rename { "${it}_${project.base.archivesName.get()}"}
+    afterEvaluate {
+        subprojects.each {
+            api project(path: it.path, configuration: "namedElements")
+        }
     }
 }
 
-sourcesJar {
-    from sourceSets.api.kotlin
-}
-
+// add subprojects as nested jar to the main jar
 remapJar {
-    nestedJars.from remapApiJar
+    afterEvaluate {
+        subprojects.each {
+            nestedJars.from project(it.path).tasks.named("remapJar")
+        }
+    }
 }
 
-artifacts {
-    remapApiJar
+tasks.register("github", GithubDeploymentTask) {
+    dependsOn tasks.remapJar
+
+    config {
+        token = env.get("GITHUB_TOKEN")
+        repository = env.get("GITHUB_REPOSITORY")
+    }
+
+    release {
+        title = "[$project.minecraft_version] $project.name $project.version"
+        tag = project.version
+    }
+
+    assets.add(tasks.remapJar.archiveFile.get())
 }
 
 // configure the maven publication
@@ -147,16 +145,20 @@ publishing {
 
             from components.java
 
-            artifact remapApiJar
-
             pom {
                 name = 'game-map-utils'
-                description = 'Utilities for creating mini game maps for Minecraft: Java edition'
+                description = 'Utilities for creating minigame maps for Minecraft: Java edition'
             }
         }
     }
+}
 
-    // automatically use DEPLOY_URL, DEPLOY_USER and DEPLOY_PASSWORD environment variables
-    // or mavenHost, mavenUser and mavenPassword from props
-    buildUtils.setupPublishRepository(repositories, props)
+static def configureSubstitutions(ProcessResources task, Map<String, ?> substitutions) {
+    for (def entry in substitutions.entrySet()) {
+        task.inputs.property(entry.key, entry.value)
+    }
+
+    task.filesMatching("fabric.mod.json") {
+        expand substitutions
+    }
 }
