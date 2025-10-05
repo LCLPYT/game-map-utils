@@ -60,7 +60,7 @@ class DataManager(val logger: Logger) {
     }
 
     fun <T> setData(world: ServerWorld, propertyId: String, data: Data<T>, value: T) {
-        getWorldData(world)[propertyId] = DataInstance(data, value)
+        getWorldData(world)[propertyId] = DataInstance(data, value, null)
     }
 
     fun removeData(world: ServerWorld, propertyId: String) {

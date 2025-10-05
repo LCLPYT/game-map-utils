@@ -1,31 +1,34 @@
 package work.lclpnet.map_utils.data
 
 import com.mojang.serialization.Codec
+import com.mojang.serialization.MapCodec
+import com.mojang.serialization.codecs.RecordCodecBuilder
 import net.minecraft.server.network.ServerPlayerEntity
 import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.map_utils.editor.DataEditor
 import work.lclpnet.map_utils.editor.Session
 import work.lclpnet.map_utils.visual.PlayerVisualizer
+import java.util.*
 import java.util.function.Function
 
-private fun <T> makeDataInstanceUnsafe(data: Data<T>, value: Any?): DataInstance<T> {
-    @Suppress("UNCHECKED_CAST")
-    val cast = value as T
+private fun <T> dataInstanceMapCodec(data: Data<T>): MapCodec<DataInstance<T>> {
+    val codec: MapCodec<DataInstance<T>> = RecordCodecBuilder.mapCodec { instance ->
+        instance.group(
+            data.codec().fieldOf("value").forGetter { it.value },
+            Codec.STRING.optionalFieldOf("role").forGetter { Optional.ofNullable(it.role) }
+        ).apply(instance) { value, role ->
+            DataInstance(data, value, role.orElse(null))
+        }
+    }
 
-    return DataInstance(data, cast)
+    return codec
 }
 
-private fun <T> dataInstanceMapCodec(data: Data<T>) = data.codec().fieldOf("value").xmap(
-    Function { value ->
-        makeDataInstanceUnsafe(data, value)
-    },
-    Function {
-        it.value
-    }
-)
-
-data class DataInstance<T>(val data: Data<T>, val value: T) {
-
+data class DataInstance<T>(
+    val data: Data<T>,
+    val value: T,
+    val role: String?
+) {
     fun restore(session: Session, propertyId: String): DataEditor<T> {
         val editor = session.createEditor(data)
         editor.propertyId = propertyId
