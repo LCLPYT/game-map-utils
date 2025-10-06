@@ -60,6 +60,8 @@ allprojects {
         modImplementation("net.fabricmc:fabric-language-kotlin:${project.kotlin_version}")
         modImplementation("work.lclpnet.mods.kibu:kibu:${project.kibu_version}")
         modImplementation("work.lclpnet.mods.gaco:gaco:${project.gaco_version}")
+
+        include(implementation("org.json:json:20250517"))
     }
 
     configureSubstitutions(processResources, substitutions(it))

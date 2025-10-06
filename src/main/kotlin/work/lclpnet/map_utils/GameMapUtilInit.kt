@@ -12,6 +12,7 @@ import work.lclpnet.map_utils.dialog.DialogHandler
 import work.lclpnet.map_utils.dialog.ListDialog
 import work.lclpnet.map_utils.dialog.SaveDialog
 import work.lclpnet.map_utils.editor.SessionManager
+import work.lclpnet.map_utils.schema.SchemaLoader
 
 const val MOD_ID = "game-map-utils"
 val LOGGER: Logger = LoggerFactory.getLogger(MOD_ID)
@@ -40,6 +41,8 @@ fun init() {
             saveDialog,
             ListDialog(translations, dataManager, sessionManager)
         ).init(hooks)
+
+        val schemas = SchemaLoader(LOGGER).loadAll()
     }
 
     LOGGER.info("Initialized")

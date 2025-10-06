@@ -1,10 +1,10 @@
 package work.lclpnet.map_api.util
 
-import com.google.gson.FormattingStyle
-import com.google.gson.JsonElement
-import com.google.gson.Strictness
+import com.google.gson.*
 import com.google.gson.internal.Streams
 import com.google.gson.stream.JsonWriter
+import org.json.JSONArray
+import org.json.JSONObject
 import java.io.StringWriter
 import java.util.function.Function
 import java.util.regex.MatchResult
@@ -43,4 +43,28 @@ private fun prettifyPosTuple(regex: String, content: String): String {
         val match = matchResult!!.group()
         match.replace("\\s+".toRegex(), "").replace(",".toRegex(), ", ")
     })
+}
+
+fun gson2json(elem: JsonElement?): Any? {
+    return when (elem) {
+        is JsonObject -> JSONObject(elem)
+        is JsonArray -> JSONArray(elem)
+        is JsonPrimitive -> {
+            if (elem.isBoolean) elem.getAsBoolean()
+            else if (elem.isNumber) elem.getAsNumber()
+            else if (elem.isString) elem.getAsString()
+            else null
+        }
+        else -> null
+    }
+}
+
+fun json2gson(elem: Any?): JsonElement? {
+    return when (elem) {
+        is JSONObject, is JSONArray -> JsonParser.parseString(elem.toString())
+        is Boolean -> JsonPrimitive(elem)
+        is Number -> JsonPrimitive(elem)
+        is String -> JsonPrimitive(elem)
+        else -> null
+    }
 }
