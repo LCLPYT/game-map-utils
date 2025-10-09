@@ -54,6 +54,8 @@ class DialogHandler(
             SchemaSelectorDialog.EDIT_PROPERTY_ID -> schemaSelectorDialog.editProperty(player, nbt)
             SchemaSelectorDialog.CONFIRM_EDIT_PROPERTY_ID -> schemaSelectorDialog.confirmEditProperty(player, nbt)
             SchemaSelectorDialog.LIST_PROPERTY_ID -> schemaSelectorDialog.listProperty(player, nbt)
+            SchemaSelectorDialog.UNLINK_ID -> schemaSelectorDialog.unlink(player)
+            SchemaSelectorDialog.CONFIRM_UNLINK_ID -> schemaSelectorDialog.confirmUnlink(player)
         }
     }
 }

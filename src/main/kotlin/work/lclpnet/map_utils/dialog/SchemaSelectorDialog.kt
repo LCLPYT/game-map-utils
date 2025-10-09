@@ -5,13 +5,15 @@ import net.minecraft.dialog.DialogActionButtonData
 import net.minecraft.dialog.DialogButtonData
 import net.minecraft.dialog.DialogCommonData
 import net.minecraft.dialog.action.DynamicCustomDialogAction
+import net.minecraft.dialog.body.DialogBody
+import net.minecraft.dialog.body.PlainMessageDialogBody
 import net.minecraft.dialog.type.MultiActionDialog
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.registry.entry.RegistryEntry
 import net.minecraft.server.network.ServerPlayerEntity
+import net.minecraft.text.ClickEvent
 import net.minecraft.text.Text
-import net.minecraft.util.Formatting
-import net.minecraft.util.Formatting.YELLOW
+import net.minecraft.util.Formatting.*
 import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.map_api.data.DataInstance
 import work.lclpnet.map_api.data.DataManager
@@ -97,9 +99,21 @@ class SchemaSelectorDialog(
             }
         }
 
+        val body = listOf<DialogBody>(
+            PlainMessageDialogBody(
+                translations.translateText("schema_editor.unlink_schema")
+                    .translateFor(player)
+                    .styled { it
+                        .withColor(0xf7adad)
+                        .withClickEvent(ClickEvent.Custom(UNLINK_ID, Optional.empty()))
+                    },
+                200
+            )
+        )
+
         val dialog = MultiActionDialog(
             DialogCommonData(
-                Text.literal(schema.name), Optional.empty(), true, true, AfterAction.CLOSE, listOf(), listOf()
+                Text.literal(schema.name), Optional.empty(), true, true, AfterAction.CLOSE, body, listOf()
             ),
             buttons,
             Optional.of(DialogActionButtonData(
@@ -120,7 +134,7 @@ class SchemaSelectorDialog(
     ) {
         val exists = dataManager.hasData(player.world, propertyId)
         val label = Text.literal(dataDefinition.name)
-            .formatted(if (exists || dataDefinition.optional) Formatting.GREEN else Formatting.RED)
+            .formatted(if (exists || dataDefinition.optional) GREEN else RED)
 
         val nbt = NbtCompound()
         nbt.putString("propertyId", propertyId)
@@ -143,7 +157,7 @@ class SchemaSelectorDialog(
         buttons: MutableList<DialogActionButtonData>
     ) {
         val label = Text.literal(dataDefinition.name)
-            .formatted(Formatting.GREEN)
+            .formatted(GREEN)
 
         val nbt = NbtCompound()
         nbt.putString("role", dataDefinition.role)
@@ -206,11 +220,23 @@ class SchemaSelectorDialog(
         // TODO implement
     }
 
+    fun unlink(player: ServerPlayerEntity) {
+        val msg = translations.translateText("schema_editor.confirm_unlink").formatted(YELLOW).translateFor(player)
+        val unlinkLabel = translations.translateText("unlink").formatted(RED).translateFor(player)
+        openConfirmDialog(player, translations, msg, CONFIRM_UNLINK_ID, unlinkLabel)
+    }
+
+    fun confirmUnlink(player: ServerPlayerEntity) {
+        schemaManager.setSchema(player.world, null)
+    }
+
     companion object {
         val SELECTOR_ID = identifier("schema_selector")
         val SELECT_ID = identifier("schema_select")
         val EDIT_PROPERTY_ID = identifier("schema_edit_property")
         val CONFIRM_EDIT_PROPERTY_ID = identifier("schema_confirm_edit_property")
         val LIST_PROPERTY_ID = identifier("schema_list_property")
+        val UNLINK_ID = identifier("schema_unlink")
+        val CONFIRM_UNLINK_ID = identifier("schema_confirm_unlink")
     }
 }

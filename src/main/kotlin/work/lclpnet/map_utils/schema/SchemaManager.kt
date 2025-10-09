@@ -9,8 +9,8 @@ class SchemaManager(val schemas: Map<String, MapSchema>, val dataManager: DataMa
     fun getSchema(world: ServerWorld): MapSchema? =
         schemas[dataManager.getWorldData(world).schemaId]
 
-    fun setSchema(world: ServerWorld, schema: MapSchema) {
-        dataManager.getWorldData(world).schemaId = schema.id
+    fun setSchema(world: ServerWorld, schema: MapSchema?) {
+        dataManager.getWorldData(world).schemaId = schema?.id
         dataManager.save(world)
     }
 }
