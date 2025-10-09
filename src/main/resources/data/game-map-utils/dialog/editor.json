@@ -12,6 +12,16 @@
   "actions": [
     {
       "label": {
+        "translate": "game-map-utils.editor.schema_selector",
+        "fallback": "Map Schema"
+      },
+      "action": {
+        "type": "minecraft:custom",
+        "id": "game-map-utils:schema_selector"
+      }
+    },
+    {
+      "label": {
         "translate": "game-map-utils.editor.create_data",
         "fallback": "Create data"
       },

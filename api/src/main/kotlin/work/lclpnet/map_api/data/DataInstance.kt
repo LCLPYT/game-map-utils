@@ -6,14 +6,15 @@ import com.mojang.serialization.codecs.RecordCodecBuilder
 import net.minecraft.server.network.ServerPlayerEntity
 import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.map_api.visual.Visualizer
+import java.util.*
 import java.util.function.Function
 
 private fun <T> mapCodec(data: Data<T>): MapCodec<DataInstance<T>> = RecordCodecBuilder.mapCodec { instance ->
     instance.group(
         data.codec().fieldOf("value").forGetter { it.value },
-        Codec.STRING.optionalFieldOf("role", null).forGetter { it.role }
+        Codec.STRING.optionalFieldOf("role").forGetter { Optional.ofNullable(it.role) }
     ).apply(instance) { value, role ->
-        DataInstance(data, value, role)
+        DataInstance(data, value, role.orElse(null))
     }
 }
 

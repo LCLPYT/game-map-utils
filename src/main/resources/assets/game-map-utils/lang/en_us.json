@@ -2,9 +2,9 @@
   "game-map-utils.editor.title": "Map data overview",
   "game-map-utils.editor.create_data": "Create data",
   "game-map-utils.editor.edit_data": "Edit data",
+  "game-map-utils.editor.schema_selector": "Map Schema",
   "game-map-utils.create.title": "Create map data",
-  "game-map-utils.create.type": "Type",
-  "game-map-utils.create.confirm": "Create",
+  "game-map-utils.create.active_editor": "You are currently editing another element, do yo really want to discard the current changes?",
   "game-map-utils.create": "Create",
   "game-map-utils.warning": "Warning",
   "game-map-utils.discard": "Discard",
@@ -17,7 +17,6 @@
   "game-map-utils.save.missing": "Missing properties: %s",
   "game-map-utils.save.saved": "Saved data \"%s\" to world %s",
   "game-map-utils.save.overwrite": "Data \"%s\" already exists, do you want to overwrite it?",
-  "game-map-utils.create.active_editor": "You are currently editing another element, do yo really want to discard the current changes?",
   "game-map-utils.type.block_box": "Block Box",
   "game-map-utils.type.block_box.init": "Set %s: %s\nSet %s: %s\nSave / info: %s",
   "game-map-utils.type.block_box.pos1": "Start position",
@@ -66,5 +65,6 @@
   "game-map-utils.list.show_selected": "Show selected",
   "game-map-utils.list.hide_all": "Hide all",
   "game-map-utils.list.show_status": "Show data in world",
-  "game-map-utils.list.no_data": "No data exists for this world yet"
+  "game-map-utils.list.no_data": "No data exists for this world yet",
+  "game-map-utils.schema_selector.title": "Select Map Schema"
 }

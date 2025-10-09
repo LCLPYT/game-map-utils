@@ -11,7 +11,6 @@ import net.minecraft.nbt.NbtCompound
 import net.minecraft.registry.entry.RegistryEntry
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.Text
-import net.minecraft.util.Formatting.RED
 import net.minecraft.util.Formatting.YELLOW
 import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.map_api.data.DATA_TYPES
@@ -23,11 +22,6 @@ import java.util.*
 class CreateDialog(val translations: Translations, val sessionManager: SessionManager) {
 
     fun openOrConfirm(player: ServerPlayerEntity) {
-        if (!player.isCreativeLevelTwoOp) {
-            translations.translateText("missing_permission").formatted(RED).sendTo(player)
-            return
-        }
-
         if (sessionManager.optSession(player)?.editor != null) {
             val msg = translations.translateText("create.active_editor").formatted(YELLOW).translateFor(player)
             openConfirmDialog(player, translations, msg, CONFIRM_ID)

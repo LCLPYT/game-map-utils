@@ -3,12 +3,20 @@ package work.lclpnet.map_utils.dialog
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.nbt.NbtElement
 import net.minecraft.server.network.ServerPlayerEntity
+import net.minecraft.util.Formatting.RED
 import net.minecraft.util.Identifier
 import work.lclpnet.kibu.hook.HookRegistrar
 import work.lclpnet.kibu.hook.network.CustomClickActionCallback
+import work.lclpnet.kibu.translate.Translations
 import java.util.*
 
-class DialogHandler(val createDialog: CreateDialog, val saveDialog: SaveDialog, val listDialog: ListDialog) {
+class DialogHandler(
+    val translations: Translations,
+    val createDialog: CreateDialog,
+    val saveDialog: SaveDialog,
+    val listDialog: ListDialog,
+    val schemaSelectorDialog: SchemaSelectorDialog,
+) {
 
     fun init(hooks: HookRegistrar) {
         hooks.registerHook(CustomClickActionCallback.HOOK, CustomClickActionCallback { player, id, payload ->
@@ -17,6 +25,11 @@ class DialogHandler(val createDialog: CreateDialog, val saveDialog: SaveDialog, 
     }
 
     fun onCustomClick(player: ServerPlayerEntity, id: Identifier, payload: Optional<NbtElement>) {
+        if (!player.isCreativeLevelTwoOp) {
+            translations.translateText("missing_permission").formatted(RED).sendTo(player)
+            return
+        }
+
         val nbt = payload.map { it as? NbtCompound }.orElseGet { NbtCompound() }!!
 
         when (id) {
@@ -36,6 +49,11 @@ class DialogHandler(val createDialog: CreateDialog, val saveDialog: SaveDialog, 
             ListDialog.MOVE_DOWN_ID -> listDialog.moveDown(player, nbt)
             ListDialog.CLOSE_ID -> listDialog.onClose(player, nbt)
             ListDialog.TOGGLE_SHOWN_ID -> listDialog.toggleShown(player, nbt)
+            SchemaSelectorDialog.SELECTOR_ID -> schemaSelectorDialog.open(player)
+            SchemaSelectorDialog.SELECT_ID -> schemaSelectorDialog.selectSchema(player, nbt)
+            SchemaSelectorDialog.EDIT_PROPERTY_ID -> schemaSelectorDialog.editProperty(player, nbt)
+            SchemaSelectorDialog.CONFIRM_EDIT_PROPERTY_ID -> schemaSelectorDialog.confirmEditProperty(player, nbt)
+            SchemaSelectorDialog.LIST_PROPERTY_ID -> schemaSelectorDialog.listProperty(player, nbt)
         }
     }
 }

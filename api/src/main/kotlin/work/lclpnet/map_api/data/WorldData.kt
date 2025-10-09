@@ -3,7 +3,10 @@ package work.lclpnet.map_api.data
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
 
-class WorldData(private val properties: MutableMap<String, DataInstance<*>> = mutableMapOf()) {
+class WorldData(
+    private val properties: MutableMap<String, DataInstance<*>> = mutableMapOf(),
+    var schemaId: String? = null,
+) {
 
     @Synchronized
     operator fun set(propertyId: String, instance: DataInstance<*>) {
@@ -63,9 +66,10 @@ class WorldData(private val properties: MutableMap<String, DataInstance<*>> = mu
         @JvmField
         val CODEC: Codec<WorldData> = RecordCodecBuilder.create { it ->
             it.group(
-                PROPERTY_MAP_CODEC.fieldOf("properties").forGetter { it.properties }
-            ).apply(it) { properties ->
-                WorldData(properties)
+                PROPERTY_MAP_CODEC.fieldOf("properties").forGetter { it.properties },
+                Codec.STRING.fieldOf("schemaId").forGetter { it.schemaId },
+            ).apply(it) { properties, schemaId ->
+                WorldData(properties, schemaId)
             }
         }
     }

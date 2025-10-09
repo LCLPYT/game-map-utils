@@ -17,10 +17,12 @@ import work.lclpnet.map_api.data.type.*
 import work.lclpnet.map_api.mixin.MinecraftServerAccessor
 import work.lclpnet.map_api.util.toPrettyString
 import java.nio.charset.StandardCharsets
-import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
 import java.util.function.Function
+import kotlin.io.path.isRegularFile
+import kotlin.io.path.readText
+import kotlin.io.path.writeText
 
 const val WORLD_DATA_FILENAME = "gaco-map.json"
 
@@ -51,11 +53,15 @@ class DataManager(val logger: Logger) {
 
     val worldData = mutableMapOf<RegistryKey<World>, WorldData>()
     val gson = Gson()
-    private val lock = emptyArray<Unit>()
+    private val fileLock = emptyArray<Unit>()
 
     fun init(hooks: HookContainer) {
         hooks.registerHook(ServerWorldHooks.LOAD, ServerWorldEvents.Load { _, world ->
             load(world)
+        })
+
+        hooks.registerHook(ServerWorldHooks.UNLOAD, ServerWorldEvents.Unload { _, world ->
+            unload(world)
         })
     }
 
@@ -90,6 +96,11 @@ class DataManager(val logger: Logger) {
         }
     }
 
+    @Synchronized
+    private fun unload(world: ServerWorld) {
+        worldData.remove(world.registryKey)
+    }
+
     fun save(world: ServerWorld): CompletableFuture<Void> = CompletableFuture.runAsync {
         saveBlocking(world)
     }.whenComplete { _, err ->
@@ -101,20 +112,23 @@ class DataManager(val logger: Logger) {
     private fun setAll(world: ServerWorld, source: WorldData): WorldData {
         val worldData = getWorldData(world)
         worldData.copyFrom(source)
+
+        worldData.schemaId = source.schemaId
+
         return worldData
     }
 
     private fun loadBlocking(world: ServerWorld): WorldData {
         val path = dataFile(world)
 
-        if (!Files.isRegularFile(path)) {
+        if (!path.isRegularFile()) {
             return WorldData()
         }
 
         val content: String
 
-        synchronized(lock) {
-            content = Files.readString(path, StandardCharsets.UTF_8)
+        synchronized(fileLock) {
+            content = path.readText(StandardCharsets.UTF_8)
         }
 
         val json = gson.fromJson(content, JsonElement::class.java)
@@ -130,8 +144,8 @@ class DataManager(val logger: Logger) {
 
         WorldData.CODEC.encodeStart(JsonOps.INSTANCE, worldData)
             .resultOrPartial { logger.error("Failed to encode world data of world ${world.registryKey.value} to json: $it") }
-            .ifPresent { json -> synchronized(lock) {
-                Files.writeString(dataFile(world), json.toPrettyString(), StandardCharsets.UTF_8)
+            .ifPresent { json -> synchronized(fileLock) {
+                dataFile(world).writeText(json.toPrettyString(), StandardCharsets.UTF_8)
             }}
     }
 
@@ -141,6 +155,7 @@ class DataManager(val logger: Logger) {
 
         return worldDir.resolve("data").resolve(WORLD_DATA_FILENAME)
     }
+
     @Synchronized
     fun getWorldData(world: ServerWorld) = worldData.computeIfAbsent(world.registryKey) { WorldData() }
 }

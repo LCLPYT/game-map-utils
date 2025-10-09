@@ -23,17 +23,17 @@ import kotlin.io.path.isRegularFile
 import kotlin.io.path.readText
 
 private fun interface DataDefinitionFactory {
-    fun create(name: String, role: String?, optional: Boolean): DataDefinition<*, *>
+    fun create(propertyId: String, name: String, role: String?, optional: Boolean): DataDefinition<*, *>
 }
 
 class SchemaLoader(val logger: Logger) {
 
-    fun loadAll(): List<MapSchema> {
+    fun loadAll(): Map<String, MapSchema> {
         val dir = FabricLoader.getInstance().configDir.resolve(MOD_ID).resolve("map_schemas")
 
         if (!dir.isDirectory()) {
             dir.createDirectories()
-            return emptyList()
+            return emptyMap()
         }
 
         val matcher = FileSystems.getDefault().getPathMatcher("glob:**/*.json")
@@ -42,7 +42,7 @@ class SchemaLoader(val logger: Logger) {
         Files.walk(dir).use { paths ->
             paths.filter { it.isRegularFile() && matcher.matches(it) }
                 .forEach {
-                   val schema = load(it)
+                   val schema = load(dir, it)
 
                     if (schema != null) {
                         schemas.add(schema)
@@ -50,10 +50,10 @@ class SchemaLoader(val logger: Logger) {
                 }
         }
 
-        return schemas
+        return schemas.associateBy { it.id }.toMap()
     }
 
-    fun load(path: Path): MapSchema? {
+    fun load(rootDir: Path, path: Path): MapSchema? {
         if (!path.isRegularFile()) return null
 
         val text = path.readText(StandardCharsets.UTF_8)
@@ -62,7 +62,9 @@ class SchemaLoader(val logger: Logger) {
         val name = json.getString("name")
         val properties = readProperties(json.getJSONObject("properties"))
 
-        return MapSchema(name, properties)
+        val id = rootDir.relativize(path).toString()
+
+        return MapSchema(id, name, properties)
     }
 
     private fun readProperties(json: JSONObject): Map<String, DataDefinition<*, *>> {
@@ -90,12 +92,12 @@ class SchemaLoader(val logger: Logger) {
 
             val itemData = DATA_TYPES[itemType] ?: return null
 
-            return parseListData(itemData, input).create(name, role, optional)
+            return parseListData(itemData, input).create(propertyId, name, role, optional)
         }
 
         val data = DATA_TYPES[type] ?: return null
 
-        return parseSingleData(data, input).create(name, role, optional)
+        return parseSingleData(data, input).create(propertyId, name, role, optional)
     }
 
     private fun <T> parseSingleData(data: Data<T>, json: JsonElement?): DataDefinitionFactory {
@@ -104,7 +106,7 @@ class SchemaLoader(val logger: Logger) {
             .map { it.first }
             .orElse(null)
 
-        return DataDefinitionFactory { name, role, optional ->
+        return DataDefinitionFactory { _, name, role, optional ->
             SingleDataDefinition(name, data, default, role, optional)
         }
     }
@@ -115,8 +117,11 @@ class SchemaLoader(val logger: Logger) {
             .map { it.first }
             .orElse(null)
 
-        return DataDefinitionFactory { name, role, optional ->
-            ListDataDefinition(name, data, default, role, optional)
+        // ListDataDefinition collects all map properties with the defined role.
+        // if no role is defined, the propertyId is used as role instead
+
+        return DataDefinitionFactory { propertyId, name, role, optional ->
+            ListDataDefinition(name, data, default, role ?: propertyId, optional)
         }
     }
 }

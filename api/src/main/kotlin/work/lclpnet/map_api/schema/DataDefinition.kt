@@ -22,6 +22,6 @@ class ListDataDefinition<T>(
     override val name: String,
     override val data: Data<T>,
     override val default: List<T>?,
-    override val role: String?,
+    override val role: String,
     override val optional: Boolean
 ) : DataDefinition<T, List<T>>
