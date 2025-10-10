@@ -2,6 +2,10 @@ package work.lclpnet.map_api.data
 
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
+import work.lclpnet.map_api.schema.DataDefinition
+import work.lclpnet.map_api.schema.ListDataDefinition
+import work.lclpnet.map_api.schema.MapSchema
+import work.lclpnet.map_api.schema.SingleDataDefinition
 
 class WorldData(
     private val properties: MutableMap<String, DataInstance<*>> = mutableMapOf(),
@@ -58,6 +62,61 @@ class WorldData(
 
     @Synchronized
     fun properties(): Map<String, DataInstance<*>> = properties.toMap()
+
+    @Synchronized
+    fun <T> byRole(role: String?, data: Data<T>): List<DataInstance<T>> {
+        return properties.values
+            .filter { it.data == data }
+            .map {
+                @Suppress("UNCHECKED_CAST")
+                it as DataInstance<T>
+            }
+            .filter { it.role == role }
+    }
+
+    fun loadDefaults(schema: MapSchema) {
+        for ((propertyId, definition) in schema.properties) {
+            loadDefault(propertyId, definition)
+        }
+    }
+
+    private fun <D, T> loadDefault(propertyId: String, definition: DataDefinition<D, T>) {
+        when (definition) {
+            is SingleDataDefinition<*> -> {
+                if (has(propertyId)) return
+
+                val instance = definition.makeDefaultInstance()
+
+                if (instance != null) {
+                    set(propertyId, instance)
+                }
+            }
+
+            is ListDataDefinition<*> -> {
+                if (byRole(definition.role, definition.data).isNotEmpty()) return
+
+                val instances = definition.makeDefaultInstances() ?: return
+
+                for (instance in instances) {
+                    val id = uniqueId(propertyId)
+
+                    set(id, instance)
+                }
+            }
+        }
+    }
+
+    private fun uniqueId(prefix: String): String {
+        var i = 1
+        var id = "${prefix}_$i"
+
+        while (has(id)) {
+            i++
+            id = "${prefix}_$i"
+        }
+
+        return id
+    }
 
     companion object {
         @JvmField

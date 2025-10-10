@@ -77,6 +77,7 @@ class SchemaSelectorDialog(
         val schema = schemaManager.schemas[id] ?: return
 
         schemaManager.setSchema(player.world, schema)
+        dataManager.getWorldData(player.world).loadDefaults(schema)
 
         openEditor(player)
     }
@@ -95,7 +96,6 @@ class SchemaSelectorDialog(
             when (dataDefinition) {
                 is SingleDataDefinition<*> -> addSingleData(player, propertyId, dataDefinition, buttons)
                 is ListDataDefinition<*> -> addListData(dataDefinition, buttons)
-                else -> {}
             }
         }
 

@@ -14,6 +14,7 @@ import org.slf4j.Logger
 import work.lclpnet.kibu.hook.HookContainer
 import work.lclpnet.kibu.hook.world.ServerWorldHooks
 import work.lclpnet.map_api.data.type.*
+import work.lclpnet.map_api.hook.MapDataLoadedCallback
 import work.lclpnet.map_api.mixin.MinecraftServerAccessor
 import work.lclpnet.map_api.util.toPrettyString
 import java.nio.charset.StandardCharsets
@@ -90,9 +91,11 @@ class DataManager(val logger: Logger) {
     fun load(world: ServerWorld): CompletableFuture<WorldData> = CompletableFuture.supplyAsync {
         val data = loadBlocking(world)
         setAll(world, data)
-    }.whenComplete { _, err ->
+    }.whenComplete { data, err ->
         if (err != null) {
             logger.error("Failed to load map data of world ${world.registryKey.value}", err)
+        } else {
+            MapDataLoadedCallback.HOOK.invoker().onMapDataLoaded(world, data)
         }
     }
 
