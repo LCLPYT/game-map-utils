@@ -13,6 +13,7 @@ import net.minecraft.world.World
 import org.slf4j.Logger
 import work.lclpnet.kibu.hook.HookContainer
 import work.lclpnet.kibu.hook.world.ServerWorldHooks
+import work.lclpnet.map_api.data.DataManager.Companion.DATA_TYPES
 import work.lclpnet.map_api.data.type.*
 import work.lclpnet.map_api.hook.MapDataLoadedCallback
 import work.lclpnet.map_api.mixin.MinecraftServerAccessor
@@ -24,17 +25,6 @@ import java.util.function.Function
 import kotlin.io.path.isRegularFile
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
-
-const val WORLD_DATA_FILENAME = "gaco-map.json"
-
-val DATA_TYPES = listOf<Data<*>>(
-    BlockPosData,
-    BlockBoxData,
-    PositionData,
-    CheckpointData,
-    PositionedBlockSetData,
-    SplinePathData,
-).associateBy { it.id() }
 
 val DATA_CODEC: Codec<Data<*>> = Codec.STRING.comapFlatMap(
     Function { id ->
@@ -50,6 +40,8 @@ val DATA_CODEC: Codec<Data<*>> = Codec.STRING.comapFlatMap(
         it.id()
     }
 )
+
+const val WORLD_DATA_FILENAME = "gaco-map.json"
 
 class DataManager(val logger: Logger) {
 
@@ -172,4 +164,15 @@ class DataManager(val logger: Logger) {
 
     @Synchronized
     fun getWorldData(world: ServerWorld) = worldData.computeIfAbsent(world.registryKey) { WorldData() }
+
+    companion object {
+        val DATA_TYPES = listOf<Data<*>>(
+            BlockPosData,
+            BlockBoxData,
+            PositionData,
+            CheckpointData,
+            PositionedBlockSetData,
+            SplinePathData,
+        ).associateBy { it.id() }
+    }
 }

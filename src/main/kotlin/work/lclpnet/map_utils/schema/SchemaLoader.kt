@@ -5,8 +5,8 @@ import com.mojang.serialization.JsonOps
 import net.fabricmc.loader.api.FabricLoader
 import org.json.JSONObject
 import org.slf4j.Logger
-import work.lclpnet.map_api.data.DATA_TYPES
 import work.lclpnet.map_api.data.Data
+import work.lclpnet.map_api.data.DataManager
 import work.lclpnet.map_api.schema.DataDefinition
 import work.lclpnet.map_api.schema.ListDataDefinition
 import work.lclpnet.map_api.schema.MapSchema
@@ -93,12 +93,12 @@ class SchemaLoader(val logger: Logger) {
         if (type == "list") {
             val itemType = json.getString("items")
 
-            val itemData = DATA_TYPES[itemType] ?: return null
+            val itemData = DataManager.DATA_TYPES[itemType] ?: return null
 
             return parseListData(itemData, input).create(propertyId, name, role, optional)
         }
 
-        val data = DATA_TYPES[type] ?: return null
+        val data = DataManager.DATA_TYPES[type] ?: return null
 
         return parseSingleData(data, input).create(propertyId, name, role, optional)
     }
