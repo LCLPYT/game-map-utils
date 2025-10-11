@@ -21,7 +21,8 @@ class CheckpointEditor(
     override val visualizer: Visualizer,
     override val id: String = CheckpointData.id(),
     override var propertyId: String? = null,
-    override var prevPropertyId: String? = null
+    override var prevPropertyId: String? = null,
+    override var role: String? = null,
 ) : BaseDataEditor<Checkpoint>(CheckpointData) {
 
     val respawnPosEditor = PositionEditor(args, visualizer, id)

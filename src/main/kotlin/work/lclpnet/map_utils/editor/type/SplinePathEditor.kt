@@ -44,7 +44,8 @@ class SplinePathEditor(
     override val visualizer: Visualizer,
     override val id: String = SplinePathData.id(),
     override var propertyId: String? = null,
-    override var prevPropertyId: String? = null
+    override var prevPropertyId: String? = null,
+    override var role: String? = null,
 ) : BaseDataEditor<SplinePath>(SplinePathData) {
 
     val keypoints = mutableListOf<Vec3d>()

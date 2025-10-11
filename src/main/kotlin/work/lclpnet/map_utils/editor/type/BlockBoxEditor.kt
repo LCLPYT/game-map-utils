@@ -36,6 +36,7 @@ class BlockBoxEditor(
     override val id: String = BlockBoxData.id(),
     override var propertyId: String? = null,
     override var prevPropertyId: String? = null,
+    override var role: String? = null,
 ) : BaseDataEditor<BlockBox>(BlockBoxData) {
 
     var pos1: BlockPos? = null

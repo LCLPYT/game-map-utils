@@ -44,7 +44,7 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
                 .append(translations.translateText("type.${dataInstance.data.id()}")
                     .formatted(AQUA)
                     .translateFor(player))
-                .append(Text.literal(" #$num").formatted(AQUA))
+                .append(Text.literal(" #$num").formatted(YELLOW))
                 .append(")")
 
             actions.add(DialogActionButtonData(

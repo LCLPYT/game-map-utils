@@ -12,6 +12,7 @@
   "game-map-utils.delete": "Delete",
   "game-map-utils.save": "Save",
   "game-map-utils.unlink": "Unlink",
+  "game-map-utils.add": "Add",
   "game-map-utils.save.title": "Save \"%s\"",
   "game-map-utils.save.title_new": "Save new %s",
   "game-map-utils.save.property_id": "Property Id",

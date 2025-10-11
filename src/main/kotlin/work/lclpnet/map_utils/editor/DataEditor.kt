@@ -11,6 +11,7 @@ import net.minecraft.util.Formatting
 import work.lclpnet.kibu.hook.HookRegistrar
 import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.map_api.data.Data
+import work.lclpnet.map_api.data.DataInstance
 import work.lclpnet.map_api.data.DataManager
 import work.lclpnet.map_api.visual.Visualizer
 
@@ -19,6 +20,7 @@ interface DataEditor<T> {
     val args: SessionArgs
     val visualizer: Visualizer
     var propertyId: String?
+    var role: String?
     var prevPropertyId: String?
 
     fun data(): Data<T>
@@ -40,10 +42,11 @@ interface DataEditor<T> {
 
     fun create(nbt: NbtCompound): T?
 
-    fun saveToWorld(world: ServerWorld, dataManager: DataManager, propertyId: String, nbt: NbtCompound): Boolean {
+    fun saveToWorld(world: ServerWorld, dataManager: DataManager, propertyId: String, role: String?, nbt: NbtCompound): Boolean {
         val value = create(nbt) ?: return false
+        val instance = DataInstance(data(), value, role)
 
-        dataManager.setData(world, propertyId, data(), value)
+        dataManager.setDataInstance(world, propertyId, instance)
 
         return true
     }

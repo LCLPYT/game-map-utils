@@ -17,6 +17,7 @@ import net.minecraft.util.Formatting.*
 import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.map_api.data.DataInstance
 import work.lclpnet.map_api.data.DataManager
+import work.lclpnet.map_api.schema.DataDefinition
 import work.lclpnet.map_api.schema.ListDataDefinition
 import work.lclpnet.map_api.schema.SingleDataDefinition
 import work.lclpnet.map_utils.editor.SessionManager
@@ -78,6 +79,7 @@ class SchemaSelectorDialog(
 
         schemaManager.setSchema(player.world, schema)
         dataManager.getWorldData(player.world).loadDefaults(schema)
+        dataManager.save(player.world)
 
         openEditor(player)
     }
@@ -95,7 +97,7 @@ class SchemaSelectorDialog(
         for ((propertyId, dataDefinition) in schema.properties) {
             when (dataDefinition) {
                 is SingleDataDefinition<*> -> addSingleData(player, propertyId, dataDefinition, buttons)
-                is ListDataDefinition<*> -> addListData(dataDefinition, buttons)
+                is ListDataDefinition<*> -> addListData(player, propertyId, dataDefinition, buttons)
             }
         }
 
@@ -134,10 +136,11 @@ class SchemaSelectorDialog(
     ) {
         val exists = dataManager.hasData(player.world, propertyId)
         val label = Text.literal(dataDefinition.name)
-            .formatted(if (exists || dataDefinition.optional) GREEN else RED)
+            .formatted(if (exists) GREEN else if (dataDefinition.optional) GRAY else RED)
 
         val nbt = NbtCompound()
         nbt.putString("propertyId", propertyId)
+        nbt.putString("definitionId", propertyId)
 
         buttons.add(DialogActionButtonData(
             DialogButtonData(label, 200),
@@ -153,14 +156,24 @@ class SchemaSelectorDialog(
     }
 
     private fun addListData(
+        player: ServerPlayerEntity,
+        propertyId: String,
         dataDefinition: ListDataDefinition<*>,
         buttons: MutableList<DialogActionButtonData>
     ) {
-        val label = Text.literal(dataDefinition.name)
-            .formatted(GREEN)
+        val worldData = dataManager.getWorldData(player.world)
+        val instances = worldData.byRole(dataDefinition.role, dataDefinition.data)
+
+        val label = Text.empty()
+            .append(Text.literal(dataDefinition.name)
+                .formatted(GREEN))
+            .append(" (")
+            .append(Text.literal("${instances.size}")
+                .formatted(YELLOW))
+            .append(")")
 
         val nbt = NbtCompound()
-        nbt.putString("role", dataDefinition.role)
+        nbt.putString("propertyId", propertyId)
 
         buttons.add(DialogActionButtonData(
             DialogButtonData(label, 200),
@@ -175,6 +188,68 @@ class SchemaSelectorDialog(
         ))
     }
 
+    fun listProperty(player: ServerPlayerEntity, nbt: NbtCompound) {
+        val propertyId = nbt.getString("propertyId", null) ?: return
+
+        val schema = schemaManager.getSchema(player.world) ?: return
+        val definition = schema.properties[propertyId] ?: return
+
+        val worldData = dataManager.getWorldData(player.world)
+        val entries = worldData.entriesByRole(definition.role, definition.data)
+
+        val buttons = mutableListOf<DialogActionButtonData>()
+
+        for ((i, entry) in entries.withIndex()) {
+            val nbt = NbtCompound()
+            nbt.putString("propertyId", entry.key)
+            nbt.putString("definitionId", propertyId)
+
+            buttons.add(
+                DialogActionButtonData(
+                    DialogButtonData(
+                        Text.empty()
+                            .append(Text.literal("${entry.key} ")
+                                .formatted(YELLOW))
+                            .append("(")
+                            .append(translations.translateText("type.${definition.data.id()}")
+                                .formatted(AQUA)
+                                .translateFor(player)
+                                .append(Text.literal(" #${i + 1}").formatted(YELLOW)))
+                            .append(")"),
+                        200
+                    ),
+                    Optional.of(DynamicCustomDialogAction(EDIT_PROPERTY_ID, Optional.of(nbt)))
+                )
+            )
+        }
+
+        val createNbt = NbtCompound()
+        createNbt.putString("propertyId", worldData.uniqueId(propertyId))
+        createNbt.putString("definitionId", propertyId)
+
+        buttons.add(DialogActionButtonData(
+            DialogButtonData(
+                translations.translateText("add").translateFor(player),
+                200
+            ),
+            Optional.of(DynamicCustomDialogAction(EDIT_PROPERTY_ID, Optional.of(createNbt)))
+        ))
+
+        val dialog = MultiActionDialog(
+            DialogCommonData(
+                Text.literal(definition.name), Optional.empty(), true, true, AfterAction.CLOSE, listOf(), listOf()
+            ),
+            buttons,
+            Optional.of(DialogActionButtonData(
+                DialogButtonData(Text.translatable("gui.cancel"), 150),
+                Optional.empty()
+            )),
+            1
+        )
+
+        player.openDialog(RegistryEntry.of(dialog))
+    }
+
     fun editProperty(player: ServerPlayerEntity, nbt: NbtCompound) {
         if (sessionManager.optSession(player)?.editor != null) {
             val msg = translations.translateText("create.active_editor").formatted(YELLOW).translateFor(player)
@@ -187,11 +262,10 @@ class SchemaSelectorDialog(
 
     fun confirmEditProperty(player: ServerPlayerEntity, nbt: NbtCompound) {
         val propertyId = nbt.getString("propertyId", null) ?: return
+        val definitionId = nbt.getString("definitionId", null) ?: return
         val schema = schemaManager.getSchema(player.world) ?: return
 
-        val definition = schema.properties[propertyId] ?: return
-
-        if (definition !is SingleDataDefinition<*>) return
+        val definition = schema.properties[definitionId] ?: return
 
         handleEditProperty(player, propertyId, definition)
     }
@@ -199,25 +273,22 @@ class SchemaSelectorDialog(
     private fun <T> handleEditProperty(
         player: ServerPlayerEntity,
         propertyId: String,
-        definition: SingleDataDefinition<T>
+        definition: DataDefinition<T, *>,
     ) {
         val value = dataManager.getData(player.world, propertyId, definition.data, null)
         val session = sessionManager.getSession(player)
         session.destroyEditor()
 
         val editor = if (value == null) {
-            session.createEditor(definition.data).also { it.propertyId = propertyId }
+            session.createEditor(definition.data).also {
+                it.propertyId = propertyId
+                it.role = definition.role
+            }
         } else {
             session.createEditorFrom(DataInstance(definition.data, value, definition.role), propertyId)
         }
 
         session.setEditor(editor)
-    }
-
-    fun listProperty(player: ServerPlayerEntity, nbt: NbtCompound) {
-        val role = nbt.getString("role", null) ?: return
-
-        // TODO implement
     }
 
     fun unlink(player: ServerPlayerEntity) {
@@ -228,6 +299,7 @@ class SchemaSelectorDialog(
 
     fun confirmUnlink(player: ServerPlayerEntity) {
         schemaManager.setSchema(player.world, null)
+        dataManager.save(player.world)
     }
 
     companion object {

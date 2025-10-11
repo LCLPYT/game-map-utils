@@ -28,7 +28,8 @@ class PositionEditor(
     override val visualizer: Visualizer,
     override val id: String = PositionData.id(),
     override var propertyId: String? = null,
-    override var prevPropertyId: String? = null
+    override var prevPropertyId: String? = null,
+    override var role: String? = null,
 ) : BaseDataEditor<PositionRotation>(PositionData) {
 
     var posRot: PositionRotation? = null

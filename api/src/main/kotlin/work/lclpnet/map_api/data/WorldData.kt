@@ -6,6 +6,7 @@ import work.lclpnet.map_api.schema.DataDefinition
 import work.lclpnet.map_api.schema.ListDataDefinition
 import work.lclpnet.map_api.schema.MapSchema
 import work.lclpnet.map_api.schema.SingleDataDefinition
+import java.util.*
 
 class WorldData(
     private val properties: MutableMap<String, DataInstance<*>> = mutableMapOf(),
@@ -64,15 +65,19 @@ class WorldData(
     fun properties(): Map<String, DataInstance<*>> = properties.toMap()
 
     @Synchronized
-    fun <T> byRole(role: String?, data: Data<T>): List<DataInstance<T>> {
-        return properties.values
-            .filter { it.data == data }
+    fun <T> entriesByRole(role: String?, data: Data<T>): List<Map.Entry<String, DataInstance<T>>> {
+        return properties
+            .filter { it.value.data == data }
             .map {
                 @Suppress("UNCHECKED_CAST")
-                it as DataInstance<T>
+                it as Map.Entry<String, DataInstance<T>>
             }
-            .filter { it.role == role }
+            .filter { it.value.role == role }
+            .toList()
     }
+
+    fun <T> byRole(role: String?, data: Data<T>): List<DataInstance<T>> =
+        entriesByRole(role, data).map { it.value }
 
     fun loadDefaults(schema: MapSchema) {
         for ((propertyId, definition) in schema.properties) {
@@ -106,7 +111,7 @@ class WorldData(
         }
     }
 
-    private fun uniqueId(prefix: String): String {
+    fun uniqueId(prefix: String): String {
         var i = 1
         var id = "${prefix}_$i"
 
@@ -126,9 +131,9 @@ class WorldData(
         val CODEC: Codec<WorldData> = RecordCodecBuilder.create { it ->
             it.group(
                 PROPERTY_MAP_CODEC.fieldOf("properties").forGetter { it.properties },
-                Codec.STRING.fieldOf("schemaId").forGetter { it.schemaId },
+                Codec.STRING.optionalFieldOf("schemaId").forGetter { Optional.ofNullable(it.schemaId) },
             ).apply(it) { properties, schemaId ->
-                WorldData(properties, schemaId)
+                WorldData(properties, schemaId.orElse(null))
             }
         }
     }

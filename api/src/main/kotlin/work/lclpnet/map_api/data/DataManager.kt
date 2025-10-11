@@ -67,7 +67,11 @@ class DataManager(val logger: Logger) {
     }
 
     fun <T> setData(world: ServerWorld, propertyId: String, data: Data<T>, value: T) {
-        getWorldData(world)[propertyId] = DataInstance(data, value, null)
+        setDataInstance(world, propertyId, DataInstance(data, value, null))
+    }
+
+    fun <T> setDataInstance(world: ServerWorld, propertyId: String, dataInstance: DataInstance<T>) {
+        getWorldData(world)[propertyId] = dataInstance
     }
 
     fun removeData(world: ServerWorld, propertyId: String) {
@@ -76,16 +80,22 @@ class DataManager(val logger: Logger) {
 
     fun hasData(world: ServerWorld, propertyId: String) = getWorldData(world).has(propertyId)
 
-    @JvmOverloads
-    fun <T> getData(world: ServerWorld, propertyId: String, data: Data<T>, default: T? = null): T? {
-        val instance = getWorldData(world)[propertyId] ?: return default
+    fun <T> getDataInstance(world: ServerWorld, propertyId: String, data: Data<T>): DataInstance<T>? {
+        val instance = getWorldData(world)[propertyId] ?: return null
 
         if (instance.data == data) {
             @Suppress("UNCHECKED_CAST")
-            return instance.value as T
+            return instance as DataInstance<T>
         }
 
-        return default
+        return null
+    }
+
+    @JvmOverloads
+    fun <T> getData(world: ServerWorld, propertyId: String, data: Data<T>, default: T? = null): T? {
+        val instance = getDataInstance(world, propertyId, data) ?: return default
+
+        return instance.value
     }
 
     fun load(world: ServerWorld): CompletableFuture<WorldData> = CompletableFuture.supplyAsync {

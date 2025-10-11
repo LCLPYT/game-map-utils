@@ -131,7 +131,7 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
         val editor = session.editor ?: return
         val propertyId = editor.propertyId ?: return
 
-        if (!editor.saveToWorld(player.world, dataManager, propertyId, nbt)) return
+        if (!editor.saveToWorld(player.world, dataManager, propertyId, editor.role, nbt)) return
 
         editor.onTerminate(nbt)
 

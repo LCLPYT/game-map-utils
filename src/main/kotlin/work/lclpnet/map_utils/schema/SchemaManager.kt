@@ -20,7 +20,6 @@ class SchemaManager(val schemas: Map<String, MapSchema>, val dataManager: DataMa
 
     fun setSchema(world: ServerWorld, schema: MapSchema?) {
         dataManager.getWorldData(world).schemaId = schema?.id
-        dataManager.save(world)
     }
 
     fun loadDefaults(world: ServerWorld, data: WorldData) {
@@ -29,5 +28,7 @@ class SchemaManager(val schemas: Map<String, MapSchema>, val dataManager: DataMa
         if (schema != null) {
             data.loadDefaults(schema)
         }
+
+        dataManager.save(world)
     }
 }

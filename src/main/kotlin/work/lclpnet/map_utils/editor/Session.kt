@@ -128,6 +128,7 @@ class Session(val args: SessionArgs, dynamicEntityManager: DynamicEntityManager,
         val editor = createEditor(dataInstance.data)
         editor.propertyId = propertyId
         editor.prevPropertyId = propertyId
+        editor.role = dataInstance.role
 
         editor.load(dataInstance.value)
 

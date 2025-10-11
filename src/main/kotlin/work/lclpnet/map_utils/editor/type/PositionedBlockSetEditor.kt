@@ -37,7 +37,8 @@ class PositionedBlockSetEditor(
     override val visualizer: Visualizer,
     override val id: String = PositionedBlockSetData.id(),
     override var propertyId: String? = null,
-    override var prevPropertyId: String? = null
+    override var prevPropertyId: String? = null,
+    override var role: String? = null,
 ) : BaseDataEditor<PositionedBlockSet>(PositionedBlockSetData) {
 
     val blocks = mutableMapOf<BlockPos, BlockState>()
