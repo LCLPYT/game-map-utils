@@ -85,7 +85,7 @@ class PositionEditor(
         ).formatted(GREEN).sendTo(player)
 
         marker?.remove()
-        marker = data.display(posRot, visualizer, player, translations, id, prevPropertyId)
+        marker = data.display(posRot, visualizer, player, translations, id, propertyId)
 
         return true
     }
@@ -94,7 +94,7 @@ class PositionEditor(
         posRot = value
 
         marker?.remove()
-        marker = data.display(value, visualizer, player, translations, id, prevPropertyId)
+        marker = data.display(value, visualizer, player, translations, id, propertyId)
     }
 
     override fun create(nbt: NbtCompound): PositionRotation? {

@@ -74,28 +74,35 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
             ))
         }
 
+        val visibilityOptions = mutableListOf<SingleOptionInputControl.Entry>()
+        val allShown = session.shown.isNotEmpty() && session.shown.size >= worldData.properties().size
+
+        visibilityOptions.add(SingleOptionInputControl.Entry(
+            "show_all",
+            Optional.of(translations.translateText("list.show_all").translateFor(player)),
+            allShown
+        ))
+
+        if (!allShown && !session.shown.isEmpty()) {
+            visibilityOptions.add(SingleOptionInputControl.Entry(
+                "show_selected",
+                Optional.of(translations.translateText("list.show_selected").translateFor(player)),
+                session.shown.isNotEmpty() && session.shown.size < worldData.properties().size
+            ))
+        }
+
+        visibilityOptions.add(SingleOptionInputControl.Entry(
+            "hide_all",
+            Optional.of(translations.translateText("list.hide_all").translateFor(player)),
+            session.shown.isEmpty()
+        ))
+
         val inputs = listOf(
             DialogInput(
                 "showStatus",
                 SingleOptionInputControl(
                     150,
-                    listOf(
-                        SingleOptionInputControl.Entry(
-                            "show_all",
-                            Optional.of(translations.translateText("list.show_all").translateFor(player)),
-                            session.shown.isNotEmpty() && session.shown.size >= worldData.properties().size
-                        ),
-                        SingleOptionInputControl.Entry(
-                            "show_selected",
-                            Optional.of(translations.translateText("list.show_selected").translateFor(player)),
-                            session.shown.isNotEmpty() && session.shown.size < worldData.properties().size
-                        ),
-                        SingleOptionInputControl.Entry(
-                            "hide_all",
-                            Optional.of(translations.translateText("list.hide_all").translateFor(player)),
-                            session.shown.isEmpty()
-                        )
-                    ),
+                    visibilityOptions,
                     translations.translateText("list.show_status").translateFor(player),
                     true
                 )
@@ -191,7 +198,9 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
         val propertyId = nbt.getString("propertyId", null) ?: return
         val worldData = dataManager.getWorldData(player.world)
 
-        sessionManager.getSession(player).removeSessionDisplay(propertyId)
+        val session = sessionManager.getSession(player)
+
+        session.removeSessionDisplay(propertyId)
         worldData.remove(propertyId)
 
         dataManager.save(player.world)
@@ -200,6 +209,10 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
             "list.deleted",
             Text.literal(propertyId).formatted(YELLOW)
         ).formatted(GREEN).sendTo(player)
+
+        if (session.editor?.propertyId == propertyId) {
+            session.destroyEditor()
+        }
     }
 
     fun moveUp(player: ServerPlayerEntity, nbt: NbtCompound) {

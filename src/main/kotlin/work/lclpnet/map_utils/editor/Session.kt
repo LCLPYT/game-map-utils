@@ -115,6 +115,8 @@ class Session(val args: SessionArgs, dynamicEntityManager: DynamicEntityManager,
         val properties = worldData.properties()
 
         for (propertyId in shown) {
+            if (editor?.propertyId == propertyId) continue
+
             val dataInstance = properties[propertyId] ?: continue
 
             val removable = dataInstance.display(sessionVisualizer, args.player(), args.translations, propertyId)

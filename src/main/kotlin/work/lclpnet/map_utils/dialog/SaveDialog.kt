@@ -150,6 +150,7 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
 
         dataManager.save(player.world)
 
+        session.shown.add(propertyId)
         session.destroyEditor()
     }
 
