@@ -26,23 +26,26 @@ private fun interface DataDefinitionFactory {
     fun create(propertyId: String, name: String, role: String?, optional: Boolean): DataDefinition<*, *>
 }
 
+val SCHEMA_DIR: Path = FabricLoader.getInstance().configDir
+    .resolve(MOD_ID)
+    .resolve("map_schemas")
+
 class SchemaLoader(val logger: Logger) {
 
     fun loadAll(): Map<String, MapSchema> {
-        val dir = FabricLoader.getInstance().configDir.resolve(MOD_ID).resolve("map_schemas")
 
-        if (!dir.isDirectory()) {
-            dir.createDirectories()
+        if (!SCHEMA_DIR.isDirectory()) {
+            SCHEMA_DIR.createDirectories()
             return emptyMap()
         }
 
         val matcher = FileSystems.getDefault().getPathMatcher("glob:**/*.json")
         val schemas = mutableListOf<MapSchema>()
 
-        Files.walk(dir).use { paths ->
+        Files.walk(SCHEMA_DIR).use { paths ->
             paths.filter { it.isRegularFile() && matcher.matches(it) }
                 .forEach {
-                   val schema = load(dir, it)
+                   val schema = load(SCHEMA_DIR, it)
 
                     if (schema != null) {
                         schemas.add(schema)

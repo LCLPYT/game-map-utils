@@ -73,6 +73,7 @@
   "game-map-utils.list.show_status": "Show data in world",
   "game-map-utils.list.no_data": "No data exists for this world yet",
   "game-map-utils.schema_selector.title": "Select Map Schema",
+  "game-map-utils.schema_selector.no_schemas": "No map schemas found. Put map schema files into: %s",
   "game-map-utils.schema_editor.unlink_schema": "[Unlink schema]",
   "game-map-utils.schema_editor.confirm_unlink": "Do you really want to unlink the current map schema? No data will be lost."
 }

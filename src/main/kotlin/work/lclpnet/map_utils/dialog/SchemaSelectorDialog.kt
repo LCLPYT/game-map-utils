@@ -1,5 +1,6 @@
 package work.lclpnet.map_utils.dialog
 
+import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.dialog.AfterAction
 import net.minecraft.dialog.DialogActionButtonData
 import net.minecraft.dialog.DialogButtonData
@@ -8,6 +9,7 @@ import net.minecraft.dialog.action.DynamicCustomDialogAction
 import net.minecraft.dialog.body.DialogBody
 import net.minecraft.dialog.body.PlainMessageDialogBody
 import net.minecraft.dialog.type.MultiActionDialog
+import net.minecraft.dialog.type.NoticeDialog
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.registry.entry.RegistryEntry
 import net.minecraft.server.network.ServerPlayerEntity
@@ -22,9 +24,11 @@ import work.lclpnet.map_api.schema.ListDataDefinition
 import work.lclpnet.map_api.schema.SingleDataDefinition
 import work.lclpnet.map_utils.editor.SessionManager
 import work.lclpnet.map_utils.identifier
+import work.lclpnet.map_utils.schema.SCHEMA_DIR
 import work.lclpnet.map_utils.schema.SchemaManager
 import work.lclpnet.map_utils.util.openConfirmDialog
 import java.util.*
+import kotlin.io.path.relativeTo
 
 class SchemaSelectorDialog(
     val schemaManager: SchemaManager,
@@ -57,16 +61,41 @@ class SchemaSelectorDialog(
                 Optional.of(DynamicCustomDialogAction(SELECT_ID, Optional.of(nbt))))
         }
 
-        val dialog = MultiActionDialog(
-            DialogCommonData(
-                title, Optional.empty(), true, true, AfterAction.CLOSE, listOf(), listOf()
-            ),
-            buttons,
-            Optional.of(DialogActionButtonData(
+        val body = mutableListOf<DialogBody>()
+
+        if (buttons.isEmpty()) {
+            val schemaRelativePath = SCHEMA_DIR.relativeTo(FabricLoader.getInstance().gameDir)
+
+            body.add(PlainMessageDialogBody(
+                translations.translateText(
+                    "schema_selector.no_schemas",
+                    Text.literal(schemaRelativePath.toString())
+                        .formatted(YELLOW)
+                ).formatted(RED).translateFor(player),
+                200
+            ))
+        }
+
+        val commonData = DialogCommonData(
+            title, Optional.empty(), true, true, AfterAction.CLOSE, body, listOf()
+        )
+
+        val dialog = if (buttons.isNotEmpty()) {
+            MultiActionDialog(
+                commonData,
+                buttons,
+                Optional.of(DialogActionButtonData(
+                    DialogButtonData(Text.translatable("gui.cancel"), 150),
+                    Optional.empty()
+                )),
+                1
+            )
+        } else NoticeDialog(
+            commonData,
+            DialogActionButtonData(
                 DialogButtonData(Text.translatable("gui.cancel"), 150),
                 Optional.empty()
-            )),
-            1
+            )
         )
 
         player.openDialog(RegistryEntry.of(dialog))
