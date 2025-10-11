@@ -17,6 +17,8 @@ object PositionedBlockSetData : Data<PositionedBlockSet> {
 
     override fun codec(): Codec<PositionedBlockSet> = PositionedBlockSet.CODEC
 
+    override fun type() = PositionedBlockSet::class.java
+
     override fun display(
         value: PositionedBlockSet,
         visualizer: Visualizer,

@@ -15,6 +15,8 @@ object CheckpointData : Data<Checkpoint> {
 
     override fun codec(): Codec<Checkpoint> = Checkpoint.CODEC
 
+    override fun type() = Checkpoint::class.java
+
     override fun display(
         value: Checkpoint,
         visualizer: Visualizer,

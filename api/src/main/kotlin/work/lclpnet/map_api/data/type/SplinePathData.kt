@@ -15,6 +15,8 @@ object SplinePathData : Data<SplinePath> {
 
     override fun codec(): Codec<SplinePath> = SplinePath.CODEC
 
+    override fun type() = SplinePath::class.java
+
     override fun display(
         value: SplinePath,
         visualizer: Visualizer,

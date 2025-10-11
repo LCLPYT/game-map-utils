@@ -29,9 +29,12 @@ private val VALUE_CODEC: Codec<PositionRotation> = RecordCodecBuilder.create { i
 }}
 
 object PositionData : Data<PositionRotation> {
+
     override fun id() = "position"
 
     override fun codec() = VALUE_CODEC
+
+    override fun type() = PositionRotation::class.java
 
     override fun display(
         value: PositionRotation,

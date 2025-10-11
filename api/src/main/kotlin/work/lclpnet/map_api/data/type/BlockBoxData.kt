@@ -21,6 +21,8 @@ object BlockBoxData : Data<BlockBox> {
 
     override fun codec(): Codec<BlockBox> = BlockBox.CODEC
 
+    override fun type() = BlockBox::class.java
+
     override fun display(
         value: BlockBox,
         visualizer: Visualizer,

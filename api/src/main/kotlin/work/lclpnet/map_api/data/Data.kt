@@ -12,6 +12,8 @@ interface Data<T> {
 
     fun codec(): Codec<T>
 
+    fun type(): Class<T>
+
     fun display(
         value: T,
         visualizer: Visualizer,

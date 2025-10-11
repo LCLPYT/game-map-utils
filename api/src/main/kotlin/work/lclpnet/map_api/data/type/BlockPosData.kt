@@ -18,6 +18,8 @@ object BlockPosData : Data<BlockPos> {
 
     override fun codec(): Codec<BlockPos> = BlockPos.CODEC
 
+    override fun type() = BlockPos::class.java
+
     override fun display(
         value: BlockPos,
         visualizer: Visualizer,
