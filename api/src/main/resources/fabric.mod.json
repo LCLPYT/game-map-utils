@@ -29,7 +29,10 @@
     "fabricloader": ">=${loader_version}",
     "minecraft": "~${minecraft_version}",
     "java": ">=${java_version}",
-    "fabric-api": "*"
+    "fabric-api": "*",
+    "fabric-language-kotlin": "*",
+    "kibu": ">=0.153.0",
+    "gaco": ">=0.6.0"
   },
   "suggests": {}
 }

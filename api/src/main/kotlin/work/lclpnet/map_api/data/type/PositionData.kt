@@ -1,7 +1,6 @@
 package work.lclpnet.map_api.data.type
 
 import com.mojang.serialization.Codec
-import com.mojang.serialization.codecs.RecordCodecBuilder
 import net.minecraft.block.Blocks
 import net.minecraft.block.ObserverBlock
 import net.minecraft.entity.EntityType
@@ -20,19 +19,11 @@ import work.lclpnet.map_api.visual.Visualizer
 import work.lclpnet.map_api.visual.createDataLabelDisplay
 import java.util.*
 
-private val VALUE_CODEC: Codec<PositionRotation> = RecordCodecBuilder.create { instance -> instance.group(
-    Vec3d.CODEC.fieldOf("pos").forGetter { Vec3d(it.x, it.y, it.z) },
-    Codec.FLOAT.fieldOf("yaw").forGetter { it.yaw },
-    Codec.FLOAT.fieldOf("pitch").forGetter { it.pitch }
-).apply(instance) { pos, yaw, pitch ->
-    PositionRotation(pos.x, pos.y, pos.z, yaw, pitch)
-}}
-
 object PositionData : Data<PositionRotation> {
 
     override fun id() = "position"
 
-    override fun codec() = VALUE_CODEC
+    override fun codec(): Codec<PositionRotation> = PositionRotation.CODEC
 
     override fun type() = PositionRotation::class.java
 

@@ -40,7 +40,10 @@
     "minecraft": "~${minecraft_version}",
     "java": ">=${java_version}",
     "fabric-api": "*",
-    "game-map-api": "*"
+    "fabric-language-kotlin": "*",
+    "kibu": ">=0.153.0",
+    "gaco": ">=0.6.0",
+    "game-map-api": "${version}"
   },
   "suggests": {}
 }
