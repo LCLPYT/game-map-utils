@@ -45,23 +45,16 @@ class Session(val args: SessionArgs, dynamicEntityManager: DynamicEntityManager,
         hooks.unload()
     }
 
-    fun destroyEditor() {
+    fun deactivateEditor() {
         editorHooks.unload()
-        playerVisualizer.destroy()
 
         editorBossBar?.removePlayer(args.player())
         bossBars.destroy()
-
-        this.editor = null
         editorBossBar = null
-
-        updateShownDisplays()
     }
 
-    fun player(): ServerPlayerEntity = args.player()
-
-    fun setEditor(editor: DataEditor<*>) {
-        this.editor = editor
+    fun reactivateEditor() {
+        val editor = this.editor ?: return
 
         val barId = identifier("edit_${player().uuid.toString().replace("-", "").lowercase()}")
 
@@ -84,6 +77,24 @@ class Session(val args: SessionArgs, dynamicEntityManager: DynamicEntityManager,
         editor.sendTutorial()
 
         editorBossBar = bar
+    }
+
+    fun destroyEditor() {
+        deactivateEditor()
+
+        playerVisualizer.destroy()
+
+        this.editor = null
+
+        updateShownDisplays()
+    }
+
+    fun player(): ServerPlayerEntity = args.player()
+
+    fun setEditor(editor: DataEditor<*>) {
+        this.editor = editor
+
+        reactivateEditor()
     }
 
     @Synchronized
