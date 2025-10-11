@@ -33,6 +33,9 @@ class Session(val args: SessionArgs, dynamicEntityManager: DynamicEntityManager,
 
     fun init() {
         bossBars.init(args.server().bossBarManager)
+
+        playerVisualizer.init(hooks)
+        sessionVisualizer.init(hooks)
     }
 
     fun destroy() {

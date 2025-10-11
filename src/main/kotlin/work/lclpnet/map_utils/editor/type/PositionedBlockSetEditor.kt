@@ -25,6 +25,7 @@ import net.minecraft.world.World
 import work.lclpnet.gaco.ds.PositionedBlockSet
 import work.lclpnet.kibu.hook.HookRegistrar
 import work.lclpnet.kibu.hook.entity.PlayerInteractionHooks
+import work.lclpnet.kibu.hook.world.BlockModificationHooks
 import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.map_api.data.type.PositionedBlockSetData
 import work.lclpnet.map_api.visual.Visualizer
@@ -95,6 +96,16 @@ class PositionedBlockSetEditor(
         hooks.registerHook(PlayerInteractionHooks.USE_BLOCK, UseBlockCallback { entity, world, hand, result ->
             useBlock(entity, world, hand, result)
         })
+
+        hooks.registerHook(BlockModificationHooks.BLOCK_BROKEN, BlockModificationHooks.BlockModifiedHook { world, pos, _ ->
+            blockBroken(world, pos)
+        })
+    }
+
+    private fun blockBroken(world: World, pos: BlockPos) {
+        if (world != this.world) return
+
+        removeBlock(pos)
     }
 
     private fun useBlock(
@@ -131,7 +142,13 @@ class PositionedBlockSetEditor(
     ): ActionResult {
         if (entity != player || world != this.world || !player.playerInput.sprint) return ActionResult.PASS
 
-        val state = blocks.remove(pos) ?: return ActionResult.FAIL
+        removeBlock(pos)
+
+        return ActionResult.FAIL
+    }
+
+    fun removeBlock(pos: BlockPos) {
+        val state = blocks.remove(pos) ?: return
 
         val entity = markers.remove(pos)
 
@@ -141,8 +158,6 @@ class PositionedBlockSetEditor(
             key("removed"),
             label(pos, state)
         ).formatted(RED).sendTo(player)
-
-        return ActionResult.FAIL
     }
 
     override fun create(nbt: NbtCompound): PositionedBlockSet = PositionedBlockSet(blocks)

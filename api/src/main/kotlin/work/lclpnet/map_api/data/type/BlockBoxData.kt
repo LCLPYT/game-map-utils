@@ -31,13 +31,22 @@ object BlockBoxData : Data<BlockBox> {
     ): Removable {
         val marker = DisplayEntity.BlockDisplayEntity(EntityType.BLOCK_DISPLAY, visualizer.world())
 
+        val margin = -0.015f
+
         marker.blockState = Blocks.GREEN_STAINED_GLASS.defaultState
         marker.setBrightness(Brightness(15, 15))
-        marker.setPos(value.min().x.toDouble(), value.min().y.toDouble(), value.min().z.toDouble())
+        marker.setPos(
+            value.min().x.toDouble() + margin,
+            value.min().y.toDouble() + margin,
+            value.min().z.toDouble() + margin
+        )
         marker.setTransformation(
             AffineTransformation(
-                Matrix4f()
-                    .scale(value.width().toFloat(), value.height().toFloat(), value.length().toFloat())
+                Matrix4f().scale(
+                    value.width().toFloat() - 2 * margin,
+                    value.height().toFloat() - 2 * margin,
+                    value.length().toFloat() - 2 * margin
+                )
             )
         )
 
