@@ -28,11 +28,12 @@ import kotlin.io.path.writeText
 const val WORLD_DATA_FILENAME = "gaco-map.json"
 
 val DATA_TYPES = listOf<Data<*>>(
+    BlockPosData,
     BlockBoxData,
     PositionData,
     CheckpointData,
     PositionedBlockSetData,
-    SplinePathData
+    SplinePathData,
 ).associateBy { it.id() }
 
 val DATA_CODEC: Codec<Data<*>> = Codec.STRING.comapFlatMap(

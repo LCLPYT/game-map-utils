@@ -16,9 +16,9 @@ import work.lclpnet.map_api.data.DataManager
 import work.lclpnet.map_api.visual.Visualizer
 
 interface DataEditor<T> {
-    val id: String
     val args: SessionArgs
     val visualizer: Visualizer
+    val id: String
     var propertyId: String?
     var role: String?
     var prevPropertyId: String?

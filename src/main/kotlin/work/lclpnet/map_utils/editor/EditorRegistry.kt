@@ -11,6 +11,7 @@ private fun <T> pair(data: Data<T>, factory: EditorFactory<T>): Pair<Data<T>, Ed
     Pair(data, factory)
 
 private val DATA_EDITORS = mutableMapOf<Data<*>, EditorFactory<*>>(
+    pair(BlockPosData, ::BlockPosEditor),
     pair(BlockBoxData, ::BlockBoxEditor),
     pair(PositionData, ::PositionEditor),
     pair(CheckpointData, ::CheckpointEditor),
