@@ -192,6 +192,7 @@ class DataManager(val logger: Logger) {
             CheckpointData,
             PositionedBlockSetData,
             SplinePathData,
+            BlockFaceData,
         ).associateBy { it.id() }
     }
 }

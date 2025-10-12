@@ -20,8 +20,8 @@ interface DataEditor<T> {
     val visualizer: Visualizer
     val id: String
     var propertyId: String?
-    var role: String?
     var prevPropertyId: String?
+    var role: String?
 
     fun data(): Data<T>
 

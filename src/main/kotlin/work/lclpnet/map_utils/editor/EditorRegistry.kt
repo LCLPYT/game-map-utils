@@ -17,6 +17,7 @@ private val DATA_EDITORS = mutableMapOf<Data<*>, EditorFactory<*>>(
     pair(CheckpointData, ::CheckpointEditor),
     pair(PositionedBlockSetData, ::PositionedBlockSetEditor),
     pair(SplinePathData, ::SplinePathEditor),
+    pair(BlockFaceData, ::BlockFaceEditor),
 )
 
 fun <T> createEditor(data: Data<T>, args: SessionArgs, visualizer: Visualizer): DataEditor<T> {
