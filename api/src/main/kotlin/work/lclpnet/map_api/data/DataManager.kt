@@ -185,6 +185,7 @@ class DataManager(val logger: Logger) {
     fun getWorldData(world: ServerWorld) = worldData.computeIfAbsent(world.registryKey) { WorldData() }
 
     companion object {
+        @JvmField
         val DATA_TYPES = listOf<Data<*>>(
             BlockPosData,
             BlockBoxData,
