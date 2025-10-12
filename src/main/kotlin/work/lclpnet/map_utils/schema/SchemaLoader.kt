@@ -33,7 +33,6 @@ val SCHEMA_DIR: Path = FabricLoader.getInstance().configDir
 class SchemaLoader(val logger: Logger) {
 
     fun loadAll(): Map<String, MapSchema> {
-
         if (!SCHEMA_DIR.isDirectory()) {
             SCHEMA_DIR.createDirectories()
             return emptyMap()

@@ -33,8 +33,7 @@ fun init() {
         val saveDialog = SaveDialog(translations, dataManager, sessionManager)
         saveDialog.init(hooks)
 
-        val schemas = SchemaLoader(LOGGER).loadAll()
-        val schemaManager = SchemaManager(schemas, dataManager)
+        val schemaManager = SchemaManager(SchemaLoader(LOGGER), dataManager)
         schemaManager.init(hooks)
 
         DialogHandler(

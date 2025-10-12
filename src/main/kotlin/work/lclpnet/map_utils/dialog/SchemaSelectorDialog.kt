@@ -40,12 +40,14 @@ class SchemaSelectorDialog(
         get() = schemaManager.dataManager
 
     fun open(player: ServerPlayerEntity) {
-        val schema = schemaManager.getSchema(player.world)
+        schemaManager.reloadSchemas().whenComplete { _, _ ->
+            val schema = schemaManager.getSchema(player.world)
 
-        if (schema == null) {
-            openSelector(player)
-        } else {
-            openEditor(player)
+            if (schema == null) {
+                openSelector(player)
+            } else {
+                openEditor(player)
+            }
         }
     }
 
