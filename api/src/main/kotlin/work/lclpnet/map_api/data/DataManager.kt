@@ -102,6 +102,10 @@ class DataManager(val logger: Logger) {
         }
     }
 
+    fun load(path: Path): CompletableFuture<WorldData> = CompletableFuture.supplyAsync {
+        loadBlocking(path)
+    }
+
     @Synchronized
     private fun unload(world: ServerWorld) {
         worldData.remove(world.registryKey)
@@ -113,6 +117,10 @@ class DataManager(val logger: Logger) {
         if (err != null) {
             logger.error("Failed to save map data of world ${world.registryKey.value}", err)
         }
+    }
+
+    fun save(worldData: WorldData, path: Path): CompletableFuture<Void> = CompletableFuture.runAsync {
+        saveBlocking(worldData, path)
     }
 
     private fun setAll(world: ServerWorld, source: WorldData): WorldData {
