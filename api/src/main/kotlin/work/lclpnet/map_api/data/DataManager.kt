@@ -127,6 +127,10 @@ class DataManager(val logger: Logger) {
     private fun loadBlocking(world: ServerWorld): WorldData {
         val path = dataFile(world)
 
+        return loadBlocking(path)
+    }
+
+    fun loadBlocking(path: Path): WorldData {
         if (!path.isRegularFile()) {
             return WorldData()
         }
@@ -140,19 +144,26 @@ class DataManager(val logger: Logger) {
         val json = gson.fromJson(content, JsonElement::class.java)
 
         return WorldData.CODEC.decode(JsonOps.INSTANCE, json)
-            .resultOrPartial { logger.error("Failed to decode world data of world ${world.registryKey.value} from json: $it") }
+            .resultOrPartial { logger.error("Failed to decode world data from $path: $it") }
             .map { it.first }
             .orElseGet { WorldData() }
     }
 
     private fun saveBlocking(world: ServerWorld) {
         val worldData = getWorldData(world)
+        val path = dataFile(world)
 
+        saveBlocking(worldData, path)
+    }
+
+    fun saveBlocking(worldData: WorldData, path: Path) {
         WorldData.CODEC.encodeStart(JsonOps.INSTANCE, worldData)
-            .resultOrPartial { logger.error("Failed to encode world data of world ${world.registryKey.value} to json: $it") }
-            .ifPresent { json -> synchronized(fileLock) {
-                dataFile(world).writeText(json.toPrettyString(), StandardCharsets.UTF_8)
-            }}
+            .resultOrPartial { logger.error("Failed to encode world data to $path: $it") }
+            .ifPresent { json ->
+                synchronized(fileLock) {
+                    path.writeText(json.toPrettyString(), StandardCharsets.UTF_8)
+                }
+            }
     }
 
     fun dataFile(world: ServerWorld): Path {
