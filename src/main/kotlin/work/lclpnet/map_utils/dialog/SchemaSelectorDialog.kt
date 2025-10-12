@@ -64,7 +64,8 @@ class SchemaSelectorDialog(
         val body = mutableListOf<DialogBody>()
 
         if (buttons.isEmpty()) {
-            val schemaRelativePath = SCHEMA_DIR.relativeTo(FabricLoader.getInstance().gameDir)
+            val schemaRelativePath = SCHEMA_DIR.toAbsolutePath()
+                .relativeTo(FabricLoader.getInstance().gameDir.toAbsolutePath())
 
             body.add(PlainMessageDialogBody(
                 translations.translateText(
