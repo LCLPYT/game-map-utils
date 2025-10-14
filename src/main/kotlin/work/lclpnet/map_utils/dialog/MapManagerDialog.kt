@@ -83,7 +83,7 @@ class MapManagerDialog(
     private fun showMapList(worldIds: List<Identifier>, player: ServerPlayerEntity) {
         val server = player.server ?: return
 
-        val (loaded, notLoaded) = worldIds.sorted().partition {
+        val (loaded, notLoaded) = worldIds.sortedBy { it.toString() }.partition {
             server.getWorld(RegistryKey.of(RegistryKeys.WORLD, it)) != null
         }
 
@@ -284,11 +284,8 @@ class MapManagerDialog(
 
     fun teleportTo(player: ServerPlayerEntity, world: ServerWorld) {
         val worldData = dataManager.getWorldData(world)
-        val spawnPos = world.spawnPos
 
-        val spawn = worldData.get("spawn", PositionData) ?: PositionRotation(
-            spawnPos.x + 0.5, spawnPos.y + 0.5, spawnPos.z + 0.5, world.spawnAngle, 0f
-        )
+        val spawn = worldData.get("spawn", PositionData) ?: findSpawnPos(player, world)
 
         player.teleport(world, spawn.x, spawn.y, spawn.z, emptySet(), spawn.yaw, spawn.pitch, true)
 
@@ -296,6 +293,14 @@ class MapManagerDialog(
             "map_manager.teleported",
             styled(world.registryKey.value, YELLOW)
         ).formatted(GREEN).sendTo(player)
+    }
+
+    private fun findSpawnPos(player: ServerPlayerEntity, world: ServerWorld): PositionRotation {
+        val spawnPos = player.getWorldSpawnPos(world, world.spawnPos)
+
+        return PositionRotation(
+            spawnPos.x + 0.5, spawnPos.y + 0.5, spawnPos.z + 0.5, world.spawnAngle, 0f
+        )
     }
 
     fun closeWorld(player: ServerPlayerEntity, nbt: NbtCompound) {
