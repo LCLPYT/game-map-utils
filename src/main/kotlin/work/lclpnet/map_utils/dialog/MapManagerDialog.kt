@@ -1,5 +1,6 @@
 package work.lclpnet.map_utils.dialog
 
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.dialog.AfterAction
 import net.minecraft.dialog.DialogActionButtonData
@@ -26,6 +27,7 @@ import net.minecraft.util.WorldSavePath
 import org.slf4j.Logger
 import work.lclpnet.kibu.hook.HookRegistrar
 import work.lclpnet.kibu.hook.util.PositionRotation
+import work.lclpnet.kibu.hook.world.ServerWorldHooks
 import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.kibu.translate.text.FormatWrapper.styled
 import work.lclpnet.kibu.world.KibuWorlds
@@ -55,6 +57,7 @@ class MapManagerDialog(
 ) {
 
     private var pendingTeleport = mutableMapOf<Identifier, MutableSet<UUID>>()
+    private var pendingUnload = mutableMapOf<Identifier, MutableSet<UUID>>()
 
     fun init(hooks: HookRegistrar) {
         hooks.registerHook(MapDataLoadedCallback.HOOK, MapDataLoadedCallback { world, _ ->
@@ -63,6 +66,16 @@ class MapManagerDialog(
             for (uuid in pending) {
                 val player = world.server.playerManager.getPlayer(uuid) ?: continue
                 teleportTo(player, world)
+            }
+        })
+
+        hooks.registerHook(ServerWorldHooks.UNLOAD, ServerWorldEvents.Unload { server, world ->
+            val pending = pendingUnload.remove(world.registryKey.value) ?: return@Unload
+
+            for (uuid in pending) {
+                val player = server.playerManager.getPlayer(uuid) ?: continue
+
+                open(player)
             }
         })
     }
@@ -310,9 +323,16 @@ class MapManagerDialog(
         val world = server.getWorld(RegistryKey.of(RegistryKeys.WORLD, worldId)) ?: return
 
         val worldManager = KibuWorlds.getInstance().getWorldManager(server)
-        val handle = worldManager.getRuntimeWorldHandle(world).orElse(null) ?: return
+        val handle = worldManager.getRuntimeWorldHandle(world).orElse(null)
+
+        if (handle == null) {
+            open(player)
+            return
+        }
 
         world.save(null, true, false)
+
+        pendingUnload.computeIfAbsent(worldId) { mutableSetOf() }.add(player.uuid)
 
         handle.unload()
 
@@ -345,6 +365,8 @@ class MapManagerDialog(
                 ).formatted(GREEN).sendTo(player)
             }
         }
+
+        open(player)
     }
 
     fun exportMap(worldDir: Path, worldId: Identifier) {
@@ -375,6 +397,8 @@ class MapManagerDialog(
                     .withClickEvent(ClickEvent.Custom(TELEPORT_ID, Optional.of(nbt)))
                 }
         ).formatted(GREEN).sendTo(player)
+
+        open(player)
     }
 
     companion object {
