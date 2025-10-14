@@ -57,7 +57,7 @@ class DialogHandler(
             SchemaSelectorDialog.LIST_PROPERTY_ID -> schemaSelectorDialog.listProperty(player, nbt)
             SchemaSelectorDialog.UNLINK_ID -> schemaSelectorDialog.unlink(player)
             SchemaSelectorDialog.CONFIRM_UNLINK_ID -> schemaSelectorDialog.confirmUnlink(player)
-            MapManagerDialog.ID -> mapManagerDialog.open(player)
+            MapManagerDialog.ID -> mapManagerDialog.open(player, nbt)
             MapManagerDialog.LOAD_ID -> mapManagerDialog.loadWorld(player, nbt)
             MapManagerDialog.CLOSE_ID -> mapManagerDialog.closeWorld(player, nbt)
             MapManagerDialog.TELEPORT_ID -> mapManagerDialog.teleport(player, nbt)

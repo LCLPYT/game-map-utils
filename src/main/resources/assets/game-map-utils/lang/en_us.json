@@ -13,6 +13,7 @@
   "game-map-utils.save": "Save",
   "game-map-utils.unlink": "Unlink",
   "game-map-utils.add": "Add",
+  "game-map-utils.search": "Search",
   "game-map-utils.save.title": "Save \"%s\"",
   "game-map-utils.save.title_new": "Save new %s",
   "game-map-utils.save.property_id": "Property Id",
@@ -91,5 +92,6 @@
   "game-map-utils.map_manager.export_failed": "Map export of map %s failed. More details in the console",
   "game-map-utils.map_manager.exported": "Successfully exported map %s",
   "game-map-utils.map_manager.teleported": "Teleported to map %s",
-  "game-map-utils.map_manager.closed": "Map %s was saved and closed"
+  "game-map-utils.map_manager.closed": "Map %s was saved and closed",
+  "game-map-utils.map_manager.search": "Search"
 }

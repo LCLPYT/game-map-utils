@@ -9,6 +9,8 @@ import net.minecraft.dialog.DialogCommonData
 import net.minecraft.dialog.action.DynamicCustomDialogAction
 import net.minecraft.dialog.body.DialogBody
 import net.minecraft.dialog.body.PlainMessageDialogBody
+import net.minecraft.dialog.input.TextInputControl
+import net.minecraft.dialog.type.DialogInput
 import net.minecraft.dialog.type.MultiActionDialog
 import net.minecraft.dialog.type.NoticeDialog
 import net.minecraft.nbt.NbtCompound
@@ -20,6 +22,7 @@ import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.text.ClickEvent
 import net.minecraft.text.HoverEvent
+import net.minecraft.text.MutableText
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting.*
 import net.minecraft.util.Identifier
@@ -75,12 +78,12 @@ class MapManagerDialog(
             for (uuid in pending) {
                 val player = server.playerManager.getPlayer(uuid) ?: continue
 
-                open(player)
+                open(player, NbtCompound())
             }
         })
     }
 
-    fun open(player: ServerPlayerEntity) {
+    fun open(player: ServerPlayerEntity, nbt: NbtCompound) {
         val server = player.server ?: return
 
         CompletableFuture.supplyAsync { getAvailableWorlds(server) }.whenComplete { worldIds, err ->
@@ -89,30 +92,36 @@ class MapManagerDialog(
                 return@whenComplete
             }
 
-            showMapList(worldIds.toList(), player)
+            showMapList(worldIds.toList(), player, nbt)
         }
     }
 
-    private fun showMapList(worldIds: List<Identifier>, player: ServerPlayerEntity) {
+    private fun showMapList(worldIds: List<Identifier>, player: ServerPlayerEntity, inputNbt: NbtCompound) {
         val server = player.server ?: return
+        val search = inputNbt.getString("search", "")
 
-        val (loaded, notLoaded) = worldIds.sortedBy { it.toString() }.partition {
-            server.getWorld(RegistryKey.of(RegistryKeys.WORLD, it)) != null
+        val filtered = applySearch(worldIds, search)
+
+        val (loaded, notLoaded) = filtered.partition {
+            server.getWorld(RegistryKey.of(RegistryKeys.WORLD, it.first)) != null
         }
 
         val buttons = mutableListOf<DialogActionButtonData>()
         val worldManager = KibuWorlds.getInstance().getWorldManager(server)
 
-        for (worldId in loaded) {
+        for ((worldId, matches) in loaded) {
             val world = server.getWorld(RegistryKey.of(RegistryKeys.WORLD, worldId))
 
             val nbt = NbtCompound()
             nbt.putString("id", worldId.toString())
 
+            val label = markMatches(worldId.toString(), matches, search.length)
+                .formatted(GREEN)
+
             buttons.add(
                 DialogActionButtonData(
                     DialogButtonData(
-                        Text.literal(worldId.toString()).formatted(GREEN),
+                        label,
                         200
                     ),
                     Optional.of(DynamicCustomDialogAction(TELEPORT_ID, Optional.of(nbt)))
@@ -142,14 +151,17 @@ class MapManagerDialog(
             )
         }
 
-        for (worldId in notLoaded) {
+        for ((worldId, matches) in notLoaded) {
             val nbt = NbtCompound()
             nbt.putString("id", worldId.toString())
+
+            val label = markMatches(worldId.toString(), matches, search.length)
+                .formatted(GRAY)
 
             buttons.add(
                 DialogActionButtonData(
                     DialogButtonData(
-                        Text.literal(worldId.toString()).formatted(GRAY),
+                        label,
                         200
                     ),
                     Optional.of(DynamicCustomDialogAction(TELEPORT_ID, Optional.of(nbt)))
@@ -172,6 +184,7 @@ class MapManagerDialog(
         }
 
         val body = mutableListOf<DialogBody>()
+        val inputs = mutableListOf<DialogInput>()
 
         if (buttons.isEmpty()) {
             body.add(
@@ -183,9 +196,33 @@ class MapManagerDialog(
             )
         }
 
+        buttons.addFirst(DialogActionButtonData(
+            DialogButtonData(translations.translateText("search").translateFor(player), 200),
+            Optional.of(DynamicCustomDialogAction(ID, Optional.empty()))
+        ))
+
+        buttons.add(1, DialogActionButtonData(
+            DialogButtonData(Text.literal("\uD83D\uDD0D"), 20),
+            Optional.of(DynamicCustomDialogAction(ID, Optional.empty()))
+        ))
+
+        buttons.add(2, DialogActionButtonData(
+            DialogButtonData(Text.literal("\uD83D\uDD0D"), 20),
+            Optional.of(DynamicCustomDialogAction(ID, Optional.empty()))
+        ))
+
+        inputs.add(DialogInput("search", TextInputControl(
+            200,
+            translations.translateText("map_manager.search").translateFor(player),
+            true,
+            search,
+            128,
+            Optional.empty()
+        )))
+
         val title = translations.translateText("manage_maps").translateFor(player)
         val commonData = DialogCommonData(
-            title, Optional.empty(), true, true, AfterAction.CLOSE, body, listOf()
+            title, Optional.empty(), true, true, AfterAction.CLOSE, body, inputs
         )
 
         val dialog = if (buttons.isNotEmpty()) {
@@ -209,6 +246,64 @@ class MapManagerDialog(
         )
 
         player.openDialog(RegistryEntry.of(dialog))
+    }
+
+    fun markMatches(input: String, indexes: List<Int>, matchLength: Int): MutableText {
+        val root = Text.empty()
+
+        var current = 0
+        val sortedIndexes = indexes.sorted()
+
+        for (i in sortedIndexes) {
+            if (i >= input.length) break
+
+            val pre = input.substring(current, i)
+
+            if (pre.isNotEmpty()) {
+                root.append(pre)
+            }
+
+            val end = (i + matchLength).coerceAtMost(input.length)
+            val match = input.substring(i, end)
+
+            root.append(Text.literal(match).formatted(YELLOW))
+
+            current = end
+        }
+
+        if (current < input.length) {
+            root.append(input.substring(current))
+        }
+
+        return root
+    }
+
+    private fun applySearch(worldIds: List<Identifier>, query: String): List<Pair<Identifier, List<Int>>> {
+        if (query.isBlank()) {
+            return worldIds.sortedBy { it.toString() }.map { it to emptyList() }
+        }
+
+        return worldIds
+            .map {
+                val matches = mutableListOf<Int>()
+
+                val str = it.toString()
+                var index = 0
+
+                do {
+                    index = str.indexOf(query, index)
+
+                    if (index == -1) break
+
+                    matches.add(index)
+
+                    index += query.length
+                } while (true)
+
+                it to matches
+            }
+            .filter { it.second.isNotEmpty() }
+            .sortedBy { it.first.toString() }
     }
 
     fun getAvailableWorlds(server: MinecraftServer): Set<Identifier> {
@@ -326,7 +421,7 @@ class MapManagerDialog(
         val handle = worldManager.getRuntimeWorldHandle(world).orElse(null)
 
         if (handle == null) {
-            open(player)
+            open(player, nbt)
             return
         }
 
@@ -366,7 +461,7 @@ class MapManagerDialog(
             }
         }
 
-        open(player)
+        open(player, nbt)
     }
 
     fun exportMap(worldDir: Path, worldId: Identifier) {
@@ -398,7 +493,7 @@ class MapManagerDialog(
                 }
         ).formatted(GREEN).sendTo(player)
 
-        open(player)
+        open(player, nbt)
     }
 
     companion object {
