@@ -80,5 +80,16 @@
   "game-map-utils.schema_selector.title": "Select Map Schema",
   "game-map-utils.schema_selector.no_schemas": "No map schemas found. Put map schema files into: %s",
   "game-map-utils.schema_editor.unlink_schema": "[Unlink schema]",
-  "game-map-utils.schema_editor.confirm_unlink": "Do you really want to unlink the current map schema? No data will be lost."
+  "game-map-utils.schema_editor.confirm_unlink": "Do you really want to unlink the current map schema? No data will be lost.",
+  "game-map-utils.manage_maps": "Manage maps",
+  "game-map-utils.map_manager.no_maps": "No maps found",
+  "game-map-utils.map_manager.load_failed": "Failed to load world %s. more details in the console",
+  "game-map-utils.map_manager.loaded_tp": "Successfully loaded world %s. %s",
+  "game-map-utils.map_manager.loaded": "Successfully loaded world %s",
+  "game-map-utils.map_manager.teleport": "teleport",
+  "game-map-utils.map_manager.click_tp": "Click to teleport",
+  "game-map-utils.map_manager.export_failed": "Map export of map %s failed. More details in the console",
+  "game-map-utils.map_manager.exported": "Successfully exported map %s",
+  "game-map-utils.map_manager.teleported": "Teleported to map %s",
+  "game-map-utils.map_manager.closed": "Map %s was saved and closed"
 }

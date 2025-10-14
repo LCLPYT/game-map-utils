@@ -49,6 +49,10 @@ allprojects {
                 includeGroup "maven.modrinth"
             }
         }
+
+        maven {
+            url = "https://maven.nucleoid.xyz/"
+        }
     }
 
     dependencies {
@@ -59,7 +63,9 @@ allprojects {
         modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
         modImplementation("net.fabricmc:fabric-language-kotlin:${project.kotlin_version}")
         modImplementation("work.lclpnet.mods.kibu:kibu:${project.kibu_version}")
+        modImplementation("work.lclpnet.mods.kibu:kibu-world-api:${project.kibu_world_api_version}")
         modImplementation("work.lclpnet.mods.gaco:gaco:${project.gaco_version}")
+        modImplementation("xyz.nucleoid:fantasy:${project.fantasy_version}")
 
         include(implementation("org.json:json:20250517"))
     }
@@ -107,6 +113,9 @@ loom {
 }
 
 dependencies {
+    include(implementation('org.apache.commons:commons-compress:1.28.0'))
+    include(implementation('org.tukaani:xz:1.10'))
+
     afterEvaluate {
         subprojects.each {
             api project(path: it.path, configuration: "namedElements")

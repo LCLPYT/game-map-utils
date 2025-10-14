@@ -21,6 +21,15 @@ class WorldData(
     @Synchronized
     operator fun get(propertyId: String): DataInstance<*>? = properties[propertyId]
 
+    fun <T> get(propertyId: String, data: Data<T>): T? {
+        val instance = get(propertyId) ?: return null
+
+        if (instance.data != data) return null
+
+        @Suppress("UNCHECKED_CAST")
+        return instance.value as T
+    }
+
     @Synchronized
     fun copyFrom(source: WorldData) {
         properties.clear()

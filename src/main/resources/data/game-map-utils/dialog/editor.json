@@ -39,6 +39,16 @@
         "type": "minecraft:custom",
         "id": "game-map-utils:list"
       }
+    },
+    {
+      "label": {
+        "translate": "game-map-utils.manage_maps",
+        "fallback": "Manage Maps"
+      },
+      "action": {
+        "type": "minecraft:custom",
+        "id": "game-map-utils:map_manager"
+      }
     }
   ],
   "columns": 1

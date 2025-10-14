@@ -16,6 +16,7 @@ class DialogHandler(
     val saveDialog: SaveDialog,
     val listDialog: ListDialog,
     val schemaSelectorDialog: SchemaSelectorDialog,
+    val mapManagerDialog: MapManagerDialog,
 ) {
 
     fun init(hooks: HookRegistrar) {
@@ -25,7 +26,7 @@ class DialogHandler(
     }
 
     fun onCustomClick(player: ServerPlayerEntity, id: Identifier, payload: Optional<NbtElement>) {
-        if (!player.isCreativeLevelTwoOp) {
+        if (player.permissionLevel < 2 || player.gameMode.isSurvivalLike) {
             translations.translateText("missing_permission").formatted(RED).sendTo(player)
             return
         }
@@ -56,6 +57,11 @@ class DialogHandler(
             SchemaSelectorDialog.LIST_PROPERTY_ID -> schemaSelectorDialog.listProperty(player, nbt)
             SchemaSelectorDialog.UNLINK_ID -> schemaSelectorDialog.unlink(player)
             SchemaSelectorDialog.CONFIRM_UNLINK_ID -> schemaSelectorDialog.confirmUnlink(player)
+            MapManagerDialog.ID -> mapManagerDialog.open(player)
+            MapManagerDialog.LOAD_ID -> mapManagerDialog.loadWorld(player, nbt)
+            MapManagerDialog.CLOSE_ID -> mapManagerDialog.closeWorld(player, nbt)
+            MapManagerDialog.TELEPORT_ID -> mapManagerDialog.teleport(player, nbt)
+            MapManagerDialog.EXPORT_ID -> mapManagerDialog.exportWorld(player, nbt)
         }
     }
 }

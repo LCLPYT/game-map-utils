@@ -11,6 +11,7 @@ import work.lclpnet.map_utils.dialog.*
 import work.lclpnet.map_utils.editor.SessionManager
 import work.lclpnet.map_utils.schema.SchemaLoader
 import work.lclpnet.map_utils.schema.SchemaManager
+import work.lclpnet.map_utils.util.MapArchiver
 
 const val MOD_ID = "game-map-utils"
 val LOGGER: Logger = LoggerFactory.getLogger(MOD_ID)
@@ -36,12 +37,29 @@ fun init() {
         val schemaManager = SchemaManager(SchemaLoader(LOGGER), dataManager)
         schemaManager.init(hooks)
 
+        val mapArchiver = MapArchiver(setOf(
+            "advancements",
+            "data/DistantHorizons.sqlite",
+            "datapacks",
+            "DIM1",
+            "DIM-1",
+            "playerdata",
+            "stats",
+            "icon.png",
+            "level.dat_old",
+            "session.lock",
+        ))
+
+        val mapManagerDialog = MapManagerDialog(translations, dataManager, mapArchiver, LOGGER)
+        mapManagerDialog.init(hooks)
+
         DialogHandler(
             translations,
             CreateDialog(translations, sessionManager),
             saveDialog,
             ListDialog(translations, dataManager, sessionManager),
             SchemaSelectorDialog(schemaManager, sessionManager, translations),
+            mapManagerDialog,
         ).init(hooks)
     }
 
