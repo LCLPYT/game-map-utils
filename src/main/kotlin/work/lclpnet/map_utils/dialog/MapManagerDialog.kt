@@ -222,7 +222,7 @@ class MapManagerDialog(
 
         val title = translations.translateText("manage_maps").translateFor(player)
         val commonData = DialogCommonData(
-            title, Optional.empty(), true, true, AfterAction.CLOSE, body, inputs
+            title, Optional.empty(), true, false, AfterAction.NONE, body, inputs
         )
 
         val dialog = if (buttons.isNotEmpty()) {
