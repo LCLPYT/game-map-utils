@@ -48,6 +48,7 @@ class DataManager(val logger: Logger) {
     val worldData = mutableMapOf<RegistryKey<World>, WorldData>()
     val gson = Gson()
     private val fileLock = emptyArray<Unit>()
+    private val worldDataFutures = mutableMapOf<RegistryKey<World>, CompletableFuture<WorldData>>()
 
     fun init(hooks: HookContainer) {
         hooks.registerHook(ServerWorldHooks.LOAD, ServerWorldEvents.Load { _, world ->
@@ -56,6 +57,15 @@ class DataManager(val logger: Logger) {
 
         hooks.registerHook(ServerWorldHooks.UNLOAD, ServerWorldEvents.Unload { _, world ->
             unload(world)
+
+            val futures: List<CompletableFuture<WorldData>>
+
+            synchronized(this) {
+                futures = worldDataFutures.values.toList()
+                worldDataFutures.clear()
+            }
+
+            futures.forEach { it.completeExceptionally(IllegalStateException("World unloaded but future was never completed / cleared")) }
         })
     }
 
@@ -98,8 +108,17 @@ class DataManager(val logger: Logger) {
         if (err != null) {
             logger.error("Failed to load map data of world ${world.registryKey.value}", err)
         } else {
-            MapDataLoadedCallback.HOOK.invoker().onMapDataLoaded(world, data)
+            world.server.execute {
+                notifyWorldData(world, data)
+
+                MapDataLoadedCallback.HOOK.invoker().onMapDataLoaded(world, data)
+            }
         }
+    }
+
+    @Synchronized
+    private fun notifyWorldData(world: ServerWorld, data: WorldData) {
+        worldDataFutures.remove(world.registryKey)?.complete(data)
     }
 
     fun load(path: Path): CompletableFuture<WorldData> = CompletableFuture.supplyAsync {
@@ -183,6 +202,17 @@ class DataManager(val logger: Logger) {
 
     @Synchronized
     fun getWorldData(world: ServerWorld) = worldData.computeIfAbsent(world.registryKey) { WorldData() }
+
+    @Synchronized
+    fun awaitWorldData(worldKey: RegistryKey<World>): CompletableFuture<WorldData> {
+        val data = worldData[worldKey]
+
+        if (data != null) {
+            return CompletableFuture.completedFuture(data)
+        }
+
+        return worldDataFutures.computeIfAbsent(worldKey) { CompletableFuture() }
+    }
 
     companion object {
         @JvmField
