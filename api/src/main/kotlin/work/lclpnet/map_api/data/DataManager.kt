@@ -49,6 +49,7 @@ class DataManager(val logger: Logger) {
     val gson = Gson()
     private val fileLock = emptyArray<Unit>()
     private val worldDataFutures = mutableMapOf<RegistryKey<World>, CompletableFuture<WorldData>>()
+    private val loading = mutableSetOf<RegistryKey<World>>()
 
     fun init(hooks: HookContainer) {
         hooks.registerHook(ServerWorldHooks.LOAD, ServerWorldEvents.Load { _, world ->
@@ -101,24 +102,48 @@ class DataManager(val logger: Logger) {
         return instance.value
     }
 
-    fun load(world: ServerWorld): CompletableFuture<WorldData> = CompletableFuture.supplyAsync {
-        val data = loadBlocking(world)
-        setAll(world, data)
-    }.whenComplete { data, err ->
-        if (err != null) {
-            logger.error("Failed to load map data of world ${world.registryKey.value}", err)
-        } else {
-            world.server.execute {
-                notifyWorldData(world, data)
+    @Synchronized
+    fun load(world: ServerWorld): CompletableFuture<WorldData> {
+        val key = world.registryKey
 
-                MapDataLoadedCallback.HOOK.invoker().onMapDataLoaded(world, data)
+        if (!loading.add(key)) {
+            return requireNotNull(worldDataFutures[key]) { "Expected world data future for $key to exist" }
+        }
+
+        logger.debug("Loading world data for {} asynchronously...", key)
+
+        val future = CompletableFuture.supplyAsync {
+            val data = loadBlocking(world)
+            setAll(world, data)
+        }.whenComplete { data, err ->
+            if (err != null) {
+                logger.error("Failed to load map data of world ${key.value}", err)
+            } else {
+                world.server.execute {
+                    MapDataLoadedCallback.HOOK.invoker().onMapDataLoaded(world, data)
+                }
             }
         }
-    }
 
-    @Synchronized
-    private fun notifyWorldData(world: ServerWorld, data: WorldData) {
-        worldDataFutures.remove(world.registryKey)?.complete(data)
+        val prev = worldDataFutures[key]
+
+        if (prev != null) {
+            logger.debug("World data future already exists for {}, merging...", key)
+        }
+
+        worldDataFutures[key] = future.whenComplete { data, err ->
+            logger.debug("World data future for {} is complete", key)
+
+            if (err != null) prev?.completeExceptionally(err)
+            else prev?.complete(data)
+
+            synchronized(this) {
+                worldDataFutures.remove(key)
+                loading.remove(key)
+            }
+        }
+
+        return future
     }
 
     fun load(path: Path): CompletableFuture<WorldData> = CompletableFuture.supplyAsync {
@@ -142,6 +167,7 @@ class DataManager(val logger: Logger) {
         saveBlocking(worldData, path)
     }
 
+    @Synchronized
     private fun setAll(world: ServerWorld, source: WorldData): WorldData {
         val worldData = getWorldData(world)
         worldData.copyFrom(source)
@@ -208,9 +234,11 @@ class DataManager(val logger: Logger) {
         val data = worldData[worldKey]
 
         if (data != null) {
+            logger.debug("World data already exists for world {}", worldKey)
             return CompletableFuture.completedFuture(data)
         }
 
+        logger.debug("No world data exists for {}, deferring completion...", worldKey)
         return worldDataFutures.computeIfAbsent(worldKey) { CompletableFuture() }
     }
 
