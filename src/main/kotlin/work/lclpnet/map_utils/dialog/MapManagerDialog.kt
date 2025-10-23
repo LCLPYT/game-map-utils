@@ -310,13 +310,13 @@ class MapManagerDialog(
         val session = (server as MinecraftServerAccessor).session
         val root = session.getDirectory(WorldSavePath.ROOT).resolve("dimensions").normalize()
 
-        if (!root.isDirectory()) {
-            return emptySet()
-        }
-
         val worldIds = mutableSetOf<Identifier>()
 
         server.worlds.forEach { worldIds.add(it.registryKey.value) }
+
+        if (!root.isDirectory()) {
+            return worldIds
+        }
 
         Files.walkFileTree(
             root,

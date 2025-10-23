@@ -40,7 +40,6 @@ fun init() {
         val mapArchiver = MapArchiver(setOf(
             "advancements",
             "data/DistantHorizons.sqlite",
-            "datapacks",
             "DIM1",
             "DIM-1",
             "playerdata",
