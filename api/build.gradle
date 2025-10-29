@@ -5,7 +5,7 @@ plugins {
 // configure the maven publication
 publishing {
     publications {
-        mavenJava(MavenPublication) {
+        create("mavenJava", MavenPublication) {
             artifactId = project.base.archivesName.get()
 
             from components.java

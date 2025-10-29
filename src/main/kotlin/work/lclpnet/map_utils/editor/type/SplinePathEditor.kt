@@ -92,16 +92,19 @@ class SplinePathEditor(
         player: ServerPlayerEntity,
         entityId: Int
     ): Handler? {
-        if (player != this.player || player.world != args.world) return null
+        if (player != this.player || player.entityWorld != args.world) return null
 
         val interaction = interactions[entityId] ?: return null
 
         val data = interaction.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT)
 
-        if (!data.contains(KEYPOINT_DATA_ID)) return null
+        val nbt = data.copyNbt()
 
-        val keypointData = data.get(KeypointData.MAP_CODEC)
+        if (!nbt.contains(KEYPOINT_DATA_ID)) return null
+
+        val keypointData = KeypointData.MAP_CODEC.codec().decode(NbtOps.INSTANCE, nbt)
             .resultOrPartial { LOGGER.error("Failed to decode keypoint data") }
+            .map { it.first }
             .orElse(null) ?: return null
 
         return object : Handler {
@@ -118,14 +121,14 @@ class SplinePathEditor(
     }
 
     private fun onSwapHands(player: ServerPlayerEntity): Boolean {
-        if (player != this.player || player.world != world || !player.playerInput.sprint) return false
+        if (player != this.player || player.entityWorld != world || !player.playerInput.sprint) return false
 
-        addKeypoint(player.pos)
+        addKeypoint(player.entityPos)
 
         translations.translateText(
             key("keypoint_added"),
             styled(keypoints.size, YELLOW),
-            styled(player.pos.toLocalizedShortString(), YELLOW)
+            styled(player.entityPos.toLocalizedShortString(), YELLOW)
         ).formatted(GREEN).sendTo(player)
 
         return true
@@ -163,7 +166,7 @@ class SplinePathEditor(
         translations.translateText(
             key("keypoint_removed"),
             styled(index + 1, YELLOW),
-            styled(player.pos.toLocalizedShortString(), YELLOW)
+            styled(player.entityPos.toLocalizedShortString(), YELLOW)
         ).formatted(RED).sendTo(player)
     }
 
@@ -192,11 +195,10 @@ class SplinePathEditor(
                 interaction.interactionHeight = 0.5f
                 interaction.interactionWidth = 0.5f
 
-                NbtComponent.DEFAULT
-                    .with(NbtOps.INSTANCE, KeypointData.MAP_CODEC, KeypointData(index))
+                KeypointData.MAP_CODEC.codec().encode(KeypointData(index), NbtOps.INSTANCE, NbtCompound())
                     .resultOrPartial { err -> LOGGER.error("Failed to encode keypoint data: $err") }
                     .ifPresent {
-                        interaction.setComponent(DataComponentTypes.CUSTOM_DATA, it)
+                        interaction.setComponent(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(it as NbtCompound))
                     }
 
                 interactions[interaction.id] = interaction

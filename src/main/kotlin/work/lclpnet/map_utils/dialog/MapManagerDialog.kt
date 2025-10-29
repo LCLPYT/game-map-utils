@@ -84,7 +84,7 @@ class MapManagerDialog(
     }
 
     fun open(player: ServerPlayerEntity, nbt: NbtCompound) {
-        val server = player.server ?: return
+        val server = player.entityWorld.server
 
         CompletableFuture.supplyAsync { getAvailableWorlds(server) }.whenComplete { worldIds, err ->
             if (err != null) {
@@ -97,7 +97,7 @@ class MapManagerDialog(
     }
 
     private fun showMapList(worldIds: List<Identifier>, player: ServerPlayerEntity, inputNbt: NbtCompound) {
-        val server = player.server ?: return
+        val server = player.entityWorld.server
         val search = inputNbt.getString("search", "")
 
         val filtered = applySearch(worldIds, search)
@@ -357,7 +357,7 @@ class MapManagerDialog(
     fun teleport(player: ServerPlayerEntity, nbt: NbtCompound) {
         val id = nbt.getString("id", null) ?: return
         val worldId = Identifier.tryParse(id) ?: return
-        val server = player.server ?: return
+        val server = player.entityWorld.server
 
         val world = server.getWorld(RegistryKey.of(RegistryKeys.WORLD, worldId))
 
@@ -377,7 +377,7 @@ class MapManagerDialog(
     }
 
     fun loadWorld(player: ServerPlayerEntity, worldId: Identifier): RuntimeWorldHandle? {
-        val worldManager = KibuWorlds.getInstance().getWorldManager(player.server)
+        val worldManager = KibuWorlds.getInstance().getWorldManager(player.entityWorld.server)
         val handle = worldManager.openPersistentWorld(worldId).orElse(null)
 
         if (handle == null) {
@@ -404,17 +404,17 @@ class MapManagerDialog(
     }
 
     private fun findSpawnPos(player: ServerPlayerEntity, world: ServerWorld): PositionRotation {
-        val spawnPos = player.getWorldSpawnPos(world, world.spawnPos)
+        val spawnPos = player.getWorldSpawnPos(world, world.spawnPoint.pos)
 
         return PositionRotation(
-            spawnPos.x + 0.5, spawnPos.y + 0.5, spawnPos.z + 0.5, world.spawnAngle, 0f
+            spawnPos.x + 0.5, spawnPos.y + 0.5, spawnPos.z + 0.5, world.spawnPoint.yaw, world.spawnPoint.pitch
         )
     }
 
     fun closeWorld(player: ServerPlayerEntity, nbt: NbtCompound) {
         val id = nbt.getString("id", null) ?: return
         val worldId = Identifier.tryParse(id) ?: return
-        val server = player.server ?: return
+        val server = player.entityWorld.server
         val world = server.getWorld(RegistryKey.of(RegistryKeys.WORLD, worldId)) ?: return
 
         val worldManager = KibuWorlds.getInstance().getWorldManager(server)
@@ -440,7 +440,7 @@ class MapManagerDialog(
     fun exportWorld(player: ServerPlayerEntity, nbt: NbtCompound) {
         val id = nbt.getString("id", null) ?: return
         val worldId = Identifier.tryParse(id) ?: return
-        val server = player.server ?: return
+        val server = player.entityWorld.server
 
         val session = (server as MinecraftServerAccessor).session
         val worldDir = session.getWorldDirectory(RegistryKey.of(RegistryKeys.WORLD, worldId))

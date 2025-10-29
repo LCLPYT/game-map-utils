@@ -72,14 +72,14 @@ class PositionEditor(
     }
 
     private fun onSwapHands(player: ServerPlayerEntity): Boolean {
-        if (player != this.player || player.world != world || !player.playerInput.sprint) return false
+        if (player != this.player || player.entityWorld != world || !player.playerInput.sprint) return false
 
         val posRot = PositionRotation(player.x, player.y, player.z, player.yaw, player.pitch)
         this.posRot = posRot
 
         translations.translateText(
             key("set_pos"),
-            styled(player.pos.toLocalizedShortString(), YELLOW),
+            styled(player.entityPos.toLocalizedShortString(), YELLOW),
             styled(format("%.2f", player.yaw), YELLOW),
             styled(format("%.2f", player.pitch), YELLOW)
         ).formatted(GREEN).sendTo(player)

@@ -26,7 +26,7 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
 
     fun open(player: ServerPlayerEntity) {
         val session = sessionManager.getSession(player)
-        val worldData = dataManager.getWorldData(player.world)
+        val worldData = dataManager.getWorldData(player.entityWorld)
 
         val actions = mutableListOf<DialogActionButtonData>()
 
@@ -109,7 +109,7 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
             )
         )
 
-        val title = translations.translateText("list.title", player.world.registryKey.value).translateFor(player)
+        val title = translations.translateText("list.title", player.entityWorld.registryKey.value).translateFor(player)
 
         val commonData = DialogCommonData(
             title,
@@ -166,7 +166,7 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
 
     fun confirmSelect(player: ServerPlayerEntity, nbt: NbtCompound) {
         val propertyId = nbt.getString("propertyId", null) ?: return
-        val worldData = dataManager.getWorldData(player.world)
+        val worldData = dataManager.getWorldData(player.entityWorld)
         val dataInstance = worldData[propertyId] ?: return
 
         val session = sessionManager.getSession(player)
@@ -196,14 +196,14 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
 
     fun confirmDelete(player: ServerPlayerEntity, nbt: NbtCompound) {
         val propertyId = nbt.getString("propertyId", null) ?: return
-        val worldData = dataManager.getWorldData(player.world)
+        val worldData = dataManager.getWorldData(player.entityWorld)
 
         val session = sessionManager.getSession(player)
 
         session.removeSessionDisplay(propertyId)
         worldData.remove(propertyId)
 
-        dataManager.save(player.world)
+        dataManager.save(player.entityWorld)
 
         translations.translateText(
             "list.deleted",
@@ -219,7 +219,7 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
         onDataChange(player, nbt)
 
         val propertyId = nbt.getString("propertyId", null) ?: return
-        val worldData = dataManager.getWorldData(player.world)
+        val worldData = dataManager.getWorldData(player.entityWorld)
 
         val index = worldData.getIndex(propertyId)
 
@@ -230,7 +230,7 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
 
         worldData.setIndex(propertyId, index - 1)
 
-        dataManager.save(player.world)
+        dataManager.save(player.entityWorld)
 
         open(player)
     }
@@ -239,7 +239,7 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
         onDataChange(player, nbt)
 
         val propertyId = nbt.getString("propertyId", null) ?: return
-        val worldData = dataManager.getWorldData(player.world)
+        val worldData = dataManager.getWorldData(player.entityWorld)
 
         val index = worldData.getIndex(propertyId)
 
@@ -250,7 +250,7 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
 
         worldData.setIndex(propertyId, index + 1)
 
-        dataManager.save(player.world)
+        dataManager.save(player.entityWorld)
 
         open(player)
     }
@@ -276,7 +276,7 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
     fun showAll(player: ServerPlayerEntity) {
         val session = sessionManager.getSession(player)
 
-        val worldData = dataManager.getWorldData(player.world)
+        val worldData = dataManager.getWorldData(player.entityWorld)
 
         for ((propertyId, _) in worldData.properties()) {
             session.shown.add(propertyId)

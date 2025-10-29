@@ -65,7 +65,7 @@ class SessionManager(val translations: Translations, val dataManager: DataManage
         worldSession.destroy()
     }
 
-    fun optSession(player: ServerPlayerEntity) = optSession(player, player.world)
+    fun optSession(player: ServerPlayerEntity) = optSession(player, player.entityWorld)
 
     fun optSession(player: ServerPlayerEntity, world: ServerWorld): Session? {
         val playerSessions = sessions[player.uuid] ?: return null
@@ -75,7 +75,7 @@ class SessionManager(val translations: Translations, val dataManager: DataManage
 
     @Synchronized
     fun getSession(player: ServerPlayerEntity): Session {
-        val world = player.world
+        val world = player.entityWorld
 
         return sessions.computeIfAbsent(player.uuid) { mutableMapOf() }.computeIfAbsent(world.registryKey) {
             val worldData = getWorldSession(world)

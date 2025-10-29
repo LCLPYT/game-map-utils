@@ -41,7 +41,7 @@ class SchemaSelectorDialog(
 
     fun open(player: ServerPlayerEntity) {
         schemaManager.reloadSchemas().whenComplete { _, _ ->
-            val schema = schemaManager.getSchema(player.world)
+            val schema = schemaManager.getSchema(player.entityWorld)
 
             if (schema == null) {
                 openSelector(player)
@@ -109,15 +109,15 @@ class SchemaSelectorDialog(
 
         val schema = schemaManager.schemas[id] ?: return
 
-        schemaManager.setSchema(player.world, schema)
-        dataManager.getWorldData(player.world).loadDefaults(schema)
-        dataManager.save(player.world)
+        schemaManager.setSchema(player.entityWorld, schema)
+        dataManager.getWorldData(player.entityWorld).loadDefaults(schema)
+        dataManager.save(player.entityWorld)
 
         openEditor(player)
     }
 
     private fun openEditor(player: ServerPlayerEntity) {
-        val schema = schemaManager.getSchema(player.world)
+        val schema = schemaManager.getSchema(player.entityWorld)
 
         if (schema == null) {
             openSelector(player)
@@ -166,7 +166,7 @@ class SchemaSelectorDialog(
         dataDefinition: SingleDataDefinition<*>,
         buttons: MutableList<DialogActionButtonData>
     ) {
-        val exists = dataManager.hasData(player.world, propertyId)
+        val exists = dataManager.hasData(player.entityWorld, propertyId)
         val label = Text.literal(dataDefinition.name)
             .formatted(if (exists) GREEN else if (dataDefinition.optional) GRAY else RED)
 
@@ -193,7 +193,7 @@ class SchemaSelectorDialog(
         dataDefinition: ListDataDefinition<*>,
         buttons: MutableList<DialogActionButtonData>
     ) {
-        val worldData = dataManager.getWorldData(player.world)
+        val worldData = dataManager.getWorldData(player.entityWorld)
         val instances = worldData.byRole(dataDefinition.role, dataDefinition.data)
 
         val label = Text.empty()
@@ -223,10 +223,10 @@ class SchemaSelectorDialog(
     fun listProperty(player: ServerPlayerEntity, nbt: NbtCompound) {
         val propertyId = nbt.getString("propertyId", null) ?: return
 
-        val schema = schemaManager.getSchema(player.world) ?: return
+        val schema = schemaManager.getSchema(player.entityWorld) ?: return
         val definition = schema.properties[propertyId] ?: return
 
-        val worldData = dataManager.getWorldData(player.world)
+        val worldData = dataManager.getWorldData(player.entityWorld)
         val entries = worldData.entriesByRole(definition.role, definition.data)
 
         val buttons = mutableListOf<DialogActionButtonData>()
@@ -295,7 +295,7 @@ class SchemaSelectorDialog(
     fun confirmEditProperty(player: ServerPlayerEntity, nbt: NbtCompound) {
         val propertyId = nbt.getString("propertyId", null) ?: return
         val definitionId = nbt.getString("definitionId", null) ?: return
-        val schema = schemaManager.getSchema(player.world) ?: return
+        val schema = schemaManager.getSchema(player.entityWorld) ?: return
 
         val definition = schema.properties[definitionId] ?: return
 
@@ -307,7 +307,7 @@ class SchemaSelectorDialog(
         propertyId: String,
         definition: DataDefinition<T, *>,
     ) {
-        val value = dataManager.getData(player.world, propertyId, definition.data, null)
+        val value = dataManager.getData(player.entityWorld, propertyId, definition.data, null)
         val session = sessionManager.getSession(player)
         session.destroyEditor()
 
@@ -330,8 +330,8 @@ class SchemaSelectorDialog(
     }
 
     fun confirmUnlink(player: ServerPlayerEntity) {
-        schemaManager.setSchema(player.world, null)
-        dataManager.save(player.world)
+        schemaManager.setSchema(player.entityWorld, null)
+        dataManager.save(player.entityWorld)
     }
 
     companion object {

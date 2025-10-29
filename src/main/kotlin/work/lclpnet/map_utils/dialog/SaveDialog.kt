@@ -113,7 +113,7 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
 
         if (editor.create(nbt) == null) return
 
-        if (dataManager.hasData(player.world, propertyId) && editor.prevPropertyId != propertyId) {
+        if (dataManager.hasData(player.entityWorld, propertyId) && editor.prevPropertyId != propertyId) {
             val msg = translations.translateText(
                 "save.overwrite",
                 styled(propertyId, YELLOW)
@@ -131,7 +131,7 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
         val editor = session.editor ?: return
         val propertyId = editor.propertyId ?: return
 
-        if (!editor.saveToWorld(player.world, dataManager, propertyId, editor.role, nbt)) return
+        if (!editor.saveToWorld(player.entityWorld, dataManager, propertyId, editor.role, nbt)) return
 
         editor.onTerminate(nbt)
 
@@ -139,16 +139,16 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
 
         if (oldPropertyId != null && oldPropertyId != propertyId) {
             // renamed
-            dataManager.removeData(player.world, oldPropertyId)
+            dataManager.removeData(player.entityWorld, oldPropertyId)
         }
 
         translations.translateText(
             "save.saved",
             styled(propertyId, YELLOW),
-            styled(player.world.registryKey.value, YELLOW)
+            styled(player.entityWorld.registryKey.value, YELLOW)
         ).formatted(GREEN).sendTo(player)
 
-        dataManager.save(player.world)
+        dataManager.save(player.entityWorld)
 
         session.shown.add(propertyId)
         session.destroyEditor()
