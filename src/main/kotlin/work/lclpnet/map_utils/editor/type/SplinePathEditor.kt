@@ -3,21 +3,21 @@ package work.lclpnet.map_utils.editor.type
 import com.mojang.serialization.Codec
 import com.mojang.serialization.MapCodec
 import com.mojang.serialization.codecs.RecordCodecBuilder
-import net.minecraft.block.Blocks
-import net.minecraft.component.DataComponentTypes
-import net.minecraft.component.type.NbtComponent
-import net.minecraft.dialog.body.DialogBody
-import net.minecraft.dialog.type.DialogInput
-import net.minecraft.entity.EntityType
-import net.minecraft.entity.decoration.InteractionEntity
-import net.minecraft.nbt.NbtCompound
+import net.minecraft.ChatFormatting.*
+import net.minecraft.core.component.DataComponents
+import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtOps
-import net.minecraft.network.packet.c2s.play.PlayerInteractEntityC2SPacket.Handler
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.text.Text
-import net.minecraft.util.Formatting.*
-import net.minecraft.util.Hand
-import net.minecraft.util.math.Vec3d
+import net.minecraft.network.chat.Component
+import net.minecraft.network.protocol.game.ServerboundInteractPacket.Handler
+import net.minecraft.server.dialog.Input
+import net.minecraft.server.dialog.body.DialogBody
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.InteractionHand
+import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.Interaction
+import net.minecraft.world.item.component.CustomData
+import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.phys.Vec3
 import work.lclpnet.gaco.math.SplinePath
 import work.lclpnet.gaco.scene.Object3d
 import work.lclpnet.gaco.scene.`object`.BlockDisplayObject
@@ -48,16 +48,16 @@ class SplinePathEditor(
     override var role: String? = null,
 ) : BaseDataEditor<SplinePath>(SplinePathData) {
 
-    val keypoints = mutableListOf<Vec3d>()
-    val interactions = mutableMapOf<Int, InteractionEntity>()
+    val keypoints = mutableListOf<Vec3>()
+    val interactions = mutableMapOf<Int, Interaction>()
     var pathDisplay: Removable? = null
     var selectedIndex = -1
 
     override fun modifyDialog(
         body: MutableList<DialogBody>,
-        inputs: MutableList<DialogInput>,
+        inputs: MutableList<Input>,
         translations: Translations,
-        player: ServerPlayerEntity
+        player: ServerPlayer
     ) {
         body.add(messageBody(translations.translateText(player, key("header"), keypoints.size)))
 
@@ -71,10 +71,10 @@ class SplinePathEditor(
     override fun sendTutorial() {
         translations.translateText(
             key("init"),
-            keybind("sprint", "swapOffhand").formatted(YELLOW),
-            keybind("sprint", "use").formatted(YELLOW),
-            keybind("sprint", "attack").formatted(YELLOW),
-            keybind("swapOffhand").formatted(YELLOW)
+            keybind("sprint", "swapOffhand").withStyle(YELLOW),
+            keybind("sprint", "use").withStyle(YELLOW),
+            keybind("sprint", "attack").withStyle(YELLOW),
+            keybind("swapOffhand").withStyle(YELLOW)
         ).formatted(AQUA).sendTo(player)
     }
 
@@ -89,16 +89,16 @@ class SplinePathEditor(
     }
 
     private fun provideKeypointInteractionHandler(
-        player: ServerPlayerEntity,
+        player: ServerPlayer,
         entityId: Int
     ): Handler? {
-        if (player != this.player || player.entityWorld != args.world) return null
+        if (player != this.player || player.level() != args.world) return null
 
         val interaction = interactions[entityId] ?: return null
 
-        val data = interaction.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT)
+        val data = interaction.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY)
 
-        val nbt = data.copyNbt()
+        val nbt = data.copyTag()
 
         if (!nbt.contains(KEYPOINT_DATA_ID)) return null
 
@@ -108,33 +108,33 @@ class SplinePathEditor(
             .orElse(null) ?: return null
 
         return object : Handler {
-            override fun interact(hand: Hand) {
+            override fun onInteraction(hand: InteractionHand) {
                 selectKeypoint(keypointData.index)
             }
 
-            override fun interactAt(hand: Hand, pos: Vec3d) {}
+            override fun onInteraction(hand: InteractionHand, pos: Vec3) {}
 
-            override fun attack() {
+            override fun onAttack() {
                 deleteKeypoint(keypointData.index)
             }
         }
     }
 
-    private fun onSwapHands(player: ServerPlayerEntity): Boolean {
-        if (player != this.player || player.entityWorld != world || !player.playerInput.sprint) return false
+    private fun onSwapHands(player: ServerPlayer): Boolean {
+        if (player != this.player || player.level() != world || !player.lastClientInput.sprint) return false
 
-        addKeypoint(player.entityPos)
+        addKeypoint(player.position())
 
         translations.translateText(
             key("keypoint_added"),
             styled(keypoints.size, YELLOW),
-            styled(player.entityPos.toLocalizedShortString(), YELLOW)
+            styled(player.position().toLocalizedShortString(), YELLOW)
         ).formatted(GREEN).sendTo(player)
 
         return true
     }
 
-    private fun addKeypoint(pos: Vec3d) {
+    private fun addKeypoint(pos: Vec3) {
         selectedIndex++
         keypoints.add(selectedIndex, pos)
 
@@ -143,7 +143,7 @@ class SplinePathEditor(
     }
 
     private fun selectKeypoint(index: Int) {
-        if (index < 0 || index >= keypoints.size || !player.playerInput.sprint) return
+        if (index < 0 || index >= keypoints.size || !player.lastClientInput.sprint) return
 
         selectedIndex = index
         updateDisplay()
@@ -155,7 +155,7 @@ class SplinePathEditor(
     }
 
     private fun deleteKeypoint(index: Int) {
-        if (index < 0 || index >= keypoints.size || !player.playerInput.sprint) return
+        if (index < 0 || index >= keypoints.size || !player.lastClientInput.sprint) return
 
         keypoints.removeAt(index)
 
@@ -166,7 +166,7 @@ class SplinePathEditor(
         translations.translateText(
             key("keypoint_removed"),
             styled(index + 1, YELLOW),
-            styled(player.entityPos.toLocalizedShortString(), YELLOW)
+            styled(player.position().toLocalizedShortString(), YELLOW)
         ).formatted(RED).sendTo(player)
     }
 
@@ -189,23 +189,23 @@ class SplinePathEditor(
             val labels = mutableListOf<Object3d>()
 
             keypointMarkers.withIndex().forEach { (index, marker) ->
-                val interaction = InteractionEntity(EntityType.INTERACTION, world)
-                interaction.setPos(marker.position.x, marker.position.y - 0.25, marker.position.z)
+                val interaction = Interaction(EntityType.INTERACTION, world)
+                interaction.setPosRaw(marker.position.x, marker.position.y - 0.25, marker.position.z)
                 interaction.setResponse(true)
-                interaction.interactionHeight = 0.5f
-                interaction.interactionWidth = 0.5f
+                interaction.height = 0.5f
+                interaction.width = 0.5f
 
-                KeypointData.MAP_CODEC.codec().encode(KeypointData(index), NbtOps.INSTANCE, NbtCompound())
+                KeypointData.MAP_CODEC.codec().encode(KeypointData(index), NbtOps.INSTANCE, CompoundTag())
                     .resultOrPartial { err -> LOGGER.error("Failed to encode keypoint data: $err") }
                     .ifPresent {
-                        interaction.setComponent(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(it as NbtCompound))
+                        interaction.setComponent(DataComponents.CUSTOM_DATA, CustomData.of(it as CompoundTag))
                     }
 
                 interactions[interaction.id] = interaction
 
                 visualizer.addEntity(interaction)
 
-                labels.add(visualizer.text(marker.position.x, marker.position.y + 0.35, marker.position.z, Text.literal("#${index + 1}"), 0.5))
+                labels.add(visualizer.text(marker.position.x, marker.position.y + 0.35, marker.position.z, Component.literal("#${index + 1}"), 0.5))
             }
 
             pathDisplay = Removable {
@@ -221,7 +221,7 @@ class SplinePathEditor(
 
         for ((i, keypoint) in keypoints.withIndex()) {
             val glowColor = if (i == selectedIndex) SELECTED_COLOR else 0xeeff00
-            markers.add(visualizer.marker(keypoint, Blocks.ORANGE_CONCRETE.defaultState, glowColor, 0.5))
+            markers.add(visualizer.marker(keypoint, Blocks.ORANGE_CONCRETE.defaultBlockState(), glowColor, 0.5))
         }
 
         pathDisplay = Removable {
@@ -244,7 +244,7 @@ class SplinePathEditor(
         updateDisplay()
     }
 
-    override fun create(nbt: NbtCompound): SplinePath? {
+    override fun create(nbt: CompoundTag): SplinePath? {
         if (keypoints.size < 2) {
             translations.translateText(key("too_few_keypoints"))
                 .formatted(RED)

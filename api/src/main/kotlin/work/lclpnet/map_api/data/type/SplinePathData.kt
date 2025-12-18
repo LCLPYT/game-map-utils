@@ -1,7 +1,7 @@
 package work.lclpnet.map_api.data.type
 
 import com.mojang.serialization.Codec
-import net.minecraft.server.network.ServerPlayerEntity
+import net.minecraft.server.level.ServerPlayer
 import work.lclpnet.gaco.math.SplinePath
 import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.map_api.data.Data
@@ -20,7 +20,7 @@ object SplinePathData : Data<SplinePath> {
     override fun display(
         value: SplinePath,
         visualizer: Visualizer,
-        player: ServerPlayerEntity,
+        player: ServerPlayer,
         translations: Translations,
         id: String,
         propertyId: String?

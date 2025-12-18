@@ -1,9 +1,9 @@
 package work.lclpnet.map_api.visual
 
-import net.minecraft.block.BlockState
-import net.minecraft.entity.decoration.DisplayEntity
-import net.minecraft.text.Text
-import net.minecraft.util.math.Vec3d
+import net.minecraft.network.chat.Component
+import net.minecraft.world.entity.Display
+import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.phys.Vec3
 import work.lclpnet.gaco.scene.Object3d
 import work.lclpnet.gaco.scene.Scene
 import work.lclpnet.gaco.scene.`object`.BlockDisplayObject
@@ -18,11 +18,11 @@ interface SceneRenderer {
         scene.add(obj)
     }
 
-    fun marker(pos: Vec3d, state: BlockState, glowColor: Int): Object3d {
+    fun marker(pos: Vec3, state: BlockState, glowColor: Int): Object3d {
         return marker(pos.x, pos.y, pos.z, state, glowColor)
     }
 
-    fun marker(pos: Vec3d, state: BlockState, glowColor: Int, scale: Double): Object3d {
+    fun marker(pos: Vec3, state: BlockState, glowColor: Int, scale: Double): Object3d {
         return marker(pos.x, pos.y, pos.z, state, glowColor, scale)
     }
 
@@ -48,24 +48,24 @@ interface SceneRenderer {
         return wrapper
     }
 
-    fun text(pos: Vec3d, text: Text?): TextDisplayObject {
+    fun text(pos: Vec3, text: Component?): TextDisplayObject {
         return text(pos, text, 0.25)
     }
 
-    fun text(x: Double, y: Double, z: Double, text: Text?): TextDisplayObject {
+    fun text(x: Double, y: Double, z: Double, text: Component?): TextDisplayObject {
         return text(x, y, z, text, 0.25)
     }
 
-    fun text(pos: Vec3d, text: Text?, scale: Double): TextDisplayObject {
-        return text(pos.getX(), pos.getY(), pos.getZ(), text, scale)
+    fun text(pos: Vec3, text: Component?, scale: Double): TextDisplayObject {
+        return text(pos.x(), pos.y(), pos.z(), text, scale)
     }
 
-    fun text(x: Double, y: Double, z: Double, text: Text?, scale: Double): TextDisplayObject {
+    fun text(x: Double, y: Double, z: Double, text: Component?, scale: Double): TextDisplayObject {
         val display = TextDisplayObject(scene, text)
 
         display.position.set(x, y, z)
         display.scale.set(scale)
-        display.setBillboardMode(DisplayEntity.BillboardMode.CENTER)
+        display.setBillboardMode(Display.BillboardConstraints.CENTER)
         display.setBackground(0)
 
         display(display)
@@ -73,8 +73,8 @@ interface SceneRenderer {
         return display
     }
 
-    fun line(start: Vec3d, end: Vec3d, thickness: Double, state: BlockState): Object3d {
-        return line(start.getX(), start.getY(), start.getZ(), end.getX(), end.getY(), end.getZ(), thickness, state)
+    fun line(start: Vec3, end: Vec3, thickness: Double, state: BlockState): Object3d {
+        return line(start.x(), start.y(), start.z(), end.x(), end.y(), end.z(), thickness, state)
     }
 
     fun line(

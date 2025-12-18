@@ -1,29 +1,29 @@
 package work.lclpnet.map_utils.util
 
-import net.minecraft.entity.boss.BossBarManager
-import net.minecraft.entity.boss.CommandBossBar
-import net.minecraft.text.Text
-import net.minecraft.util.Identifier
+import net.minecraft.network.chat.Component
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.server.bossevents.CustomBossEvent
+import net.minecraft.server.bossevents.CustomBossEvents
 import work.lclpnet.kibu.translate.bossbar.BossBarProvider
 import work.lclpnet.kibu.translate.util.TransientBossBars
 
 class BossBarContainer() : BossBarProvider {
 
-    private val bars: MutableSet<CommandBossBar> = HashSet()
-    private var bossBarManager: BossBarManager? = null
+    private val bars: MutableSet<CustomBossEvent> = HashSet()
+    private var bossBarManager: CustomBossEvents? = null
 
     @Synchronized
-    fun init(bossBarManager: BossBarManager) {
+    fun init(bossBarManager: CustomBossEvents) {
         if (this.bossBarManager != null) return
 
         this.bossBarManager = bossBarManager
     }
 
     @Synchronized
-    override fun createBossBar(id: Identifier, text: Text): CommandBossBar {
+    override fun createBossBar(id: ResourceLocation, text: Component): CustomBossEvent {
         val bossBarManager = bossBarManager ?: throw IllegalStateException("Boss bar container not initialized")
 
-        val bar = bossBarManager.add(id, text)
+        val bar = bossBarManager.create(id, text)
 
         TransientBossBars.setTransient(bar, true)
 
@@ -33,7 +33,7 @@ class BossBarContainer() : BossBarProvider {
     }
 
     @Synchronized
-    fun removeBossBar(bossBar: CommandBossBar) {
+    fun removeBossBar(bossBar: CustomBossEvent) {
         removeBossBarInternal(bossBar)
         bars.remove(bossBar)
     }
@@ -44,8 +44,8 @@ class BossBarContainer() : BossBarProvider {
         bars.clear()
     }
 
-    private fun removeBossBarInternal(bossBar: CommandBossBar) {
-        bossBar.clearPlayers()
+    private fun removeBossBarInternal(bossBar: CustomBossEvent) {
+        bossBar.removeAllPlayers()
         bossBarManager?.remove(bossBar)
     }
 }

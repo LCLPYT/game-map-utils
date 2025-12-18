@@ -1,17 +1,13 @@
 package work.lclpnet.map_utils.dialog
 
-import net.minecraft.dialog.AfterAction
-import net.minecraft.dialog.DialogActionButtonData
-import net.minecraft.dialog.DialogButtonData
-import net.minecraft.dialog.DialogCommonData
-import net.minecraft.dialog.action.DynamicCustomDialogAction
-import net.minecraft.dialog.body.DialogBody
-import net.minecraft.dialog.type.MultiActionDialog
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.registry.entry.RegistryEntry
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.text.Text
-import net.minecraft.util.Formatting.YELLOW
+import net.minecraft.ChatFormatting.YELLOW
+import net.minecraft.core.Holder
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.chat.Component
+import net.minecraft.server.dialog.*
+import net.minecraft.server.dialog.action.CustomAll
+import net.minecraft.server.dialog.body.DialogBody
+import net.minecraft.server.level.ServerPlayer
 import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.map_api.data.DataManager
 import work.lclpnet.map_utils.editor.SessionManager
@@ -21,7 +17,7 @@ import java.util.*
 
 class CreateDialog(val translations: Translations, val sessionManager: SessionManager) {
 
-    fun openOrConfirm(player: ServerPlayerEntity) {
+    fun openOrConfirm(player: ServerPlayer) {
         if (sessionManager.optSession(player)?.editor != null) {
             val msg = translations.translateText("create.active_editor").formatted(YELLOW).translateFor(player)
             openConfirmDialog(player, translations, msg, CONFIRM_ID)
@@ -31,7 +27,7 @@ class CreateDialog(val translations: Translations, val sessionManager: SessionMa
         open(player)
     }
 
-    private fun open(player: ServerPlayerEntity) {
+    private fun open(player: ServerPlayer) {
         val title = translations.translateText("create.title").translateFor(player)
 
         val body = listOf<DialogBody>()
@@ -39,31 +35,32 @@ class CreateDialog(val translations: Translations, val sessionManager: SessionMa
         val buttons = DataManager.DATA_TYPES.map { (id, _) ->
             val label = translations.translateText("type.$id").translateFor(player)
 
-            val nbt = NbtCompound()
+            val nbt = CompoundTag()
             nbt.putString("type", id)
 
-            DialogActionButtonData(
-                DialogButtonData(label, 150),
-                Optional.of(DynamicCustomDialogAction(START_ID, Optional.of(nbt))))
+            ActionButton(
+                CommonButtonData(label, 150),
+                Optional.of(CustomAll(START_ID, Optional.of(nbt))))
         }
 
         val dialog = MultiActionDialog(
-            DialogCommonData(
-                title, Optional.empty(), true, true, AfterAction.CLOSE, body, listOf()
+            CommonDialogData(
+                title, Optional.empty(), true, true, DialogAction.CLOSE, body, listOf()
             ),
             buttons,
-            Optional.of(DialogActionButtonData(
-                DialogButtonData(Text.translatable("gui.cancel"), 150),
+            Optional.of(
+                ActionButton(
+                CommonButtonData(Component.translatable("gui.cancel"), 150),
                 Optional.empty()
             )),
             1
         )
 
-        player.openDialog(RegistryEntry.of(dialog))
+        player.openDialog(Holder.direct(dialog))
     }
 
-    fun startEditing(player: ServerPlayerEntity, nbt: NbtCompound) {
-        val typeId = nbt.getString("type", null)
+    fun startEditing(player: ServerPlayer, nbt: CompoundTag) {
+        val typeId = nbt.getStringOr("type", null)
 
         val data = DataManager.DATA_TYPES[typeId] ?: return
 
@@ -71,7 +68,7 @@ class CreateDialog(val translations: Translations, val sessionManager: SessionMa
         session.setEditor(session.createEditor(data))
     }
 
-    fun discardAndOpen(player: ServerPlayerEntity) {
+    fun discardAndOpen(player: ServerPlayer) {
         sessionManager.optSession(player)?.destroy()
         openOrConfirm(player)
     }

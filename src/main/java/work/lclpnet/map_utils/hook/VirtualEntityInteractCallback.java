@@ -1,7 +1,7 @@
 package work.lclpnet.map_utils.hook;
 
-import net.minecraft.network.packet.c2s.play.PlayerInteractEntityC2SPacket;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.network.protocol.game.ServerboundInteractPacket;
+import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
 import work.lclpnet.kibu.hook.Hook;
 import work.lclpnet.kibu.hook.HookFactory;
@@ -21,5 +21,5 @@ public interface VirtualEntityInteractCallback {
     });
 
     @Nullable
-    PlayerInteractEntityC2SPacket.Handler provideHandler(ServerPlayerEntity player, int entityId);
+    ServerboundInteractPacket.Handler provideHandler(ServerPlayer player, int entityId);
 }

@@ -1,49 +1,45 @@
 package work.lclpnet.map_utils.util
 
-import net.minecraft.dialog.AfterAction
-import net.minecraft.dialog.DialogActionButtonData
-import net.minecraft.dialog.DialogButtonData
-import net.minecraft.dialog.DialogCommonData
-import net.minecraft.dialog.action.DynamicCustomDialogAction
-import net.minecraft.dialog.body.DialogBody
-import net.minecraft.dialog.body.PlainMessageDialogBody
-import net.minecraft.dialog.type.ConfirmationDialog
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.registry.entry.RegistryEntry
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.text.Text
-import net.minecraft.util.Formatting.*
-import net.minecraft.util.Identifier
+import net.minecraft.ChatFormatting.*
+import net.minecraft.core.Holder
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.chat.Component
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.server.dialog.*
+import net.minecraft.server.dialog.action.CustomAll
+import net.minecraft.server.dialog.body.DialogBody
+import net.minecraft.server.dialog.body.PlainMessage
+import net.minecraft.server.level.ServerPlayer
 import work.lclpnet.kibu.translate.Translations
 import java.util.*
 
 fun openConfirmDialog(
-    player: ServerPlayerEntity,
+    player: ServerPlayer,
     translations: Translations,
-    msg: Text,
-    confirmId: Identifier,
-    confirmLabel: Text = translations.translateText("discard").formatted(RED).translateFor(player),
-    payload: Optional<NbtCompound> = Optional.empty()
+    msg: Component,
+    confirmId: ResourceLocation,
+    confirmLabel: Component = translations.translateText("discard").formatted(RED).translateFor(player),
+    payload: Optional<CompoundTag> = Optional.empty()
 ) {
     val title = translations.translateText("warning").formatted(YELLOW, BOLD).translateFor(player)
 
     val body = listOf<DialogBody>(
-        PlainMessageDialogBody(msg, 400)
+        PlainMessage(msg, 400)
     )
 
     val dialog = ConfirmationDialog(
-        DialogCommonData(
-            title, Optional.empty(), true, true, AfterAction.CLOSE, body, listOf()
+        CommonDialogData(
+            title, Optional.empty(), true, true, DialogAction.CLOSE, body, listOf()
         ),
-        DialogActionButtonData(
-            DialogButtonData(confirmLabel, 150),
-            Optional.of(DynamicCustomDialogAction(confirmId, payload))
+        ActionButton(
+            CommonButtonData(confirmLabel, 150),
+            Optional.of(CustomAll(confirmId, payload))
         ),
-        DialogActionButtonData(
-            DialogButtonData(Text.translatable("gui.cancel"), 150),
+        ActionButton(
+            CommonButtonData(Component.translatable("gui.cancel"), 150),
             Optional.empty()
         ),
     )
 
-    player.openDialog(RegistryEntry.of(dialog))
+    player.openDialog(Holder.direct(dialog))
 }

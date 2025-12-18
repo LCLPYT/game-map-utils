@@ -2,26 +2,26 @@ package work.lclpnet.map_utils.editor.type
 
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback
 import net.fabricmc.fabric.api.event.player.UseBlockCallback
-import net.minecraft.block.Block
-import net.minecraft.block.BlockState
-import net.minecraft.block.Blocks
-import net.minecraft.dialog.body.DialogBody
-import net.minecraft.dialog.input.BooleanInputControl
-import net.minecraft.dialog.type.DialogInput
-import net.minecraft.entity.decoration.DisplayEntity
-import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.registry.Registries
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.text.MutableText
-import net.minecraft.text.Text
-import net.minecraft.util.ActionResult
-import net.minecraft.util.DyeColor
-import net.minecraft.util.Formatting.*
-import net.minecraft.util.Hand
-import net.minecraft.util.hit.BlockHitResult
-import net.minecraft.util.math.BlockPos
-import net.minecraft.world.World
+import net.minecraft.ChatFormatting.*
+import net.minecraft.core.BlockPos
+import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.MutableComponent
+import net.minecraft.server.dialog.Input
+import net.minecraft.server.dialog.body.DialogBody
+import net.minecraft.server.dialog.input.BooleanInput
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.InteractionHand
+import net.minecraft.world.InteractionResult
+import net.minecraft.world.entity.Display
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.item.DyeColor
+import net.minecraft.world.level.Level
+import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.phys.BlockHitResult
 import work.lclpnet.gaco.ds.PositionedBlockSet
 import work.lclpnet.kibu.hook.HookRegistrar
 import work.lclpnet.kibu.hook.entity.PlayerInteractionHooks
@@ -43,14 +43,14 @@ class PositionedBlockSetEditor(
 ) : BaseDataEditor<PositionedBlockSet>(PositionedBlockSetData) {
 
     val blocks = mutableMapOf<BlockPos, BlockState>()
-    val markers = mutableMapOf<BlockPos, DisplayEntity.BlockDisplayEntity>()
+    val markers = mutableMapOf<BlockPos, Display.BlockDisplay>()
     var blocksPlaced = false
 
     override fun modifyDialog(
         body: MutableList<DialogBody>,
-        inputs: MutableList<DialogInput>,
+        inputs: MutableList<Input>,
         translations: Translations,
-        player: ServerPlayerEntity
+        player: ServerPlayer
     ) {
         body.add(messageBody(translations.translateText(player, key("header"), blocks.size)))
 
@@ -59,9 +59,9 @@ class PositionedBlockSetEditor(
         }
 
         inputs.add(
-            DialogInput(
+            Input(
                 "placeBlocks",
-                BooleanInputControl(
+                BooleanInput(
                     translations.translateText(key("place_blocks")).translateFor(player),
                     blocksPlaced,
                     "true",
@@ -71,20 +71,20 @@ class PositionedBlockSetEditor(
         )
     }
 
-    private fun label(pos: BlockPos, state: BlockState): MutableText {
-        val id = Registries.BLOCK.getId(state.block)
+    private fun label(pos: BlockPos, state: BlockState): MutableComponent {
+        val id = BuiltInRegistries.BLOCK.getKey(state.block)
 
-        return Text.literal(pos.toShortString()).formatted(YELLOW)
-            .append(Text.literal(" → ").formatted(AQUA))
-            .append(Text.literal(id.toString()).formatted(YELLOW))
+        return Component.literal(pos.toShortString()).withStyle(YELLOW)
+            .append(Component.literal(" → ").withStyle(AQUA))
+            .append(Component.literal(id.toString()).withStyle(YELLOW))
     }
 
     override fun sendTutorial() {
         translations.translateText(
             key("init"),
-            keybind("sprint", "use").formatted(YELLOW),
-            keybind("sprint", "attack").formatted(YELLOW),
-            keybind("swapOffhand").formatted(YELLOW)
+            keybind("sprint", "use").withStyle(YELLOW),
+            keybind("sprint", "attack").withStyle(YELLOW),
+            keybind("swapOffhand").withStyle(YELLOW)
         ).formatted(AQUA).sendTo(player)
     }
 
@@ -102,25 +102,25 @@ class PositionedBlockSetEditor(
         })
     }
 
-    private fun blockBroken(world: World, pos: BlockPos) {
+    private fun blockBroken(world: Level, pos: BlockPos) {
         if (world != this.world) return
 
         removeBlock(pos)
     }
 
     private fun useBlock(
-        entity: PlayerEntity,
-        world: World,
-        hand: Hand,
+        entity: Player,
+        world: Level,
+        hand: InteractionHand,
         result: BlockHitResult
-    ): ActionResult {
-        if (entity != player || world != this.world || !player.playerInput.sprint || hand != Hand.MAIN_HAND) return ActionResult.PASS
+    ): InteractionResult {
+        if (entity != player || world != this.world || !player.lastClientInput.sprint || hand != InteractionHand.MAIN_HAND) return InteractionResult.PASS
 
         val pos = result.blockPos
         val state = world.getBlockState(pos)
         blocks[pos] = state
 
-        val marker = visualizer.markBlock(pos, state, DyeColor.LIGHT_BLUE.entityColor)
+        val marker = visualizer.markBlock(pos, state, DyeColor.LIGHT_BLUE.textureDiffuseColor)
         val prev = markers.put(pos, marker)
 
         if (prev != null) {
@@ -132,19 +132,19 @@ class PositionedBlockSetEditor(
             label(pos, state)
         ).formatted(GREEN).sendTo(player)
 
-        return ActionResult.FAIL
+        return InteractionResult.FAIL
     }
 
     fun attackBlock(
-        entity: PlayerEntity,
-        world: World,
+        entity: Player,
+        world: Level,
         pos: BlockPos
-    ): ActionResult {
-        if (entity != player || world != this.world || !player.playerInput.sprint) return ActionResult.PASS
+    ): InteractionResult {
+        if (entity != player || world != this.world || !player.lastClientInput.sprint) return InteractionResult.PASS
 
         removeBlock(pos)
 
-        return ActionResult.FAIL
+        return InteractionResult.FAIL
     }
 
     fun removeBlock(pos: BlockPos) {
@@ -160,15 +160,15 @@ class PositionedBlockSetEditor(
         ).formatted(RED).sendTo(player)
     }
 
-    override fun create(nbt: NbtCompound): PositionedBlockSet = PositionedBlockSet(blocks)
+    override fun create(nbt: CompoundTag): PositionedBlockSet = PositionedBlockSet(blocks)
 
-    override fun onDataChanged(nbt: NbtCompound) {
+    override fun onDataChanged(nbt: CompoundTag) {
         nbt.getBoolean("placeBlocks").ifPresent {
             blocksPlaced = it
         }
     }
 
-    override fun onTerminate(nbt: NbtCompound) {
+    override fun onTerminate(nbt: CompoundTag) {
         nbt.getBoolean("placeBlocks").ifPresent {
             if (it) placeBlocks()
             else removeBlocks()
@@ -187,7 +187,7 @@ class PositionedBlockSetEditor(
 
         for ((pos, state) in value) {
             blocks[pos] = state
-            markers[pos] = visualizer.markBlock(pos, state, DyeColor.LIGHT_BLUE.entityColor)
+            markers[pos] = visualizer.markBlock(pos, state, DyeColor.LIGHT_BLUE.textureDiffuseColor)
         }
 
         placeBlocks()
@@ -197,7 +197,7 @@ class PositionedBlockSetEditor(
         val world = world
 
         for ((pos, state) in blocks) {
-            world.setBlockState(pos, state, Block.FORCE_STATE or Block.NOTIFY_LISTENERS)
+            world.setBlock(pos, state, Block.UPDATE_KNOWN_SHAPE or Block.UPDATE_CLIENTS)
         }
     }
 
@@ -205,7 +205,7 @@ class PositionedBlockSetEditor(
         val world = world
 
         for ((pos, _) in blocks) {
-            world.setBlockState(pos, Blocks.AIR.defaultState, Block.FORCE_STATE or Block.NOTIFY_LISTENERS or Block.SKIP_DROPS)
+            world.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_KNOWN_SHAPE or Block.UPDATE_CLIENTS or Block.UPDATE_SUPPRESS_DROPS)
         }
     }
 }

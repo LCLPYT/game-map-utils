@@ -3,10 +3,10 @@ package work.lclpnet.map_utils.editor
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents
-import net.minecraft.registry.RegistryKey
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.server.world.ServerWorld
-import net.minecraft.world.World
+import net.minecraft.resources.ResourceKey
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.level.Level
 import work.lclpnet.gaco.dynamic_entities.DynamicEntityManager
 import work.lclpnet.kibu.hook.HookContainer
 import work.lclpnet.kibu.hook.HookRegistrar
@@ -23,8 +23,8 @@ import java.util.*
 
 class SessionManager(val translations: Translations, val dataManager: DataManager) {
 
-    private val sessions = mutableMapOf<UUID, MutableMap<RegistryKey<World>, Session>>()
-    private val worldSessions = mutableMapOf<RegistryKey<World>, WorldSession>()
+    private val sessions = mutableMapOf<UUID, MutableMap<ResourceKey<Level>, Session>>()
+    private val worldSessions = mutableMapOf<ResourceKey<Level>, WorldSession>()
 
     fun init(hooks: HookRegistrar) {
         hooks.registerHook(ServerLifecycleHooks.SERVER_STOPPING, ServerLifecycleEvents.ServerStopping {
@@ -59,43 +59,43 @@ class SessionManager(val translations: Translations, val dataManager: DataManage
     }
 
     @Synchronized
-    private fun clearWorldSession(world: ServerWorld) {
-        val worldSession = worldSessions.remove(world.registryKey) ?: return
+    private fun clearWorldSession(world: ServerLevel) {
+        val worldSession = worldSessions.remove(world.dimension()) ?: return
 
         worldSession.destroy()
     }
 
-    fun optSession(player: ServerPlayerEntity) = optSession(player, player.entityWorld)
+    fun optSession(player: ServerPlayer) = optSession(player, player.level())
 
-    fun optSession(player: ServerPlayerEntity, world: ServerWorld): Session? {
+    fun optSession(player: ServerPlayer, world: ServerLevel): Session? {
         val playerSessions = sessions[player.uuid] ?: return null
 
-        return playerSessions[world.registryKey]
+        return playerSessions[world.dimension()]
     }
 
     @Synchronized
-    fun getSession(player: ServerPlayerEntity): Session {
-        val world = player.entityWorld
+    fun getSession(player: ServerPlayer): Session {
+        val world = player.level()
 
-        return sessions.computeIfAbsent(player.uuid) { mutableMapOf() }.computeIfAbsent(world.registryKey) {
+        return sessions.computeIfAbsent(player.uuid) { mutableMapOf() }.computeIfAbsent(world.dimension()) {
             val worldData = getWorldSession(world)
 
-            Session(SessionArgs(translations, world, player.networkHandler), worldData.dynamicEntityManager, dataManager).also { it.init() }
+            Session(SessionArgs(translations, world, player.connection), worldData.dynamicEntityManager, dataManager).also { it.init() }
         }
     }
 
-    fun getWorldSession(world: ServerWorld): WorldSession {
-        return worldSessions.computeIfAbsent(world.registryKey) {
+    fun getWorldSession(world: ServerLevel): WorldSession {
+        return worldSessions.computeIfAbsent(world.dimension()) {
             WorldSession(DynamicEntityManager(world)).also { it.init() }
         }
     }
 
-    fun isEditing(player: ServerPlayerEntity): Boolean {
+    fun isEditing(player: ServerPlayer): Boolean {
         return optSession(player)?.editor != null
     }
 
     @Synchronized
-    fun clearSession(player: ServerPlayerEntity) {
+    fun clearSession(player: ServerPlayer) {
         val playerSessions = sessions.remove(player.uuid) ?: return
 
         for ((_, session) in playerSessions) {

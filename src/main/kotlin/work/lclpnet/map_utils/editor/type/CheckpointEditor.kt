@@ -1,11 +1,11 @@
 package work.lclpnet.map_utils.editor.type
 
-import net.minecraft.dialog.body.DialogBody
-import net.minecraft.dialog.type.DialogInput
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.util.Formatting.*
-import net.minecraft.util.math.Vec3d
+import net.minecraft.ChatFormatting.*
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.server.dialog.Input
+import net.minecraft.server.dialog.body.DialogBody
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.phys.Vec3
 import work.lclpnet.gaco.ds.Checkpoint
 import work.lclpnet.kibu.hook.HookRegistrar
 import work.lclpnet.kibu.hook.util.PositionRotation
@@ -30,9 +30,9 @@ class CheckpointEditor(
 
     override fun modifyDialog(
         body: MutableList<DialogBody>,
-        inputs: MutableList<DialogInput>,
+        inputs: MutableList<Input>,
         translations: Translations,
-        player: ServerPlayerEntity
+        player: ServerPlayer
     ) {
         respawnPosEditor.modifyDialog(body, inputs, translations, player)
         boundsEditor.modifyDialog(body, inputs, translations, player)
@@ -43,16 +43,16 @@ class CheckpointEditor(
             key("init"),
             translations.translateText(key("pos"))
                 .translateFor(player),
-            keybind("sprint", "swapOffhand").formatted(YELLOW),
+            keybind("sprint", "swapOffhand").withStyle(YELLOW),
             translations.translateText(key("pos1"))
                 .formatted(BLUE)
                 .translateFor(player),
-            keybind("sprint", "attack").formatted(YELLOW),
+            keybind("sprint", "attack").withStyle(YELLOW),
             translations.translateText(key("pos2"))
                 .formatted(RED)
                 .translateFor(player),
-            keybind("sprint", "use").formatted(YELLOW),
-            keybind("swapOffhand").formatted(YELLOW)
+            keybind("sprint", "use").withStyle(YELLOW),
+            keybind("swapOffhand").withStyle(YELLOW)
         ).formatted(AQUA).sendTo(player)
     }
 
@@ -66,12 +66,12 @@ class CheckpointEditor(
         boundsEditor.load(value.bounds)
     }
 
-    override fun create(nbt: NbtCompound): Checkpoint? {
+    override fun create(nbt: CompoundTag): Checkpoint? {
         val posRot = respawnPosEditor.create(nbt)
         val bounds = boundsEditor.create(nbt)
 
         if (posRot == null || bounds == null) return null
 
-        return Checkpoint(Vec3d(posRot.x, posRot.y, posRot.z), posRot.yaw, posRot.pitch, bounds)
+        return Checkpoint(Vec3(posRot.x(), posRot.y(), posRot.z()), posRot.yaw, posRot.pitch, bounds)
     }
 }

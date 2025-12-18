@@ -1,8 +1,8 @@
 package work.lclpnet.map_api.data.type
 
 import com.mojang.serialization.Codec
-import net.minecraft.entity.Entity
-import net.minecraft.server.network.ServerPlayerEntity
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.entity.Entity
 import work.lclpnet.gaco.ds.PositionedBlockSet
 import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.map_api.data.Data
@@ -22,7 +22,7 @@ object PositionedBlockSetData : Data<PositionedBlockSet> {
     override fun display(
         value: PositionedBlockSet,
         visualizer: Visualizer,
-        player: ServerPlayerEntity,
+        player: ServerPlayer,
         translations: Translations,
         id: String,
         propertyId: String?

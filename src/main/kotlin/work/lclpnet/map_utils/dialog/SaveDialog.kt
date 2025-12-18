@@ -1,19 +1,14 @@
 package work.lclpnet.map_utils.dialog
 
-import net.minecraft.dialog.AfterAction
-import net.minecraft.dialog.DialogActionButtonData
-import net.minecraft.dialog.DialogButtonData
-import net.minecraft.dialog.DialogCommonData
-import net.minecraft.dialog.action.DynamicCustomDialogAction
-import net.minecraft.dialog.body.DialogBody
-import net.minecraft.dialog.input.TextInputControl
-import net.minecraft.dialog.type.DialogInput
-import net.minecraft.dialog.type.MultiActionDialog
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.registry.entry.RegistryEntry
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.text.Text
-import net.minecraft.util.Formatting.*
+import net.minecraft.ChatFormatting.*
+import net.minecraft.core.Holder
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.chat.Component
+import net.minecraft.server.dialog.*
+import net.minecraft.server.dialog.action.CustomAll
+import net.minecraft.server.dialog.body.DialogBody
+import net.minecraft.server.dialog.input.TextInput
+import net.minecraft.server.level.ServerPlayer
 import work.lclpnet.kibu.hook.HookRegistrar
 import work.lclpnet.kibu.hook.player.PlayerInventoryHooks
 import work.lclpnet.kibu.translate.Translations
@@ -28,7 +23,7 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
 
     fun init(hooks: HookRegistrar) {
         hooks.registerHook(PlayerInventoryHooks.SWAP_HANDS, PlayerInventoryHooks.SwapHands { player, _ ->
-            if (sessionManager.isEditing(player) && !player.isSneaking && !player.playerInput.sprint) {
+            if (sessionManager.isEditing(player) && !player.isShiftKeyDown && !player.lastClientInput.sprint) {
                 openSaveDialog(player)
                 true
             } else {
@@ -37,7 +32,7 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
         })
     }
 
-    fun openSaveDialog(player: ServerPlayerEntity) {
+    fun openSaveDialog(player: ServerPlayer) {
         val session = sessionManager.optSession(player) ?: return
         val editor = session.editor ?: return
         val propertyId = editor.propertyId
@@ -53,9 +48,9 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
         val body = mutableListOf<DialogBody>()
 
         val inputs = mutableListOf(
-            DialogInput(
+            Input(
                 "propertyId",
-                TextInputControl(
+                TextInput(
                     200,
                     translations.translateText("save.property_id").translateFor(player),
                     true,
@@ -69,36 +64,37 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
         editor.modifyDialog(body, inputs, translations, player)
 
         val dialog = MultiActionDialog(
-            DialogCommonData(
-                title, Optional.empty(), true, true, AfterAction.CLOSE, body, inputs
+            CommonDialogData(
+                title, Optional.empty(), true, true, DialogAction.CLOSE, body, inputs
             ),
             listOf(
-                DialogActionButtonData(
-                    DialogButtonData(translations.translateText("save").translateFor(player), 150),
-                    Optional.of(DynamicCustomDialogAction(SAVE_ID, Optional.empty()))
+                ActionButton(
+                    CommonButtonData(translations.translateText("save").translateFor(player), 150),
+                    Optional.of(CustomAll(SAVE_ID, Optional.empty()))
                 ),
-                DialogActionButtonData(
-                    DialogButtonData(translations.translateText(if (editor.isNew()) "discard" else "discard_changes")
+                ActionButton(
+                    CommonButtonData(translations.translateText(if (editor.isNew()) "discard" else "discard_changes")
                         .formatted(RED)
                         .translateFor(player), 150),
-                    Optional.of(DynamicCustomDialogAction(DISCARD_ID, Optional.empty()))
+                    Optional.of(CustomAll(DISCARD_ID, Optional.empty()))
                 )
             ),
-            Optional.of(DialogActionButtonData(
-                DialogButtonData(Text.translatable("gui.cancel"), 150),
-                Optional.of(DynamicCustomDialogAction(CLOSE_ID, Optional.empty()))
+            Optional.of(
+                ActionButton(
+                CommonButtonData(Component.translatable("gui.cancel"), 150),
+                Optional.of(CustomAll(CLOSE_ID, Optional.empty()))
             )),
             1
         )
 
-        player.openDialog(RegistryEntry.of(dialog))
+        player.openDialog(Holder.direct(dialog))
     }
 
-    fun save(player: ServerPlayerEntity, nbt: NbtCompound) {
+    fun save(player: ServerPlayer, nbt: CompoundTag) {
         val session = sessionManager.optSession(player) ?: return
         val editor = session.editor ?: return
 
-        val propertyId = nbt.getString("propertyId", "")
+        val propertyId = nbt.getStringOr("propertyId", "")
 
         editor.propertyId = propertyId
         editor.onDataChanged(nbt)
@@ -113,7 +109,7 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
 
         if (editor.create(nbt) == null) return
 
-        if (dataManager.hasData(player.entityWorld, propertyId) && editor.prevPropertyId != propertyId) {
+        if (dataManager.hasData(player.level(), propertyId) && editor.prevPropertyId != propertyId) {
             val msg = translations.translateText(
                 "save.overwrite",
                 styled(propertyId, YELLOW)
@@ -126,12 +122,12 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
         saveDataToWorld(player, nbt)
     }
 
-    fun saveDataToWorld(player: ServerPlayerEntity, nbt: NbtCompound) {
+    fun saveDataToWorld(player: ServerPlayer, nbt: CompoundTag) {
         val session = sessionManager.optSession(player) ?: return
         val editor = session.editor ?: return
         val propertyId = editor.propertyId ?: return
 
-        if (!editor.saveToWorld(player.entityWorld, dataManager, propertyId, editor.role, nbt)) return
+        if (!editor.saveToWorld(player.level(), dataManager, propertyId, editor.role, nbt)) return
 
         editor.onTerminate(nbt)
 
@@ -139,22 +135,22 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
 
         if (oldPropertyId != null && oldPropertyId != propertyId) {
             // renamed
-            dataManager.removeData(player.entityWorld, oldPropertyId)
+            dataManager.removeData(player.level(), oldPropertyId)
         }
 
         translations.translateText(
             "save.saved",
             styled(propertyId, YELLOW),
-            styled(player.entityWorld.registryKey.value, YELLOW)
+            styled(player.level().dimension().location(), YELLOW)
         ).formatted(GREEN).sendTo(player)
 
-        dataManager.save(player.entityWorld)
+        dataManager.save(player.level())
 
         session.shown.add(propertyId)
         session.destroyEditor()
     }
 
-    fun discard(player: ServerPlayerEntity, nbt: NbtCompound) {
+    fun discard(player: ServerPlayer, nbt: CompoundTag) {
         val session = sessionManager.optSession(player) ?: return
 
         val editor = session.editor
@@ -170,7 +166,7 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
         session.destroyEditor()
     }
 
-    fun onClose(player: ServerPlayerEntity, nbt: NbtCompound) {
+    fun onClose(player: ServerPlayer, nbt: CompoundTag) {
         val session = sessionManager.optSession(player) ?: return
         val editor = session.editor ?: return
 

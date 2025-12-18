@@ -1,12 +1,12 @@
 package work.lclpnet.map_api.data.type
 
+import com.mojang.math.Transformation
 import com.mojang.serialization.Codec
-import net.minecraft.block.Blocks
-import net.minecraft.entity.EntityType
-import net.minecraft.entity.decoration.Brightness
-import net.minecraft.entity.decoration.DisplayEntity
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.util.math.AffineTransformation
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.util.Brightness
+import net.minecraft.world.entity.Display
+import net.minecraft.world.entity.EntityType
+import net.minecraft.world.level.block.Blocks
 import org.joml.Matrix4f
 import work.lclpnet.gaco.ds.BlockBox
 import work.lclpnet.kibu.translate.Translations
@@ -26,24 +26,24 @@ object BlockBoxData : Data<BlockBox> {
     override fun display(
         value: BlockBox,
         visualizer: Visualizer,
-        player: ServerPlayerEntity,
+        player: ServerPlayer,
         translations: Translations,
         id: String,
         propertyId: String?
     ): Removable {
-        val marker = DisplayEntity.BlockDisplayEntity(EntityType.BLOCK_DISPLAY, visualizer.world())
+        val marker = Display.BlockDisplay(EntityType.BLOCK_DISPLAY, visualizer.world())
 
         val margin = -0.015f
 
-        marker.blockState = Blocks.GREEN_STAINED_GLASS.defaultState
-        marker.setBrightness(Brightness(15, 15))
-        marker.setPos(
+        marker.blockState = Blocks.GREEN_STAINED_GLASS.defaultBlockState()
+        marker.brightnessOverride = Brightness(15, 15)
+        marker.setPosRaw(
             value.min().x.toDouble() + margin,
             value.min().y.toDouble() + margin,
             value.min().z.toDouble() + margin
         )
         marker.setTransformation(
-            AffineTransformation(
+            Transformation(
                 Matrix4f().scale(
                     value.width().toFloat() - 2 * margin,
                     value.height().toFloat() - 2 * margin,

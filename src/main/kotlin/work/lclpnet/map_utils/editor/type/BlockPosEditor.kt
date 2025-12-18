@@ -1,18 +1,18 @@
 package work.lclpnet.map_utils.editor.type
 
 import net.fabricmc.fabric.api.event.player.UseBlockCallback
-import net.minecraft.dialog.body.DialogBody
-import net.minecraft.dialog.type.DialogInput
-import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.text.Text
-import net.minecraft.util.ActionResult
-import net.minecraft.util.Formatting
-import net.minecraft.util.Hand
-import net.minecraft.util.hit.BlockHitResult
-import net.minecraft.util.math.BlockPos
-import net.minecraft.world.World
+import net.minecraft.ChatFormatting
+import net.minecraft.core.BlockPos
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.chat.Component
+import net.minecraft.server.dialog.Input
+import net.minecraft.server.dialog.body.DialogBody
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.InteractionHand
+import net.minecraft.world.InteractionResult
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.level.Level
+import net.minecraft.world.phys.BlockHitResult
 import work.lclpnet.kibu.hook.HookRegistrar
 import work.lclpnet.kibu.hook.entity.PlayerInteractionHooks
 import work.lclpnet.kibu.translate.Translations
@@ -38,19 +38,19 @@ class BlockPosEditor(
 
     override fun modifyDialog(
         body: MutableList<DialogBody>,
-        inputs: MutableList<DialogInput>,
+        inputs: MutableList<Input>,
         translations: Translations,
-        player: ServerPlayerEntity
+        player: ServerPlayer
     ) {
-        body.add(required(pos, "pos", translations, player) { Text.literal(it.toShortString()) })
+        body.add(required(pos, "pos", translations, player) { Component.literal(it.toShortString()) })
     }
 
     override fun sendTutorial() {
         translations.translateText(
             key("init"),
-            keybind("sprint", "use").formatted(Formatting.YELLOW),
-            keybind("swapOffhand").formatted(Formatting.YELLOW)
-        ).formatted(Formatting.AQUA).sendTo(player)
+            keybind("sprint", "use").withStyle(ChatFormatting.YELLOW),
+            keybind("swapOffhand").withStyle(ChatFormatting.YELLOW)
+        ).formatted(ChatFormatting.AQUA).sendTo(player)
     }
 
     override fun init(hooks: HookRegistrar) {
@@ -60,12 +60,12 @@ class BlockPosEditor(
     }
 
     private fun useBlock(
-        entity: PlayerEntity,
-        world: World,
-        hand: Hand,
+        entity: Player,
+        world: Level,
+        hand: InteractionHand,
         result: BlockHitResult
-    ): ActionResult {
-        if (entity != player || world != this.world || !player.playerInput.sprint || hand != Hand.MAIN_HAND) return ActionResult.PASS
+    ): InteractionResult {
+        if (entity != player || world != this.world || !player.lastClientInput.sprint || hand != InteractionHand.MAIN_HAND) return InteractionResult.PASS
 
         val pos = result.blockPos
         this.pos = pos
@@ -74,10 +74,10 @@ class BlockPosEditor(
 
         translations.translateText(
             key("set_pos"),
-            styled(pos.toShortString(), Formatting.YELLOW)
-        ).formatted(Formatting.GREEN).sendTo(player)
+            styled(pos.toShortString(), ChatFormatting.YELLOW)
+        ).formatted(ChatFormatting.GREEN).sendTo(player)
 
-        return ActionResult.FAIL
+        return InteractionResult.FAIL
     }
 
     override fun load(value: BlockPos) {
@@ -94,7 +94,7 @@ class BlockPosEditor(
         marker = BlockPosData.display(pos, visualizer, player, translations, id, propertyId)
     }
 
-    override fun create(nbt: NbtCompound): BlockPos? {
+    override fun create(nbt: CompoundTag): BlockPos? {
         if (pos == null) {
             sendMissing(setOf("pos"))
             return null

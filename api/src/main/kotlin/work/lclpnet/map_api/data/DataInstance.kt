@@ -3,7 +3,7 @@ package work.lclpnet.map_api.data
 import com.mojang.serialization.Codec
 import com.mojang.serialization.MapCodec
 import com.mojang.serialization.codecs.RecordCodecBuilder
-import net.minecraft.server.network.ServerPlayerEntity
+import net.minecraft.server.level.ServerPlayer
 import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.map_api.visual.Visualizer
 import java.util.*
@@ -25,7 +25,7 @@ data class DataInstance<T>(
 ) {
     fun display(
         visualizer: Visualizer,
-        player: ServerPlayerEntity,
+        player: ServerPlayer,
         translations: Translations,
         propertyId: String
     ) = data.display(value, visualizer, player, translations, data.id(), propertyId)

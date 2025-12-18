@@ -1,10 +1,10 @@
 package work.lclpnet.map_api.data.type
 
 import com.mojang.serialization.Codec
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.util.DyeColor
-import net.minecraft.util.math.BlockPos
-import net.minecraft.util.math.Vec3d
+import net.minecraft.core.BlockPos
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.item.DyeColor
+import net.minecraft.world.phys.Vec3
 import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.map_api.data.Data
 import work.lclpnet.map_api.util.getRandomHsvColor
@@ -24,19 +24,19 @@ object BlockPosData : Data<BlockPos> {
     override fun display(
         value: BlockPos,
         visualizer: Visualizer,
-        player: ServerPlayerEntity,
+        player: ServerPlayer,
         translations: Translations,
         id: String,
         propertyId: String?
     ): Removable {
         val color = if (propertyId != null) {
             getRandomHsvColor(Random(propertyId.hashCode().toLong()))
-        } else DyeColor.LIME.entityColor
+        } else DyeColor.LIME.textureDiffuseColor
 
         val marker = visualizer.markBlock(value, color)
 
         val textRef = if (propertyId != null)
-            createDataLabelDisplay(visualizer, player, translations, propertyId, id, Vec3d(value.x + 0.5, value.y + 1.35, value.z + 0.5))
+            createDataLabelDisplay(visualizer, player, translations, propertyId, id, Vec3(value.x + 0.5, value.y + 1.35, value.z + 0.5))
         else null
 
         return Removable {

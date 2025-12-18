@@ -1,6 +1,6 @@
 package work.lclpnet.map_utils.schema
 
-import net.minecraft.server.world.ServerWorld
+import net.minecraft.server.level.ServerLevel
 import work.lclpnet.kibu.hook.HookRegistrar
 import work.lclpnet.map_api.data.DataManager
 import work.lclpnet.map_api.data.WorldData
@@ -29,14 +29,14 @@ class SchemaManager(val schemaLoader: SchemaLoader, val dataManager: DataManager
         this.schemas.putAll(schemas)
     }
 
-    fun getSchema(world: ServerWorld): MapSchema? =
+    fun getSchema(world: ServerLevel): MapSchema? =
         schemas[dataManager.getWorldData(world).schemaId]
 
-    fun setSchema(world: ServerWorld, schema: MapSchema?) {
+    fun setSchema(world: ServerLevel, schema: MapSchema?) {
         dataManager.getWorldData(world).schemaId = schema?.id
     }
 
-    fun loadDefaults(world: ServerWorld, data: WorldData) {
+    fun loadDefaults(world: ServerLevel, data: WorldData) {
         val schema = getSchema(world)
 
         if (schema != null) {

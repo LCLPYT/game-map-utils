@@ -1,10 +1,10 @@
 package work.lclpnet.map_utils.dialog
 
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.nbt.NbtElement
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.util.Formatting.RED
-import net.minecraft.util.Identifier
+import net.minecraft.ChatFormatting.RED
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.nbt.Tag
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.server.level.ServerPlayer
 import work.lclpnet.kibu.hook.HookRegistrar
 import work.lclpnet.kibu.hook.network.CustomClickActionCallback
 import work.lclpnet.kibu.translate.Translations
@@ -25,13 +25,13 @@ class DialogHandler(
         })
     }
 
-    fun onCustomClick(player: ServerPlayerEntity, id: Identifier, payload: Optional<NbtElement>) {
-        if (player.permissionLevel < 2 || player.gameMode.isSurvivalLike) {
+    fun onCustomClick(player: ServerPlayer, id: ResourceLocation, payload: Optional<Tag>) {
+        if (player.permissionLevel < 2 || player.gameMode().isSurvival) {
             translations.translateText("missing_permission").formatted(RED).sendTo(player)
             return
         }
 
-        val nbt = payload.map { it as? NbtCompound }.orElseGet { NbtCompound() }!!
+        val nbt = payload.map { it as? CompoundTag }.orElseGet { CompoundTag() }!!
 
         when (id) {
             CreateDialog.OPEN_ID -> createDialog.openOrConfirm(player)

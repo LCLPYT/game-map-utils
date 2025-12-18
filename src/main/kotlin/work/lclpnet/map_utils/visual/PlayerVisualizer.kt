@@ -1,15 +1,15 @@
 package work.lclpnet.map_utils.visual
 
-import net.minecraft.block.BlockState
-import net.minecraft.block.Blocks
-import net.minecraft.entity.Entity
-import net.minecraft.entity.EntityType
-import net.minecraft.entity.decoration.DisplayEntity
-import net.minecraft.server.world.ServerWorld
-import net.minecraft.util.math.AffineTransformation
-import net.minecraft.util.math.BlockPos
-import net.minecraft.util.math.Direction
-import net.minecraft.util.math.Vec3i
+import com.mojang.math.Transformation
+import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
+import net.minecraft.core.Vec3i
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.world.entity.Display
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.entity.EntityType
+import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.state.BlockState
 import org.joml.Matrix4f
 import org.joml.Quaternionf
 import work.lclpnet.gaco.dynamic_entities.DynamicEntity
@@ -29,10 +29,10 @@ class PlayerVisualizer(
 
     val entities = mutableSetOf<DynamicEntity>()
     val mapping = mutableMapOf<Entity, DynamicEntity>()
-    val markedBlocks = mutableMapOf<Vec3i, DisplayEntity.BlockDisplayEntity>()
-    val markedBlockFaces = mutableMapOf<Vec3i, MutableMap<Direction, DisplayEntity.BlockDisplayEntity>>()
+    val markedBlocks = mutableMapOf<Vec3i, Display.BlockDisplay>()
+    val markedBlockFaces = mutableMapOf<Vec3i, MutableMap<Direction, Display.BlockDisplay>>()
 
-    override fun world(): ServerWorld = args.world
+    override fun world(): ServerLevel = args.world
     
     fun init(hooks: HookRegistrar) {
         hooks.registerHook(
@@ -87,7 +87,7 @@ class PlayerVisualizer(
         entities.remove(dynamicEntity)
         dynamicEntityManager.remove(dynamicEntity)
 
-        val blockPos = entity.blockPos
+        val blockPos = entity.blockPosition()
         val blockMarker = markedBlocks[blockPos]
         
         if (blockMarker == entity) {
@@ -95,7 +95,7 @@ class PlayerVisualizer(
         }
     }
 
-    override fun markBlock(pos: Vec3i, state: BlockState, glowColor: Int): DisplayEntity.BlockDisplayEntity {
+    override fun markBlock(pos: Vec3i, state: BlockState, glowColor: Int): Display.BlockDisplay {
         val prev = markedBlocks[pos]
         
         if (prev != null) {
@@ -103,15 +103,15 @@ class PlayerVisualizer(
         }
 
         val margin = 0.015f
-        val marker = DisplayEntity.BlockDisplayEntity(EntityType.BLOCK_DISPLAY, args.world)
-        marker.setPosition(
+        val marker = Display.BlockDisplay(EntityType.BLOCK_DISPLAY, args.world)
+        marker.setPos(
             pos.x.toDouble() + margin,
             pos.y.toDouble() + margin,
             pos.z.toDouble() + margin
         )
-        marker.setTransformation(AffineTransformation(Matrix4f().scale(1f - 2 * margin)))
+        marker.setTransformation(Transformation(Matrix4f().scale(1f - 2 * margin)))
         marker.blockState = getMarkerState(state)
-        marker.isGlowing = true
+        marker.setGlowingTag(true)
         marker.glowColorOverride = glowColor
 
         addEntity(marker)
@@ -126,7 +126,7 @@ class PlayerVisualizer(
         face: Direction,
         state: BlockState,
         glowColor: Int
-    ): DisplayEntity.BlockDisplayEntity {
+    ): Display.BlockDisplay {
         val markedFaces = markedBlockFaces.computeIfAbsent(pos) { mutableMapOf() }
         val prev = markedFaces[face]
 
@@ -135,18 +135,19 @@ class PlayerVisualizer(
         }
 
         val margin = 0.015f
-        val marker = DisplayEntity.BlockDisplayEntity(EntityType.BLOCK_DISPLAY, args.world)
+        val marker = Display.BlockDisplay(EntityType.BLOCK_DISPLAY, args.world)
 
-        marker.setPosition(
+        marker.setPos(
             pos.x.toDouble() + 0.5,
             pos.y.toDouble() + 0.5,
             pos.z.toDouble() + 0.5
         )
 
-        marker.setTransformation(AffineTransformation(Matrix4f()
+        marker.setTransformation(
+            Transformation(Matrix4f()
             .rotate(Quaternionf().rotationTo(
-                Direction.NORTH.floatVector,
-                face.floatVector
+                Direction.NORTH.unitVec3f,
+                face.unitVec3f
             ))
             .translate(
                 -0.5f + margin,
@@ -161,7 +162,7 @@ class PlayerVisualizer(
         ))
 
         marker.blockState = getMarkerState(state)
-        marker.isGlowing = true
+        marker.setGlowingTag(true)
         marker.glowColorOverride = glowColor
 
         addEntity(marker)
@@ -172,8 +173,8 @@ class PlayerVisualizer(
     }
 
     fun getMarkerState(state: BlockState): BlockState = when {
-        state.isAir || state.isOf(Blocks.BARRIER) || state.isOf(Blocks.STRUCTURE_VOID) -> {
-            Blocks.GLASS.defaultState
+        state.isAir || state.`is`(Blocks.BARRIER) || state.`is`(Blocks.STRUCTURE_VOID) -> {
+            Blocks.GLASS.defaultBlockState()
         }
         else -> state
     }

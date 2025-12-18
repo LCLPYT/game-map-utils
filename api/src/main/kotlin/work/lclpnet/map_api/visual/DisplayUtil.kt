@@ -1,34 +1,34 @@
 package work.lclpnet.map_api.visual
 
-import net.minecraft.entity.EntityType
-import net.minecraft.entity.decoration.Brightness
-import net.minecraft.entity.decoration.DisplayEntity
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.text.Text
-import net.minecraft.util.Formatting.AQUA
-import net.minecraft.util.Formatting.YELLOW
-import net.minecraft.util.math.Vec3d
+import net.minecraft.ChatFormatting.AQUA
+import net.minecraft.ChatFormatting.YELLOW
+import net.minecraft.network.chat.Component
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.util.Brightness
+import net.minecraft.world.entity.Display
+import net.minecraft.world.entity.EntityType
+import net.minecraft.world.phys.Vec3
 import work.lclpnet.kibu.translate.Translations
 
 fun createDataLabelDisplay(
     visualizer: Visualizer,
-    player: ServerPlayerEntity,
+    player: ServerPlayer,
     translations: Translations,
     propertyId: String,
     id: String,
-    pos: Vec3d
-): DisplayEntity.TextDisplayEntity {
-    val textDisplay = DisplayEntity.TextDisplayEntity(EntityType.TEXT_DISPLAY, visualizer.world())
-    textDisplay.setBrightness(Brightness(15, 15))
+    pos: Vec3
+): Display.TextDisplay {
+    val textDisplay = Display.TextDisplay(EntityType.TEXT_DISPLAY, visualizer.world())
+    textDisplay.brightnessOverride = Brightness(15, 15)
 
-    textDisplay.text = Text.empty()
+    textDisplay.text = Component.empty()
         .append(translations.translateText("type.$id").formatted(AQUA).translateFor(player))
-        .append(Text.literal("\n\"$propertyId\"").formatted(YELLOW))
+        .append(Component.literal("\n\"$propertyId\"").withStyle(YELLOW))
 
-    textDisplay.billboardMode = DisplayEntity.BillboardMode.CENTER
-    textDisplay.isGlowing = true
+    textDisplay.billboardConstraints = Display.BillboardConstraints.CENTER
+    textDisplay.setGlowingTag(true)
 
-    textDisplay.setPosition(pos)
+    textDisplay.setPos(pos)
 
     visualizer.addEntity(textDisplay)
 

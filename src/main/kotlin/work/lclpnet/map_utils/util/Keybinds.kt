@@ -1,14 +1,14 @@
 package work.lclpnet.map_utils.util
 
-import net.minecraft.text.MutableText
-import net.minecraft.text.Text
+import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.MutableComponent
 
-fun keybind(key: String, vararg extra: String): MutableText {
-    val text = Text.keybind("key.$key")
+fun keybind(key: String, vararg extra: String): MutableComponent {
+    val text = Component.keybind("key.$key")
 
     for (k in extra) {
-        text.append(" + ").append(Text.keybind("key.$k"))
+        text.append(" + ").append(Component.keybind("key.$k"))
     }
 
-    return Text.literal("[").append(text).append("]")
+    return Component.literal("[").append(text).append("]")
 }

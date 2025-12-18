@@ -2,22 +2,22 @@ package work.lclpnet.map_utils.editor.type
 
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback
 import net.fabricmc.fabric.api.event.player.UseBlockCallback
-import net.minecraft.dialog.body.DialogBody
-import net.minecraft.dialog.type.DialogInput
-import net.minecraft.entity.decoration.DisplayEntity
-import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.text.Text
-import net.minecraft.util.ActionResult
-import net.minecraft.util.DyeColor
-import net.minecraft.util.Formatting
-import net.minecraft.util.Formatting.BLUE
-import net.minecraft.util.Formatting.RED
-import net.minecraft.util.Hand
-import net.minecraft.util.hit.BlockHitResult
-import net.minecraft.util.math.BlockPos
-import net.minecraft.world.World
+import net.minecraft.ChatFormatting
+import net.minecraft.ChatFormatting.BLUE
+import net.minecraft.ChatFormatting.RED
+import net.minecraft.core.BlockPos
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.chat.Component
+import net.minecraft.server.dialog.Input
+import net.minecraft.server.dialog.body.DialogBody
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.InteractionHand
+import net.minecraft.world.InteractionResult
+import net.minecraft.world.entity.Display
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.item.DyeColor
+import net.minecraft.world.level.Level
+import net.minecraft.world.phys.BlockHitResult
 import work.lclpnet.gaco.ds.BlockBox
 import work.lclpnet.kibu.hook.HookRegistrar
 import work.lclpnet.kibu.hook.entity.PlayerInteractionHooks
@@ -42,18 +42,18 @@ class BlockBoxEditor(
     var pos1: BlockPos? = null
     var pos2: BlockPos? = null
 
-    var pos1Marker: DisplayEntity.BlockDisplayEntity? = null
-    var pos2Marker: DisplayEntity.BlockDisplayEntity? = null
+    var pos1Marker: Display.BlockDisplay? = null
+    var pos2Marker: Display.BlockDisplay? = null
     var boxMarker: Removable? = null
 
     override fun modifyDialog(
         body: MutableList<DialogBody>,
-        inputs: MutableList<DialogInput>,
+        inputs: MutableList<Input>,
         translations: Translations,
-        player: ServerPlayerEntity
+        player: ServerPlayer
     ) {
-        body.add(required(pos1, "pos1", translations, player) { Text.literal(it.toShortString()) })
-        body.add(required(pos2, "pos2", translations, player) { Text.literal(it.toShortString()) })
+        body.add(required(pos1, "pos1", translations, player) { Component.literal(it.toShortString()) })
+        body.add(required(pos2, "pos2", translations, player) { Component.literal(it.toShortString()) })
     }
 
     override fun sendTutorial() {
@@ -62,13 +62,13 @@ class BlockBoxEditor(
             translations.translateText(key("pos1"))
                 .formatted(BLUE)
                 .translateFor(player),
-            keybind("sprint", "attack").formatted(Formatting.YELLOW),
+            keybind("sprint", "attack").withStyle(ChatFormatting.YELLOW),
             translations.translateText(key("pos2"))
                 .formatted(RED)
                 .translateFor(player),
-            keybind("sprint", "use").formatted(Formatting.YELLOW),
-            keybind("swapOffhand").formatted(Formatting.YELLOW)
-        ).formatted(Formatting.AQUA).sendTo(player)
+            keybind("sprint", "use").withStyle(ChatFormatting.YELLOW),
+            keybind("swapOffhand").withStyle(ChatFormatting.YELLOW)
+        ).formatted(ChatFormatting.AQUA).sendTo(player)
     }
 
     override fun init(hooks: HookRegistrar) {
@@ -82,43 +82,43 @@ class BlockBoxEditor(
     }
 
     private fun useBlock(
-        entity: PlayerEntity,
-        world: World,
-        hand: Hand,
+        entity: Player,
+        world: Level,
+        hand: InteractionHand,
         result: BlockHitResult,
-    ): ActionResult {
-        if (entity != player || world != this.world || !player.playerInput.sprint || hand != Hand.MAIN_HAND) return ActionResult.PASS
+    ): InteractionResult {
+        if (entity != player || world != this.world || !player.lastClientInput.sprint || hand != InteractionHand.MAIN_HAND) return InteractionResult.PASS
 
         val pos = result.blockPos
 
-        pos2 = pos.toImmutable()
+        pos2 = pos.immutable()
         sendPosChanged(key("set_pos2"), pos)
 
-        pos2Marker = updatePosMarker(pos, world, pos2Marker, DyeColor.RED.entityColor)
+        pos2Marker = updatePosMarker(pos, world, pos2Marker, DyeColor.RED.textureDiffuseColor)
 
         updateBox()
 
-        return ActionResult.FAIL
+        return InteractionResult.FAIL
     }
 
     fun attackBlock(
-        entity: PlayerEntity,
-        world: World,
+        entity: Player,
+        world: Level,
         pos: BlockPos,
-    ): ActionResult {
-        if (entity != player || world != this.world || !player.playerInput.sprint) return ActionResult.PASS
+    ): InteractionResult {
+        if (entity != player || world != this.world || !player.lastClientInput.sprint) return InteractionResult.PASS
 
-        pos1 = pos.toImmutable()
+        pos1 = pos.immutable()
         sendPosChanged(key("set_pos1"), pos)
 
-        pos1Marker = updatePosMarker(pos, world, pos1Marker, DyeColor.BLUE.entityColor)
+        pos1Marker = updatePosMarker(pos, world, pos1Marker, DyeColor.BLUE.textureDiffuseColor)
 
         updateBox()
 
-        return ActionResult.FAIL
+        return InteractionResult.FAIL
     }
 
-    private fun updatePosMarker(pos: BlockPos, world: World, marker: DisplayEntity.BlockDisplayEntity?, color: Int): DisplayEntity.BlockDisplayEntity {
+    private fun updatePosMarker(pos: BlockPos, world: Level, marker: Display.BlockDisplay?, color: Int): Display.BlockDisplay {
         if (marker != null) {
             visualizer.removeEntity(marker)
         }
@@ -129,8 +129,8 @@ class BlockBoxEditor(
     private fun sendPosChanged(key: String, pos: BlockPos) {
         translations.translateText(
             key,
-            styled(pos.toShortString(), Formatting.YELLOW)
-        ).formatted(Formatting.GREEN).sendTo(player)
+            styled(pos.toShortString(), ChatFormatting.YELLOW)
+        ).formatted(ChatFormatting.GREEN).sendTo(player)
     }
 
     private fun updateBox() {
@@ -146,7 +146,7 @@ class BlockBoxEditor(
         boxMarker = data.display(box, visualizer, player, translations, id, propertyId)
     }
 
-    override fun create(nbt: NbtCompound): BlockBox? {
+    override fun create(nbt: CompoundTag): BlockBox? {
         val pos1 = this.pos1
         val pos2 = this.pos2
 
@@ -167,8 +167,8 @@ class BlockBoxEditor(
         pos1 = value.min()
         pos2 = value.max()
 
-        pos1Marker = updatePosMarker(value.min(), world, pos1Marker, DyeColor.BLUE.entityColor)
-        pos2Marker = updatePosMarker(value.max(), world, pos2Marker, DyeColor.RED.entityColor)
+        pos1Marker = updatePosMarker(value.min(), world, pos1Marker, DyeColor.BLUE.textureDiffuseColor)
+        pos2Marker = updatePosMarker(value.max(), world, pos2Marker, DyeColor.RED.textureDiffuseColor)
 
         updateBox()
     }

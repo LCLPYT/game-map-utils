@@ -2,31 +2,25 @@ package work.lclpnet.map_utils.dialog
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents
 import net.fabricmc.loader.api.FabricLoader
-import net.minecraft.dialog.AfterAction
-import net.minecraft.dialog.DialogActionButtonData
-import net.minecraft.dialog.DialogButtonData
-import net.minecraft.dialog.DialogCommonData
-import net.minecraft.dialog.action.DynamicCustomDialogAction
-import net.minecraft.dialog.body.DialogBody
-import net.minecraft.dialog.body.PlainMessageDialogBody
-import net.minecraft.dialog.input.TextInputControl
-import net.minecraft.dialog.type.DialogInput
-import net.minecraft.dialog.type.MultiActionDialog
-import net.minecraft.dialog.type.NoticeDialog
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.registry.RegistryKey
-import net.minecraft.registry.RegistryKeys
-import net.minecraft.registry.entry.RegistryEntry
+import net.minecraft.ChatFormatting.*
+import net.minecraft.core.Holder
+import net.minecraft.core.registries.Registries
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.chat.ClickEvent
+import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.HoverEvent
+import net.minecraft.network.chat.MutableComponent
+import net.minecraft.resources.ResourceKey
+import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.MinecraftServer
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.server.world.ServerWorld
-import net.minecraft.text.ClickEvent
-import net.minecraft.text.HoverEvent
-import net.minecraft.text.MutableText
-import net.minecraft.text.Text
-import net.minecraft.util.Formatting.*
-import net.minecraft.util.Identifier
-import net.minecraft.util.WorldSavePath
+import net.minecraft.server.dialog.*
+import net.minecraft.server.dialog.action.CustomAll
+import net.minecraft.server.dialog.body.DialogBody
+import net.minecraft.server.dialog.body.PlainMessage
+import net.minecraft.server.dialog.input.TextInput
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.level.storage.LevelResource
 import org.slf4j.Logger
 import work.lclpnet.kibu.hook.HookRegistrar
 import work.lclpnet.kibu.hook.util.PositionRotation
@@ -59,32 +53,32 @@ class MapManagerDialog(
     val logger: Logger
 ) {
 
-    private var pendingTeleport = mutableMapOf<Identifier, MutableSet<UUID>>()
-    private var pendingUnload = mutableMapOf<Identifier, MutableSet<UUID>>()
+    private var pendingTeleport = mutableMapOf<ResourceLocation, MutableSet<UUID>>()
+    private var pendingUnload = mutableMapOf<ResourceLocation, MutableSet<UUID>>()
 
     fun init(hooks: HookRegistrar) {
         hooks.registerHook(MapDataLoadedCallback.HOOK, MapDataLoadedCallback { world, _ ->
-            val pending = pendingTeleport.remove(world.registryKey.value) ?: return@MapDataLoadedCallback
+            val pending = pendingTeleport.remove(world.dimension().location()) ?: return@MapDataLoadedCallback
 
             for (uuid in pending) {
-                val player = world.server.playerManager.getPlayer(uuid) ?: continue
+                val player = world.server.playerList.getPlayer(uuid) ?: continue
                 teleportTo(player, world)
             }
         })
 
         hooks.registerHook(ServerWorldHooks.UNLOAD, ServerWorldEvents.Unload { server, world ->
-            val pending = pendingUnload.remove(world.registryKey.value) ?: return@Unload
+            val pending = pendingUnload.remove(world.dimension().location()) ?: return@Unload
 
             for (uuid in pending) {
-                val player = server.playerManager.getPlayer(uuid) ?: continue
+                val player = server.playerList.getPlayer(uuid) ?: continue
 
-                open(player, NbtCompound())
+                open(player, CompoundTag())
             }
         })
     }
 
-    fun open(player: ServerPlayerEntity, nbt: NbtCompound) {
-        val server = player.entityWorld.server
+    fun open(player: ServerPlayer, nbt: CompoundTag) {
+        val server = player.level().server
 
         CompletableFuture.supplyAsync { getAvailableWorlds(server) }.whenComplete { worldIds, err ->
             if (err != null) {
@@ -96,99 +90,99 @@ class MapManagerDialog(
         }
     }
 
-    private fun showMapList(worldIds: List<Identifier>, player: ServerPlayerEntity, inputNbt: NbtCompound) {
-        val server = player.entityWorld.server
-        val search = inputNbt.getString("search", "")
+    private fun showMapList(worldIds: List<ResourceLocation>, player: ServerPlayer, inputNbt: CompoundTag) {
+        val server = player.level().server
+        val search = inputNbt.getStringOr("search", "")
 
         val filtered = applySearch(worldIds, search)
 
         val (loaded, notLoaded) = filtered.partition {
-            server.getWorld(RegistryKey.of(RegistryKeys.WORLD, it.first)) != null
+            server.getLevel(ResourceKey.create(Registries.DIMENSION, it.first)) != null
         }
 
-        val buttons = mutableListOf<DialogActionButtonData>()
+        val buttons = mutableListOf<ActionButton>()
         val worldManager = KibuWorlds.getInstance().getWorldManager(server)
 
         for ((worldId, matches) in loaded) {
-            val world = server.getWorld(RegistryKey.of(RegistryKeys.WORLD, worldId))
+            val world = server.getLevel(ResourceKey.create(Registries.DIMENSION, worldId))
 
-            val nbt = NbtCompound()
+            val nbt = CompoundTag()
             nbt.putString("id", worldId.toString())
 
             val label = markMatches(worldId.toString(), matches, search.length)
-                .formatted(GREEN)
+                .withStyle(GREEN)
 
             buttons.add(
-                DialogActionButtonData(
-                    DialogButtonData(
+                ActionButton(
+                    CommonButtonData(
                         label,
                         200
                     ),
-                    Optional.of(DynamicCustomDialogAction(TELEPORT_ID, Optional.of(nbt)))
+                    Optional.of(CustomAll(TELEPORT_ID, Optional.of(nbt)))
                 )
             )
 
-            val saveText = Text.literal("❌")
+            val saveText = Component.literal("❌")
 
             if (worldManager.getRuntimeWorldHandle(world).isPresent) {
                 saveText.withColor(0xfc6a6a)
             } else {
-                saveText.formatted(DARK_GRAY)
+                saveText.withStyle(DARK_GRAY)
             }
 
             buttons.add(
-                DialogActionButtonData(
-                    DialogButtonData(saveText, 20),
-                    Optional.of(DynamicCustomDialogAction(CLOSE_ID, Optional.of(nbt)))
+                ActionButton(
+                    CommonButtonData(saveText, 20),
+                    Optional.of(CustomAll(CLOSE_ID, Optional.of(nbt)))
                 )
             )
 
             buttons.add(
-                DialogActionButtonData(
-                    DialogButtonData(Text.literal("\uD83D\uDCBE").formatted(AQUA), 20),
-                    Optional.of(DynamicCustomDialogAction(EXPORT_ID, Optional.of(nbt)))
+                ActionButton(
+                    CommonButtonData(Component.literal("\uD83D\uDCBE").withStyle(AQUA), 20),
+                    Optional.of(CustomAll(EXPORT_ID, Optional.of(nbt)))
                 )
             )
         }
 
         for ((worldId, matches) in notLoaded) {
-            val nbt = NbtCompound()
+            val nbt = CompoundTag()
             nbt.putString("id", worldId.toString())
 
             val label = markMatches(worldId.toString(), matches, search.length)
-                .formatted(GRAY)
+                .withStyle(GRAY)
 
             buttons.add(
-                DialogActionButtonData(
-                    DialogButtonData(
+                ActionButton(
+                    CommonButtonData(
                         label,
                         200
                     ),
-                    Optional.of(DynamicCustomDialogAction(TELEPORT_ID, Optional.of(nbt)))
+                    Optional.of(CustomAll(TELEPORT_ID, Optional.of(nbt)))
                 )
             )
 
             buttons.add(
-                DialogActionButtonData(
-                    DialogButtonData(Text.literal("\uD83D\uDCE5"), 20),
-                    Optional.of(DynamicCustomDialogAction(LOAD_ID, Optional.of(nbt)))
+                ActionButton(
+                    CommonButtonData(Component.literal("\uD83D\uDCE5"), 20),
+                    Optional.of(CustomAll(LOAD_ID, Optional.of(nbt)))
                 )
             )
 
             buttons.add(
-                DialogActionButtonData(
-                    DialogButtonData(Text.literal("\uD83D\uDCBE").formatted(AQUA), 20),
-                    Optional.of(DynamicCustomDialogAction(EXPORT_ID, Optional.of(nbt)))
+                ActionButton(
+                    CommonButtonData(Component.literal("\uD83D\uDCBE").withStyle(AQUA), 20),
+                    Optional.of(CustomAll(EXPORT_ID, Optional.of(nbt)))
                 )
             )
         }
 
         val body = mutableListOf<DialogBody>()
-        val inputs = mutableListOf<DialogInput>()
+        val inputs = mutableListOf<Input>()
 
         if (buttons.isEmpty()) {
             body.add(
-                PlainMessageDialogBody(
+                PlainMessage(
                     translations.translateText("map_manager.no_maps")
                         .formatted(RED).translateFor(player),
                     200
@@ -196,22 +190,24 @@ class MapManagerDialog(
             )
         }
 
-        buttons.addFirst(DialogActionButtonData(
-            DialogButtonData(translations.translateText("search").translateFor(player), 200),
-            Optional.of(DynamicCustomDialogAction(ID, Optional.empty()))
+        buttons.addFirst(
+            ActionButton(
+            CommonButtonData(translations.translateText("search").translateFor(player), 200),
+            Optional.of(CustomAll(ID, Optional.empty()))
         ))
 
-        buttons.add(1, DialogActionButtonData(
-            DialogButtonData(Text.literal("\uD83D\uDD0D"), 20),
-            Optional.of(DynamicCustomDialogAction(ID, Optional.empty()))
+        buttons.add(1, ActionButton(
+            CommonButtonData(Component.literal("\uD83D\uDD0D"), 20),
+            Optional.of(CustomAll(ID, Optional.empty()))
         ))
 
-        buttons.add(2, DialogActionButtonData(
-            DialogButtonData(Text.literal("\uD83D\uDD0D"), 20),
-            Optional.of(DynamicCustomDialogAction(ID, Optional.empty()))
+        buttons.add(2, ActionButton(
+            CommonButtonData(Component.literal("\uD83D\uDD0D"), 20),
+            Optional.of(CustomAll(ID, Optional.empty()))
         ))
 
-        inputs.add(DialogInput("search", TextInputControl(
+        inputs.add(
+            Input("search", TextInput(
             200,
             translations.translateText("map_manager.search").translateFor(player),
             true,
@@ -221,8 +217,8 @@ class MapManagerDialog(
         )))
 
         val title = translations.translateText("manage_maps").translateFor(player)
-        val commonData = DialogCommonData(
-            title, Optional.empty(), true, false, AfterAction.NONE, body, inputs
+        val commonData = CommonDialogData(
+            title, Optional.empty(), true, false, DialogAction.NONE, body, inputs
         )
 
         val dialog = if (buttons.isNotEmpty()) {
@@ -230,8 +226,8 @@ class MapManagerDialog(
                 commonData,
                 buttons,
                 Optional.of(
-                    DialogActionButtonData(
-                        DialogButtonData(Text.translatable("gui.cancel"), 150),
+                    ActionButton(
+                        CommonButtonData(Component.translatable("gui.cancel"), 150),
                         Optional.empty()
                     )
                 ),
@@ -239,17 +235,17 @@ class MapManagerDialog(
             )
         } else NoticeDialog(
             commonData,
-            DialogActionButtonData(
-                DialogButtonData(Text.translatable("gui.cancel"), 150),
+            ActionButton(
+                CommonButtonData(Component.translatable("gui.cancel"), 150),
                 Optional.empty()
             )
         )
 
-        player.openDialog(RegistryEntry.of(dialog))
+        player.openDialog(Holder.direct(dialog))
     }
 
-    fun markMatches(input: String, indexes: List<Int>, matchLength: Int): MutableText {
-        val root = Text.empty()
+    fun markMatches(input: String, indexes: List<Int>, matchLength: Int): MutableComponent {
+        val root = Component.empty()
 
         var current = 0
         val sortedIndexes = indexes.sorted()
@@ -266,7 +262,7 @@ class MapManagerDialog(
             val end = (i + matchLength).coerceAtMost(input.length)
             val match = input.substring(i, end)
 
-            root.append(Text.literal(match).formatted(YELLOW))
+            root.append(Component.literal(match).withStyle(YELLOW))
 
             current = end
         }
@@ -278,7 +274,7 @@ class MapManagerDialog(
         return root
     }
 
-    private fun applySearch(worldIds: List<Identifier>, query: String): List<Pair<Identifier, List<Int>>> {
+    private fun applySearch(worldIds: List<ResourceLocation>, query: String): List<Pair<ResourceLocation, List<Int>>> {
         if (query.isBlank()) {
             return worldIds.sortedBy { it.toString() }.map { it to emptyList() }
         }
@@ -306,13 +302,13 @@ class MapManagerDialog(
             .sortedBy { it.first.toString() }
     }
 
-    fun getAvailableWorlds(server: MinecraftServer): Set<Identifier> {
-        val session = (server as MinecraftServerAccessor).session
-        val root = session.getDirectory(WorldSavePath.ROOT).resolve("dimensions").normalize()
+    fun getAvailableWorlds(server: MinecraftServer): Set<ResourceLocation> {
+        val session = (server as MinecraftServerAccessor).storageSource
+        val root = session.getLevelPath(LevelResource.ROOT).resolve("dimensions").normalize()
 
-        val worldIds = mutableSetOf<Identifier>()
+        val worldIds = mutableSetOf<ResourceLocation>()
 
-        server.worlds.forEach { worldIds.add(it.registryKey.value) }
+        server.allLevels.forEach { worldIds.add(it.dimension().location()) }
 
         if (!root.isDirectory()) {
             return worldIds
@@ -344,7 +340,7 @@ class MapManagerDialog(
                         pathBuilder.append(it.next())
                     }
 
-                    val id = Identifier.of(namespace, pathBuilder.toString())
+                    val id = ResourceLocation.fromNamespaceAndPath(namespace, pathBuilder.toString())
                     worldIds.add(id)
 
                     return FileVisitResult.SKIP_SUBTREE
@@ -354,12 +350,12 @@ class MapManagerDialog(
         return worldIds
     }
 
-    fun teleport(player: ServerPlayerEntity, nbt: NbtCompound) {
-        val id = nbt.getString("id", null) ?: return
-        val worldId = Identifier.tryParse(id) ?: return
-        val server = player.entityWorld.server
+    fun teleport(player: ServerPlayer, nbt: CompoundTag) {
+        val id = nbt.getStringOr("id", null) ?: return
+        val worldId = ResourceLocation.tryParse(id) ?: return
+        val server = player.level().server
 
-        val world = server.getWorld(RegistryKey.of(RegistryKeys.WORLD, worldId))
+        val world = server.getLevel(ResourceKey.create(Registries.DIMENSION, worldId))
 
         if (world != null) {
             teleportTo(player, world)
@@ -376,8 +372,8 @@ class MapManagerDialog(
         ).formatted(GREEN).sendTo(player)
     }
 
-    fun loadWorld(player: ServerPlayerEntity, worldId: Identifier): RuntimeWorldHandle? {
-        val worldManager = KibuWorlds.getInstance().getWorldManager(player.entityWorld.server)
+    fun loadWorld(player: ServerPlayer, worldId: ResourceLocation): RuntimeWorldHandle? {
+        val worldManager = KibuWorlds.getInstance().getWorldManager(player.level().server)
         val handle = worldManager.openPersistentWorld(worldId).orElse(null)
 
         if (handle == null) {
@@ -390,32 +386,32 @@ class MapManagerDialog(
         return handle
     }
 
-    fun teleportTo(player: ServerPlayerEntity, world: ServerWorld) {
+    fun teleportTo(player: ServerPlayer, world: ServerLevel) {
         val worldData = dataManager.getWorldData(world)
 
         val spawn = worldData.get("spawn", PositionData) ?: findSpawnPos(player, world)
 
-        player.teleport(world, spawn.x, spawn.y, spawn.z, emptySet(), spawn.yaw, spawn.pitch, true)
+        player.teleportTo(world, spawn.x(), spawn.y(), spawn.z(), emptySet(), spawn.yaw, spawn.pitch, true)
 
         translations.translateText(
             "map_manager.teleported",
-            styled(world.registryKey.value, YELLOW)
+            styled(world.dimension().location(), YELLOW)
         ).formatted(GREEN).sendTo(player)
     }
 
-    private fun findSpawnPos(player: ServerPlayerEntity, world: ServerWorld): PositionRotation {
-        val spawnPos = player.getWorldSpawnPos(world, world.spawnPoint.pos)
+    private fun findSpawnPos(player: ServerPlayer, world: ServerLevel): PositionRotation {
+        val spawnPos = player.adjustSpawnLocation(world, world.respawnData.pos())
 
         return PositionRotation(
-            spawnPos.x + 0.5, spawnPos.y + 0.5, spawnPos.z + 0.5, world.spawnPoint.yaw, world.spawnPoint.pitch
+            spawnPos.x + 0.5, spawnPos.y + 0.5, spawnPos.z + 0.5, world.respawnData.yaw, world.respawnData.pitch
         )
     }
 
-    fun closeWorld(player: ServerPlayerEntity, nbt: NbtCompound) {
-        val id = nbt.getString("id", null) ?: return
-        val worldId = Identifier.tryParse(id) ?: return
-        val server = player.entityWorld.server
-        val world = server.getWorld(RegistryKey.of(RegistryKeys.WORLD, worldId)) ?: return
+    fun closeWorld(player: ServerPlayer, nbt: CompoundTag) {
+        val id = nbt.getStringOr("id", null) ?: return
+        val worldId = ResourceLocation.tryParse(id) ?: return
+        val server = player.level().server
+        val world = server.getLevel(ResourceKey.create(Registries.DIMENSION, worldId)) ?: return
 
         val worldManager = KibuWorlds.getInstance().getWorldManager(server)
         val handle = worldManager.getRuntimeWorldHandle(world).orElse(null)
@@ -433,17 +429,17 @@ class MapManagerDialog(
 
         translations.translateText(
             "map_manager.closed",
-            styled(world.registryKey.value, YELLOW)
+            styled(world.dimension().location(), YELLOW)
         ).formatted(GREEN).sendTo(player)
     }
 
-    fun exportWorld(player: ServerPlayerEntity, nbt: NbtCompound) {
-        val id = nbt.getString("id", null) ?: return
-        val worldId = Identifier.tryParse(id) ?: return
-        val server = player.entityWorld.server
+    fun exportWorld(player: ServerPlayer, nbt: CompoundTag) {
+        val id = nbt.getStringOr("id", null) ?: return
+        val worldId = ResourceLocation.tryParse(id) ?: return
+        val server = player.level().server
 
-        val session = (server as MinecraftServerAccessor).session
-        val worldDir = session.getWorldDirectory(RegistryKey.of(RegistryKeys.WORLD, worldId))
+        val session = (server as MinecraftServerAccessor).storageSource
+        val worldDir = session.getDimensionPath(ResourceKey.create(Registries.DIMENSION, worldId))
 
         CompletableFuture.runAsync { exportMap(worldDir, worldId) }.whenComplete { _, err ->
             if (err != null) {
@@ -464,7 +460,7 @@ class MapManagerDialog(
         open(player, nbt)
     }
 
-    fun exportMap(worldDir: Path, worldId: Identifier) {
+    fun exportMap(worldDir: Path, worldId: ResourceLocation) {
         if (!worldDir.isDirectory()) return
 
         val outputFile = MAP_EXPORT_DIR.resolve(worldId.namespace).resolve("${worldId.path}.tar.xz")
@@ -472,21 +468,22 @@ class MapManagerDialog(
         mapArchiver.createArchive(worldDir, outputFile)
     }
 
-    fun loadWorld(player: ServerPlayerEntity, nbt: NbtCompound) {
-        val id = nbt.getString("id", null) ?: return
-        val worldId = Identifier.tryParse(id) ?: return
+    fun loadWorld(player: ServerPlayer, nbt: CompoundTag) {
+        val id = nbt.getStringOr("id", null) ?: return
+        val worldId = ResourceLocation.tryParse(id) ?: return
 
         loadWorld(player, worldId) ?: return
 
         translations.translateText(
             "map_manager.loaded_tp",
             styled(worldId, YELLOW),
-            Text.literal("[")
+            Component.literal("[")
                 .append(translations.translateText("map_manager.teleport").translateFor(player))
                 .append("]")
-                .styled { it
-                    .withFormatting(AQUA)
-                    .withHoverEvent(HoverEvent.ShowText(translations.translateText("map_manager.click_tp")
+                .withStyle { it
+                    .applyFormat(AQUA)
+                    .withHoverEvent(
+                        HoverEvent.ShowText(translations.translateText("map_manager.click_tp")
                         .formatted(AQUA)
                         .translateFor(player)))
                     .withClickEvent(ClickEvent.Custom(TELEPORT_ID, Optional.of(nbt)))

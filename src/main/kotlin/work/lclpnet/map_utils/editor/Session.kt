@@ -1,9 +1,9 @@
 package work.lclpnet.map_utils.editor
 
-import net.minecraft.entity.boss.BossBar
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.util.Formatting.AQUA
-import net.minecraft.util.Formatting.YELLOW
+import net.minecraft.ChatFormatting.AQUA
+import net.minecraft.ChatFormatting.YELLOW
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.BossEvent
 import work.lclpnet.gaco.dynamic_entities.DynamicEntityManager
 import work.lclpnet.kibu.hook.HookContainer
 import work.lclpnet.kibu.translate.bossbar.TranslatedBossBar
@@ -32,7 +32,7 @@ class Session(val args: SessionArgs, dynamicEntityManager: DynamicEntityManager,
         private set
 
     fun init() {
-        bossBars.init(args.server().bossBarManager)
+        bossBars.init(args.server().customBossEvents)
 
         playerVisualizer.init(hooks)
         sessionVisualizer.init(hooks)
@@ -65,15 +65,15 @@ class Session(val args: SessionArgs, dynamicEntityManager: DynamicEntityManager,
             barId,
             "creating",
             args.translations.translateText("type.${editor.data().id()}"),
-            keybind("swapOffhand").formatted(YELLOW)
+            keybind("swapOffhand").withStyle(YELLOW)
         ) else args.translations.translateBossBar(
             barId,
             "editing",
             editor.propertyId,
-            keybind("swapOffhand").formatted(YELLOW)
+            keybind("swapOffhand").withStyle(YELLOW)
         )).with(bossBars).formatted(AQUA)
 
-        bar.color = BossBar.Color.YELLOW
+        bar.color = BossEvent.BossBarColor.YELLOW
         bar.addPlayer(player())
 
         editor.init(editorHooks)
@@ -92,7 +92,7 @@ class Session(val args: SessionArgs, dynamicEntityManager: DynamicEntityManager,
         updateShownDisplays()
     }
 
-    fun player(): ServerPlayerEntity = args.player()
+    fun player(): ServerPlayer = args.player()
 
     fun setEditor(editor: DataEditor<*>) {
         this.editor = editor

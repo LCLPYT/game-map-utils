@@ -1,7 +1,7 @@
 package work.lclpnet.map_api.data.type
 
 import com.mojang.serialization.Codec
-import net.minecraft.server.network.ServerPlayerEntity
+import net.minecraft.server.level.ServerPlayer
 import work.lclpnet.gaco.ds.Checkpoint
 import work.lclpnet.kibu.hook.util.PositionRotation
 import work.lclpnet.kibu.translate.Translations
@@ -20,7 +20,7 @@ object CheckpointData : Data<Checkpoint> {
     override fun display(
         value: Checkpoint,
         visualizer: Visualizer,
-        player: ServerPlayerEntity,
+        player: ServerPlayer,
         translations: Translations,
         id: String,
         propertyId: String?

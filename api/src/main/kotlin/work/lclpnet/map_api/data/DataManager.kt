@@ -7,9 +7,9 @@ import com.mojang.serialization.DataResult
 import com.mojang.serialization.JsonOps
 import com.mojang.serialization.Lifecycle
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents
-import net.minecraft.registry.RegistryKey
-import net.minecraft.server.world.ServerWorld
-import net.minecraft.world.World
+import net.minecraft.resources.ResourceKey
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.world.level.Level
 import org.slf4j.Logger
 import work.lclpnet.kibu.hook.HookContainer
 import work.lclpnet.kibu.hook.world.ServerWorldHooks
@@ -45,11 +45,11 @@ const val WORLD_DATA_FILENAME = "gaco-map.json"
 
 class DataManager(val logger: Logger) {
 
-    val worldData = mutableMapOf<RegistryKey<World>, WorldData>()
+    val worldData = mutableMapOf<ResourceKey<Level>, WorldData>()
     val gson = Gson()
     private val fileLock = emptyArray<Unit>()
-    private val worldDataFutures = mutableMapOf<RegistryKey<World>, CompletableFuture<WorldData>>()
-    private val loading = mutableSetOf<RegistryKey<World>>()
+    private val worldDataFutures = mutableMapOf<ResourceKey<Level>, CompletableFuture<WorldData>>()
+    private val loading = mutableSetOf<ResourceKey<Level>>()
 
     fun init(hooks: HookContainer) {
         hooks.registerHook(ServerWorldHooks.LOAD, ServerWorldEvents.Load { _, world ->
@@ -70,21 +70,21 @@ class DataManager(val logger: Logger) {
         })
     }
 
-    fun <T> setData(world: ServerWorld, propertyId: String, data: Data<T>, value: T) {
+    fun <T> setData(world: ServerLevel, propertyId: String, data: Data<T>, value: T) {
         setDataInstance(world, propertyId, DataInstance(data, value, null))
     }
 
-    fun <T> setDataInstance(world: ServerWorld, propertyId: String, dataInstance: DataInstance<T>) {
+    fun <T> setDataInstance(world: ServerLevel, propertyId: String, dataInstance: DataInstance<T>) {
         getWorldData(world)[propertyId] = dataInstance
     }
 
-    fun removeData(world: ServerWorld, propertyId: String) {
+    fun removeData(world: ServerLevel, propertyId: String) {
         getWorldData(world).remove(propertyId)
     }
 
-    fun hasData(world: ServerWorld, propertyId: String) = getWorldData(world).has(propertyId)
+    fun hasData(world: ServerLevel, propertyId: String) = getWorldData(world).has(propertyId)
 
-    fun <T> getDataInstance(world: ServerWorld, propertyId: String, data: Data<T>): DataInstance<T>? {
+    fun <T> getDataInstance(world: ServerLevel, propertyId: String, data: Data<T>): DataInstance<T>? {
         val instance = getWorldData(world)[propertyId] ?: return null
 
         if (instance.data == data) {
@@ -96,15 +96,15 @@ class DataManager(val logger: Logger) {
     }
 
     @JvmOverloads
-    fun <T> getData(world: ServerWorld, propertyId: String, data: Data<T>, default: T? = null): T? {
+    fun <T> getData(world: ServerLevel, propertyId: String, data: Data<T>, default: T? = null): T? {
         val instance = getDataInstance(world, propertyId, data) ?: return default
 
         return instance.value
     }
 
     @Synchronized
-    fun load(world: ServerWorld): CompletableFuture<WorldData> {
-        val key = world.registryKey
+    fun load(world: ServerLevel): CompletableFuture<WorldData> {
+        val key = world.dimension()
 
         if (!loading.add(key)) {
             return requireNotNull(worldDataFutures[key]) { "Expected world data future for $key to exist" }
@@ -117,7 +117,7 @@ class DataManager(val logger: Logger) {
             setAll(world, data)
         }.whenComplete { data, err ->
             if (err != null) {
-                logger.error("Failed to load map data of world ${key.value}", err)
+                logger.error("Failed to load map data of world ${key.location()}", err)
             } else {
                 world.server.execute {
                     MapDataLoadedCallback.HOOK.invoker().onMapDataLoaded(world, data)
@@ -151,15 +151,15 @@ class DataManager(val logger: Logger) {
     }
 
     @Synchronized
-    private fun unload(world: ServerWorld) {
-        worldData.remove(world.registryKey)
+    private fun unload(world: ServerLevel) {
+        worldData.remove(world.dimension())
     }
 
-    fun save(world: ServerWorld): CompletableFuture<Void> = CompletableFuture.runAsync {
+    fun save(world: ServerLevel): CompletableFuture<Void> = CompletableFuture.runAsync {
         saveBlocking(world)
     }.whenComplete { _, err ->
         if (err != null) {
-            logger.error("Failed to save map data of world ${world.registryKey.value}", err)
+            logger.error("Failed to save map data of world ${world.dimension().location()}", err)
         }
     }
 
@@ -168,7 +168,7 @@ class DataManager(val logger: Logger) {
     }
 
     @Synchronized
-    private fun setAll(world: ServerWorld, source: WorldData): WorldData {
+    private fun setAll(world: ServerLevel, source: WorldData): WorldData {
         val worldData = getWorldData(world)
         worldData.copyFrom(source)
 
@@ -177,7 +177,7 @@ class DataManager(val logger: Logger) {
         return worldData
     }
 
-    private fun loadBlocking(world: ServerWorld): WorldData {
+    private fun loadBlocking(world: ServerLevel): WorldData {
         val path = dataFile(world)
 
         return loadBlocking(path)
@@ -202,7 +202,7 @@ class DataManager(val logger: Logger) {
             .orElseGet { WorldData() }
     }
 
-    private fun saveBlocking(world: ServerWorld) {
+    private fun saveBlocking(world: ServerLevel) {
         val worldData = getWorldData(world)
         val path = dataFile(world)
 
@@ -219,18 +219,18 @@ class DataManager(val logger: Logger) {
             }
     }
 
-    fun dataFile(world: ServerWorld): Path {
-        val session = (world.server as MinecraftServerAccessor).getSession()
-        val worldDir = session.getWorldDirectory(world.registryKey)
+    fun dataFile(world: ServerLevel): Path {
+        val session = (world.server as MinecraftServerAccessor).storageSource
+        val worldDir = session.getDimensionPath(world.dimension())
 
         return worldDir.resolve("data").resolve(WORLD_DATA_FILENAME)
     }
 
     @Synchronized
-    fun getWorldData(world: ServerWorld) = worldData.computeIfAbsent(world.registryKey) { WorldData() }
+    fun getWorldData(world: ServerLevel) = worldData.computeIfAbsent(world.dimension()) { WorldData() }
 
     @Synchronized
-    fun awaitWorldData(worldKey: RegistryKey<World>): CompletableFuture<WorldData> {
+    fun awaitWorldData(worldKey: ResourceKey<Level>): CompletableFuture<WorldData> {
         val data = worldData[worldKey]
 
         if (data != null) {

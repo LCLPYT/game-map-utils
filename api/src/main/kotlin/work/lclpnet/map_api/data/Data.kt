@@ -1,7 +1,7 @@
 package work.lclpnet.map_api.data
 
 import com.mojang.serialization.Codec
-import net.minecraft.server.network.ServerPlayerEntity
+import net.minecraft.server.level.ServerPlayer
 import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.map_api.visual.Removable
 import work.lclpnet.map_api.visual.Visualizer
@@ -17,7 +17,7 @@ interface Data<T> {
     fun display(
         value: T,
         visualizer: Visualizer,
-        player: ServerPlayerEntity,
+        player: ServerPlayer,
         translations: Translations,
         id: String,
         propertyId: String? = null
