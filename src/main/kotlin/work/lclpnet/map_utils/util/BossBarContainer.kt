@@ -1,7 +1,7 @@
 package work.lclpnet.map_utils.util
 
 import net.minecraft.network.chat.Component
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.resources.Identifier
 import net.minecraft.server.bossevents.CustomBossEvent
 import net.minecraft.server.bossevents.CustomBossEvents
 import work.lclpnet.kibu.translate.bossbar.BossBarProvider
@@ -20,7 +20,7 @@ class BossBarContainer() : BossBarProvider {
     }
 
     @Synchronized
-    override fun createBossBar(id: ResourceLocation, text: Component): CustomBossEvent {
+    override fun createBossBar(id: Identifier, text: Component): CustomBossEvent {
         val bossBarManager = bossBarManager ?: throw IllegalStateException("Boss bar container not initialized")
 
         val bar = bossBarManager.create(id, text)

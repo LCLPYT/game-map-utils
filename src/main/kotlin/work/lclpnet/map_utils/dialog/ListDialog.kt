@@ -113,7 +113,7 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
             )
         )
 
-        val title = translations.translateText("list.title", player.level().dimension().location()).translateFor(player)
+        val title = translations.translateText("list.title", player.level().dimension().identifier()).translateFor(player)
 
         val commonData = CommonDialogData(
             title,
@@ -171,7 +171,7 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
     }
 
     fun confirmSelect(player: ServerPlayer, nbt: CompoundTag) {
-        val propertyId = nbt.getStringOr("propertyId", null) ?: return
+        val propertyId = nbt.getString("propertyId").orElse(null) ?: return
         val worldData = dataManager.getWorldData(player.level())
         val dataInstance = worldData[propertyId] ?: return
 
@@ -188,7 +188,7 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
     fun delete(player: ServerPlayer, nbt: CompoundTag) {
         onDataChange(player, nbt)
 
-        val propertyId = nbt.getStringOr("propertyId", null) ?: return
+        val propertyId = nbt.getString("propertyId").orElse(null) ?: return
 
         val msg = translations.translateText(
             "list.confirm_delete",
@@ -201,7 +201,7 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
     }
 
     fun confirmDelete(player: ServerPlayer, nbt: CompoundTag) {
-        val propertyId = nbt.getStringOr("propertyId", null) ?: return
+        val propertyId = nbt.getString("propertyId").orElse(null) ?: return
         val worldData = dataManager.getWorldData(player.level())
 
         val session = sessionManager.getSession(player)
@@ -224,7 +224,7 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
     fun moveUp(player: ServerPlayer, nbt: CompoundTag) {
         onDataChange(player, nbt)
 
-        val propertyId = nbt.getStringOr("propertyId", null) ?: return
+        val propertyId = nbt.getString("propertyId").orElse(null) ?: return
         val worldData = dataManager.getWorldData(player.level())
 
         val index = worldData.getIndex(propertyId)
@@ -244,7 +244,7 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
     fun moveDown(player: ServerPlayer, nbt: CompoundTag) {
         onDataChange(player, nbt)
 
-        val propertyId = nbt.getStringOr("propertyId", null) ?: return
+        val propertyId = nbt.getString("propertyId").orElse(null) ?: return
         val worldData = dataManager.getWorldData(player.level())
 
         val index = worldData.getIndex(propertyId)
@@ -266,7 +266,7 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
     }
 
     fun toggleShown(player: ServerPlayer, nbt: CompoundTag) {
-        val propertyId = nbt.getStringOr("propertyId", null) ?: return
+        val propertyId = nbt.getString("propertyId").orElse(null) ?: return
         val session = sessionManager.getSession(player)
 
         if (session.shown.contains(propertyId)) {

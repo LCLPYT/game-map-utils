@@ -102,7 +102,7 @@ class SchemaSelectorDialog(
     }
 
     fun selectSchema(player: ServerPlayer, nbt: CompoundTag) {
-        val id = nbt.getStringOr("id", null) ?: return
+        val id = nbt.getString("id").orElse(null) ?: return
 
         val schema = schemaManager.schemas[id] ?: return
 
@@ -225,7 +225,7 @@ class SchemaSelectorDialog(
     }
 
     fun listProperty(player: ServerPlayer, nbt: CompoundTag) {
-        val propertyId = nbt.getStringOr("propertyId", null) ?: return
+        val propertyId = nbt.getString("propertyId").orElse(null) ?: return
 
         val schema = schemaManager.getSchema(player.level()) ?: return
         val definition = schema.properties[propertyId] ?: return
@@ -300,8 +300,8 @@ class SchemaSelectorDialog(
     }
 
     fun confirmEditProperty(player: ServerPlayer, nbt: CompoundTag) {
-        val propertyId = nbt.getStringOr("propertyId", null) ?: return
-        val definitionId = nbt.getStringOr("definitionId", null) ?: return
+        val propertyId = nbt.getString("propertyId").orElse(null) ?: return
+        val definitionId = nbt.getString("definitionId").orElse(null) ?: return
         val schema = schemaManager.getSchema(player.level()) ?: return
 
         val definition = schema.properties[definitionId] ?: return

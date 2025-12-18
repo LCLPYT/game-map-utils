@@ -10,7 +10,7 @@ static def substitutions(Project project) {
     return [
             version          : project.version,
             loader_version   : project.loader_version,
-            minecraft_version: project.minecraft_version,
+            minecraft_compat : project.minecraft_compat,
             java_version     : project.java_version
     ]
 }
@@ -20,6 +20,8 @@ Properties props = buildUtils.loadProperties('publish.properties')  // will be e
 
 boolean local = System.getProperty("build.local") == "true"
 def versionSuffix = (local ? '+local' : '')
+
+def javaVersion = Integer.parseInt(project.java_version)
 
 allprojects {
     apply plugin: 'java'
@@ -73,7 +75,7 @@ allprojects {
     configureSubstitutions(processResources, substitutions(it))
 
     tasks.withType(JavaCompile).configureEach {
-        it.options.release.set(21)
+        it.options.release.set(javaVersion)
     }
 
     java {
@@ -85,7 +87,7 @@ allprojects {
     }
 
     kotlin {
-        jvmToolchain(21)
+        jvmToolchain(javaVersion)
     }
 
     [jar, sourcesJar].each {

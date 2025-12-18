@@ -1,6 +1,6 @@
 package work.lclpnet.map_utils
 
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.resources.Identifier
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import work.lclpnet.kibu.hook.HookContainer
@@ -16,8 +16,8 @@ import work.lclpnet.map_utils.util.MapArchiver
 const val MOD_ID = "game-map-utils"
 val LOGGER: Logger = LoggerFactory.getLogger(MOD_ID)
 
-fun identifier(path: String): ResourceLocation {
-    return ResourceLocation.fromNamespaceAndPath(MOD_ID, path)
+fun identifier(path: String): Identifier {
+    return Identifier.fromNamespaceAndPath(MOD_ID, path)
 }
 
 fun init() {

@@ -1,9 +1,10 @@
 package work.lclpnet.map_utils.dialog
 
 import net.minecraft.ChatFormatting.RED
+import net.minecraft.commands.Commands
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.Tag
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.resources.Identifier
 import net.minecraft.server.level.ServerPlayer
 import work.lclpnet.kibu.hook.HookRegistrar
 import work.lclpnet.kibu.hook.network.CustomClickActionCallback
@@ -25,8 +26,8 @@ class DialogHandler(
         })
     }
 
-    fun onCustomClick(player: ServerPlayer, id: ResourceLocation, payload: Optional<Tag>) {
-        if (player.permissionLevel < 2 || player.gameMode().isSurvival) {
+    fun onCustomClick(player: ServerPlayer, id: Identifier, payload: Optional<Tag>) {
+        if (!Commands.LEVEL_GAMEMASTERS.check(player.permissions()) || player.gameMode().isSurvival) {
             translations.translateText("missing_permission").formatted(RED).sendTo(player)
             return
         }

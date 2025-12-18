@@ -10,8 +10,8 @@ import net.minecraft.network.chat.ClickEvent
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.HoverEvent
 import net.minecraft.network.chat.MutableComponent
+import net.minecraft.resources.Identifier
 import net.minecraft.resources.ResourceKey
-import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.dialog.*
 import net.minecraft.server.dialog.action.CustomAll
@@ -53,21 +53,21 @@ class MapManagerDialog(
     val logger: Logger
 ) {
 
-    private var pendingTeleport = mutableMapOf<ResourceLocation, MutableSet<UUID>>()
-    private var pendingUnload = mutableMapOf<ResourceLocation, MutableSet<UUID>>()
+    private var pendingTeleport = mutableMapOf<Identifier, MutableSet<UUID>>()
+    private var pendingUnload = mutableMapOf<Identifier, MutableSet<UUID>>()
 
     fun init(hooks: HookRegistrar) {
         hooks.registerHook(MapDataLoadedCallback.HOOK, MapDataLoadedCallback { world, _ ->
-            val pending = pendingTeleport.remove(world.dimension().location()) ?: return@MapDataLoadedCallback
+            val pending = pendingTeleport.remove(world.dimension().identifier()) ?: return@MapDataLoadedCallback
 
             for (uuid in pending) {
-                val player = world.server.playerList.getPlayer(uuid) ?: continue
+                val player = world.server?.playerList?.getPlayer(uuid) ?: continue
                 teleportTo(player, world)
             }
         })
 
         hooks.registerHook(ServerWorldHooks.UNLOAD, ServerWorldEvents.Unload { server, world ->
-            val pending = pendingUnload.remove(world.dimension().location()) ?: return@Unload
+            val pending = pendingUnload.remove(world.dimension().identifier()) ?: return@Unload
 
             for (uuid in pending) {
                 val player = server.playerList.getPlayer(uuid) ?: continue
@@ -78,7 +78,7 @@ class MapManagerDialog(
     }
 
     fun open(player: ServerPlayer, nbt: CompoundTag) {
-        val server = player.level().server
+        val server = player.level().server ?: return
 
         CompletableFuture.supplyAsync { getAvailableWorlds(server) }.whenComplete { worldIds, err ->
             if (err != null) {
@@ -90,8 +90,8 @@ class MapManagerDialog(
         }
     }
 
-    private fun showMapList(worldIds: List<ResourceLocation>, player: ServerPlayer, inputNbt: CompoundTag) {
-        val server = player.level().server
+    private fun showMapList(worldIds: List<Identifier>, player: ServerPlayer, inputNbt: CompoundTag) {
+        val server = player.level().server ?: return
         val search = inputNbt.getStringOr("search", "")
 
         val filtered = applySearch(worldIds, search)
@@ -274,7 +274,7 @@ class MapManagerDialog(
         return root
     }
 
-    private fun applySearch(worldIds: List<ResourceLocation>, query: String): List<Pair<ResourceLocation, List<Int>>> {
+    private fun applySearch(worldIds: List<Identifier>, query: String): List<Pair<Identifier, List<Int>>> {
         if (query.isBlank()) {
             return worldIds.sortedBy { it.toString() }.map { it to emptyList() }
         }
@@ -302,13 +302,13 @@ class MapManagerDialog(
             .sortedBy { it.first.toString() }
     }
 
-    fun getAvailableWorlds(server: MinecraftServer): Set<ResourceLocation> {
+    fun getAvailableWorlds(server: MinecraftServer): Set<Identifier> {
         val session = (server as MinecraftServerAccessor).storageSource
         val root = session.getLevelPath(LevelResource.ROOT).resolve("dimensions").normalize()
 
-        val worldIds = mutableSetOf<ResourceLocation>()
+        val worldIds = mutableSetOf<Identifier>()
 
-        server.allLevels.forEach { worldIds.add(it.dimension().location()) }
+        server.allLevels.forEach { worldIds.add(it.dimension().identifier()) }
 
         if (!root.isDirectory()) {
             return worldIds
@@ -340,7 +340,7 @@ class MapManagerDialog(
                         pathBuilder.append(it.next())
                     }
 
-                    val id = ResourceLocation.fromNamespaceAndPath(namespace, pathBuilder.toString())
+                    val id = Identifier.fromNamespaceAndPath(namespace, pathBuilder.toString())
                     worldIds.add(id)
 
                     return FileVisitResult.SKIP_SUBTREE
@@ -351,9 +351,9 @@ class MapManagerDialog(
     }
 
     fun teleport(player: ServerPlayer, nbt: CompoundTag) {
-        val id = nbt.getStringOr("id", null) ?: return
-        val worldId = ResourceLocation.tryParse(id) ?: return
-        val server = player.level().server
+        val id = nbt.getString("id").orElse(null) ?: return
+        val worldId = Identifier.tryParse(id) ?: return
+        val server = player.level().server ?: return
 
         val world = server.getLevel(ResourceKey.create(Registries.DIMENSION, worldId))
 
@@ -372,7 +372,7 @@ class MapManagerDialog(
         ).formatted(GREEN).sendTo(player)
     }
 
-    fun loadWorld(player: ServerPlayer, worldId: ResourceLocation): RuntimeWorldHandle? {
+    fun loadWorld(player: ServerPlayer, worldId: Identifier): RuntimeWorldHandle? {
         val worldManager = KibuWorlds.getInstance().getWorldManager(player.level().server)
         val handle = worldManager.openPersistentWorld(worldId).orElse(null)
 
@@ -395,7 +395,7 @@ class MapManagerDialog(
 
         translations.translateText(
             "map_manager.teleported",
-            styled(world.dimension().location(), YELLOW)
+            styled(world.dimension().identifier(), YELLOW)
         ).formatted(GREEN).sendTo(player)
     }
 
@@ -408,9 +408,9 @@ class MapManagerDialog(
     }
 
     fun closeWorld(player: ServerPlayer, nbt: CompoundTag) {
-        val id = nbt.getStringOr("id", null) ?: return
-        val worldId = ResourceLocation.tryParse(id) ?: return
-        val server = player.level().server
+        val id = nbt.getString("id").orElse(null) ?: return
+        val worldId = Identifier.tryParse(id) ?: return
+        val server = player.level().server ?: return
         val world = server.getLevel(ResourceKey.create(Registries.DIMENSION, worldId)) ?: return
 
         val worldManager = KibuWorlds.getInstance().getWorldManager(server)
@@ -429,14 +429,14 @@ class MapManagerDialog(
 
         translations.translateText(
             "map_manager.closed",
-            styled(world.dimension().location(), YELLOW)
+            styled(world.dimension().identifier(), YELLOW)
         ).formatted(GREEN).sendTo(player)
     }
 
     fun exportWorld(player: ServerPlayer, nbt: CompoundTag) {
-        val id = nbt.getStringOr("id", null) ?: return
-        val worldId = ResourceLocation.tryParse(id) ?: return
-        val server = player.level().server
+        val id = nbt.getString("id").orElse(null) ?: return
+        val worldId = Identifier.tryParse(id) ?: return
+        val server = player.level().server ?: return
 
         val session = (server as MinecraftServerAccessor).storageSource
         val worldDir = session.getDimensionPath(ResourceKey.create(Registries.DIMENSION, worldId))
@@ -460,7 +460,7 @@ class MapManagerDialog(
         open(player, nbt)
     }
 
-    fun exportMap(worldDir: Path, worldId: ResourceLocation) {
+    fun exportMap(worldDir: Path, worldId: Identifier) {
         if (!worldDir.isDirectory()) return
 
         val outputFile = MAP_EXPORT_DIR.resolve(worldId.namespace).resolve("${worldId.path}.tar.xz")
@@ -469,8 +469,8 @@ class MapManagerDialog(
     }
 
     fun loadWorld(player: ServerPlayer, nbt: CompoundTag) {
-        val id = nbt.getStringOr("id", null) ?: return
-        val worldId = ResourceLocation.tryParse(id) ?: return
+        val id = nbt.getString("id").orElse(null) ?: return
+        val worldId = Identifier.tryParse(id) ?: return
 
         loadWorld(player, worldId) ?: return
 

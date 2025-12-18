@@ -4,7 +4,7 @@ import net.minecraft.ChatFormatting.*
 import net.minecraft.core.Holder
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Component
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.resources.Identifier
 import net.minecraft.server.dialog.*
 import net.minecraft.server.dialog.action.CustomAll
 import net.minecraft.server.dialog.body.DialogBody
@@ -17,7 +17,7 @@ fun openConfirmDialog(
     player: ServerPlayer,
     translations: Translations,
     msg: Component,
-    confirmId: ResourceLocation,
+    confirmId: Identifier,
     confirmLabel: Component = translations.translateText("discard").formatted(RED).translateFor(player),
     payload: Optional<CompoundTag> = Optional.empty()
 ) {

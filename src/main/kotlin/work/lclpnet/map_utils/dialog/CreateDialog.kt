@@ -60,7 +60,7 @@ class CreateDialog(val translations: Translations, val sessionManager: SessionMa
     }
 
     fun startEditing(player: ServerPlayer, nbt: CompoundTag) {
-        val typeId = nbt.getStringOr("type", null)
+        val typeId = nbt.getString("type").orElse(null)
 
         val data = DataManager.DATA_TYPES[typeId] ?: return
 

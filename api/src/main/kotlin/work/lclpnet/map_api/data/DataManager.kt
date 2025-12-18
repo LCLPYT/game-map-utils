@@ -117,9 +117,9 @@ class DataManager(val logger: Logger) {
             setAll(world, data)
         }.whenComplete { data, err ->
             if (err != null) {
-                logger.error("Failed to load map data of world ${key.location()}", err)
+                logger.error("Failed to load map data of world ${key.identifier()}", err)
             } else {
-                world.server.execute {
+                world.server?.execute {
                     MapDataLoadedCallback.HOOK.invoker().onMapDataLoaded(world, data)
                 }
             }
@@ -159,7 +159,7 @@ class DataManager(val logger: Logger) {
         saveBlocking(world)
     }.whenComplete { _, err ->
         if (err != null) {
-            logger.error("Failed to save map data of world ${world.dimension().location()}", err)
+            logger.error("Failed to save map data of world ${world.dimension().identifier()}", err)
         }
     }
 

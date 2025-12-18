@@ -141,7 +141,7 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
         translations.translateText(
             "save.saved",
             styled(propertyId, YELLOW),
-            styled(player.level().dimension().location(), YELLOW)
+            styled(player.level().dimension().identifier(), YELLOW)
         ).formatted(GREEN).sendTo(player)
 
         dataManager.save(player.level())
