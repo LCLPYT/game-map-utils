@@ -6,13 +6,13 @@ import com.mojang.serialization.Codec
 import com.mojang.serialization.DataResult
 import com.mojang.serialization.JsonOps
 import com.mojang.serialization.Lifecycle
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLevelEvents
 import net.minecraft.resources.ResourceKey
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.Level
 import org.slf4j.Logger
 import work.lclpnet.kibu.hook.HookContainer
-import work.lclpnet.kibu.hook.world.ServerWorldHooks
+import work.lclpnet.kibu.hook.level.ServerLevelHooks
 import work.lclpnet.map_api.data.DataManager.Companion.DATA_TYPES
 import work.lclpnet.map_api.data.type.*
 import work.lclpnet.map_api.hook.MapDataLoadedCallback
@@ -52,11 +52,11 @@ class DataManager(val logger: Logger) {
     private val loading = mutableSetOf<ResourceKey<Level>>()
 
     fun init(hooks: HookContainer) {
-        hooks.registerHook(ServerWorldHooks.LOAD, ServerWorldEvents.Load { _, world ->
+        hooks.registerHook(ServerLevelHooks.LOAD, ServerLevelEvents.Load { _, world ->
             load(world)
         })
 
-        hooks.registerHook(ServerWorldHooks.UNLOAD, ServerWorldEvents.Unload { _, world ->
+        hooks.registerHook(ServerLevelHooks.UNLOAD, ServerLevelEvents.Unload { _, world ->
             unload(world)
 
             val futures: List<CompletableFuture<WorldData>>

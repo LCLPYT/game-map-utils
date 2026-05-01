@@ -3,7 +3,6 @@
   "package": "work.lclpnet.map_utils.mixin",
   "compatibilityLevel": "JAVA_${java_version}",
   "mixins": [
-    "ServerboundInteractPacketAccessor",
     "ServerGamePacketListenerImplMixin"
   ],
   "injectors": {

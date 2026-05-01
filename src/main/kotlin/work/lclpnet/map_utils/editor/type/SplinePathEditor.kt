@@ -8,11 +8,9 @@ import net.minecraft.core.component.DataComponents
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtOps
 import net.minecraft.network.chat.Component
-import net.minecraft.network.protocol.game.ServerboundInteractPacket.Handler
 import net.minecraft.server.dialog.Input
 import net.minecraft.server.dialog.body.DialogBody
 import net.minecraft.server.level.ServerPlayer
-import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.Interaction
 import net.minecraft.world.item.component.CustomData
@@ -32,6 +30,7 @@ import work.lclpnet.map_api.visual.Visualizer
 import work.lclpnet.map_api.visual.displaySplinePath
 import work.lclpnet.map_utils.editor.BaseDataEditor
 import work.lclpnet.map_utils.editor.SessionArgs
+import work.lclpnet.map_utils.hook.VirtualEntityAttackCallback
 import work.lclpnet.map_utils.hook.VirtualEntityInteractCallback
 import work.lclpnet.map_utils.util.keybind
 import work.lclpnet.map_utils.util.toLocalizedShortString
@@ -83,41 +82,36 @@ class SplinePathEditor(
             onSwapHands(player)
         })
 
-        hooks.registerHook(VirtualEntityInteractCallback.HOOK, VirtualEntityInteractCallback { player, entityId ->
-            provideKeypointInteractionHandler(player, entityId)
+        hooks.registerHook(VirtualEntityInteractCallback.HOOK, VirtualEntityInteractCallback { player, entityId, _, _ ->
+            provideKeypointInteractionHandler(player, entityId) { selectKeypoint(it) }
+        })
+
+        hooks.registerHook(VirtualEntityAttackCallback.HOOK, VirtualEntityAttackCallback { player, entityId ->
+            provideKeypointInteractionHandler(player, entityId) { deleteKeypoint(it) }
         })
     }
 
     private fun provideKeypointInteractionHandler(
         player: ServerPlayer,
-        entityId: Int
-    ): Handler? {
-        if (player != this.player || player.level() != args.world) return null
+        entityId: Int,
+        action: (Int) -> Unit,
+    ) {
+        if (player != this.player || player.level() != args.world) return
 
-        val interaction = interactions[entityId] ?: return null
+        val interaction = interactions[entityId] ?: return
 
         val data = interaction.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY)
 
         val nbt = data.copyTag()
 
-        if (!nbt.contains(KEYPOINT_DATA_ID)) return null
+        if (!nbt.contains(KEYPOINT_DATA_ID)) return
 
         val keypointData = KeypointData.MAP_CODEC.codec().decode(NbtOps.INSTANCE, nbt)
             .resultOrPartial { LOGGER.error("Failed to decode keypoint data") }
             .map { it.first }
-            .orElse(null) ?: return null
+            .orElse(null) ?: return
 
-        return object : Handler {
-            override fun onInteraction(hand: InteractionHand) {
-                selectKeypoint(keypointData.index)
-            }
-
-            override fun onInteraction(hand: InteractionHand, pos: Vec3) {}
-
-            override fun onAttack() {
-                deleteKeypoint(keypointData.index)
-            }
-        }
+        action(keypointData.index)
     }
 
     private fun onSwapHands(player: ServerPlayer): Boolean {

@@ -4,12 +4,14 @@ import net.minecraft.network.chat.Component
 import net.minecraft.resources.Identifier
 import net.minecraft.server.bossevents.CustomBossEvent
 import net.minecraft.server.bossevents.CustomBossEvents
+import net.minecraft.util.RandomSource
 import work.lclpnet.kibu.translate.bossbar.BossBarProvider
 import work.lclpnet.kibu.translate.util.TransientBossBars
 
-class BossBarContainer() : BossBarProvider {
+class BossBarContainer : BossBarProvider {
 
     private val bars: MutableSet<CustomBossEvent> = HashSet()
+    private val random = RandomSource.createThreadLocalInstance()
     private var bossBarManager: CustomBossEvents? = null
 
     @Synchronized
@@ -23,7 +25,7 @@ class BossBarContainer() : BossBarProvider {
     override fun createBossBar(id: Identifier, text: Component): CustomBossEvent {
         val bossBarManager = bossBarManager ?: throw IllegalStateException("Boss bar container not initialized")
 
-        val bar = bossBarManager.create(id, text)
+        val bar = bossBarManager.create(random, id, text)
 
         TransientBossBars.setTransient(bar, true)
 

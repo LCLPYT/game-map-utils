@@ -9,7 +9,7 @@ plugins {
 
 static def substitutions(Project project) {
     return [
-            version          : project.version,
+            version          : project.version.toString(),
             loader_version   : project.libs.versions.fabric.loader.get(),
             minecraft_compat : project.minecraft_compat,
             java_version     : project.libs.versions.java.get(),

@@ -1,6 +1,6 @@
 package work.lclpnet.map_utils.dialog
 
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLevelEvents
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.ChatFormatting.*
 import net.minecraft.core.Holder
@@ -23,11 +23,11 @@ import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.level.storage.LevelResource
 import org.slf4j.Logger
 import work.lclpnet.kibu.hook.HookRegistrar
+import work.lclpnet.kibu.hook.level.ServerLevelHooks
 import work.lclpnet.kibu.hook.util.PositionRotation
-import work.lclpnet.kibu.hook.world.ServerWorldHooks
 import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.kibu.translate.text.FormatWrapper.styled
-import work.lclpnet.kibu.world.KibuWorlds
+import work.lclpnet.kibu.world.KibuLevels
 import work.lclpnet.map_api.data.DataManager
 import work.lclpnet.map_api.data.type.PositionData
 import work.lclpnet.map_api.hook.MapDataLoadedCallback
@@ -35,7 +35,7 @@ import work.lclpnet.map_api.mixin.MinecraftServerAccessor
 import work.lclpnet.map_utils.MOD_ID
 import work.lclpnet.map_utils.identifier
 import work.lclpnet.map_utils.util.MapArchiver
-import xyz.nucleoid.fantasy.RuntimeWorldHandle
+import xyz.nucleoid.fantasy.RuntimeLevelHandle
 import java.nio.file.*
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.*
@@ -61,12 +61,12 @@ class MapManagerDialog(
             val pending = pendingTeleport.remove(world.dimension().identifier()) ?: return@MapDataLoadedCallback
 
             for (uuid in pending) {
-                val player = world.server?.playerList?.getPlayer(uuid) ?: continue
+                val player = world.server.playerList.getPlayer(uuid) ?: continue
                 teleportTo(player, world)
             }
         })
 
-        hooks.registerHook(ServerWorldHooks.UNLOAD, ServerWorldEvents.Unload { server, world ->
+        hooks.registerHook(ServerLevelHooks.UNLOAD, ServerLevelEvents.Unload { server, world ->
             val pending = pendingUnload.remove(world.dimension().identifier()) ?: return@Unload
 
             for (uuid in pending) {
@@ -78,7 +78,7 @@ class MapManagerDialog(
     }
 
     fun open(player: ServerPlayer, nbt: CompoundTag) {
-        val server = player.level().server ?: return
+        val server = player.level().server
 
         CompletableFuture.supplyAsync { getAvailableWorlds(server) }.whenComplete { worldIds, err ->
             if (err != null) {
@@ -91,7 +91,7 @@ class MapManagerDialog(
     }
 
     private fun showMapList(worldIds: List<Identifier>, player: ServerPlayer, inputNbt: CompoundTag) {
-        val server = player.level().server ?: return
+        val server = player.level().server
         val search = inputNbt.getStringOr("search", "")
 
         val filtered = applySearch(worldIds, search)
@@ -101,15 +101,15 @@ class MapManagerDialog(
         }
 
         val buttons = mutableListOf<ActionButton>()
-        val worldManager = KibuWorlds.getInstance().getWorldManager(server)
+        val worldManager = KibuLevels.getInstance().getWorldManager(server)
 
-        for ((worldId, matches) in loaded) {
-            val world = server.getLevel(ResourceKey.create(Registries.DIMENSION, worldId))
+        for ((levelId, matches) in loaded) {
+            val level = server.getLevel(ResourceKey.create(Registries.DIMENSION, levelId))
 
             val nbt = CompoundTag()
-            nbt.putString("id", worldId.toString())
+            nbt.putString("id", levelId.toString())
 
-            val label = markMatches(worldId.toString(), matches, search.length)
+            val label = markMatches(levelId.toString(), matches, search.length)
                 .withStyle(GREEN)
 
             buttons.add(
@@ -124,7 +124,7 @@ class MapManagerDialog(
 
             val saveText = Component.literal("❌")
 
-            if (worldManager.getRuntimeWorldHandle(world).isPresent) {
+            if (worldManager.getRuntimeLevelHandle(level).isPresent) {
                 saveText.withColor(0xfc6a6a)
             } else {
                 saveText.withStyle(DARK_GRAY)
@@ -353,7 +353,7 @@ class MapManagerDialog(
     fun teleport(player: ServerPlayer, nbt: CompoundTag) {
         val id = nbt.getString("id").orElse(null) ?: return
         val worldId = Identifier.tryParse(id) ?: return
-        val server = player.level().server ?: return
+        val server = player.level().server
 
         val world = server.getLevel(ResourceKey.create(Registries.DIMENSION, worldId))
 
@@ -372,9 +372,9 @@ class MapManagerDialog(
         ).formatted(GREEN).sendTo(player)
     }
 
-    fun loadWorld(player: ServerPlayer, worldId: Identifier): RuntimeWorldHandle? {
-        val worldManager = KibuWorlds.getInstance().getWorldManager(player.level().server)
-        val handle = worldManager.openPersistentWorld(worldId).orElse(null)
+    fun loadWorld(player: ServerPlayer, worldId: Identifier): RuntimeLevelHandle? {
+        val worldManager = KibuLevels.getInstance().getWorldManager(player.level().server)
+        val handle = worldManager.openPersistentLevel(worldId).orElse(null)
 
         if (handle == null) {
             translations.translateText(
@@ -410,11 +410,11 @@ class MapManagerDialog(
     fun closeWorld(player: ServerPlayer, nbt: CompoundTag) {
         val id = nbt.getString("id").orElse(null) ?: return
         val worldId = Identifier.tryParse(id) ?: return
-        val server = player.level().server ?: return
+        val server = player.level().server
         val world = server.getLevel(ResourceKey.create(Registries.DIMENSION, worldId)) ?: return
 
-        val worldManager = KibuWorlds.getInstance().getWorldManager(server)
-        val handle = worldManager.getRuntimeWorldHandle(world).orElse(null)
+        val worldManager = KibuLevels.getInstance().getWorldManager(server)
+        val handle = worldManager.getRuntimeLevelHandle(world).orElse(null)
 
         if (handle == null) {
             open(player, nbt)
@@ -436,7 +436,7 @@ class MapManagerDialog(
     fun exportWorld(player: ServerPlayer, nbt: CompoundTag) {
         val id = nbt.getString("id").orElse(null) ?: return
         val worldId = Identifier.tryParse(id) ?: return
-        val server = player.level().server ?: return
+        val server = player.level().server
 
         val session = (server as MinecraftServerAccessor).storageSource
         val worldDir = session.getDimensionPath(ResourceKey.create(Registries.DIMENSION, worldId))

@@ -25,7 +25,7 @@ import net.minecraft.world.phys.BlockHitResult
 import work.lclpnet.gaco.ds.PositionedBlockSet
 import work.lclpnet.kibu.hook.HookRegistrar
 import work.lclpnet.kibu.hook.entity.PlayerInteractionHooks
-import work.lclpnet.kibu.hook.world.BlockModificationHooks
+import work.lclpnet.kibu.hook.level.BlockModificationHooks
 import work.lclpnet.kibu.translate.Translations
 import work.lclpnet.map_api.data.type.PositionedBlockSetData
 import work.lclpnet.map_api.visual.Visualizer

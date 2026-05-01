@@ -42,7 +42,7 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
             translations.translateText("type.${editor.data().id()}")
         ) else translations.translateText(
             "save.title",
-            propertyId as Object
+            propertyId as Any
         )).translateFor(player)
 
         val body = mutableListOf<DialogBody>()

@@ -9,6 +9,6 @@ class SessionArgs(
     val world: ServerLevel,
     val networkHandler: ServerGamePacketListenerImpl,
 ) {
-    fun player() = networkHandler.player!!
+    fun player() = networkHandler.player
     fun server() = world.server
 }

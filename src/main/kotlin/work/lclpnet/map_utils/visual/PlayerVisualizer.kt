@@ -16,7 +16,7 @@ import work.lclpnet.gaco.dynamic_entities.DynamicEntity
 import work.lclpnet.gaco.dynamic_entities.DynamicEntityManager
 import work.lclpnet.gaco.dynamic_entities.PlayerSpecificDynamicEntity
 import work.lclpnet.kibu.hook.HookRegistrar
-import work.lclpnet.kibu.hook.world.BlockModificationHooks
+import work.lclpnet.kibu.hook.level.BlockModificationHooks
 import work.lclpnet.map_api.visual.SceneRenderer
 import work.lclpnet.map_api.visual.Visualizer
 import work.lclpnet.map_utils.editor.SessionArgs

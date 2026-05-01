@@ -1,8 +1,8 @@
 package work.lclpnet.map_utils.editor
 
-import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents
+import net.fabricmc.fabric.api.entity.event.v1.ServerEntityLevelChangeEvents
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLevelEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents
 import net.minecraft.resources.ResourceKey
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
@@ -11,9 +11,9 @@ import work.lclpnet.gaco.dynamic_entities.DynamicEntityManager
 import work.lclpnet.kibu.hook.HookContainer
 import work.lclpnet.kibu.hook.HookRegistrar
 import work.lclpnet.kibu.hook.ServerLifecycleHooks
-import work.lclpnet.kibu.hook.entity.ServerEntityWorldChangeHooks
+import work.lclpnet.kibu.hook.entity.ServerEntityLevelChangeHooks
+import work.lclpnet.kibu.hook.level.ServerLevelHooks
 import work.lclpnet.kibu.hook.player.PlayerConnectionHooks
-import work.lclpnet.kibu.hook.world.ServerWorldHooks
 import work.lclpnet.kibu.scheduler.KibuScheduling
 import work.lclpnet.kibu.scheduler.api.Scheduler
 import work.lclpnet.kibu.translate.Translations
@@ -36,13 +36,13 @@ class SessionManager(val translations: Translations, val dataManager: DataManage
             clearSession(it)
         })
 
-        hooks.registerHook(ServerWorldHooks.UNLOAD, ServerWorldEvents.Unload { _, world ->
+        hooks.registerHook(ServerLevelHooks.UNLOAD, ServerLevelEvents.Unload { _, world ->
             clearWorldSession(world)
         })
 
         hooks.registerHook(
-            ServerEntityWorldChangeHooks.AFTER_PLAYER_CHANGE_WORLD,
-            ServerEntityWorldChangeEvents.AfterPlayerChange { entity, origin, destination ->
+            ServerEntityLevelChangeHooks.AFTER_PLAYER_CHANGE_LEVEL,
+            ServerEntityLevelChangeEvents.AfterPlayerChange { entity, origin, destination ->
                 optSession(entity, origin)?.deactivateEditor()
                 optSession(entity, destination)?.reactivateEditor()
             }
