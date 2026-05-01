@@ -22,7 +22,6 @@ Properties props = buildUtils.loadProperties('publish.properties')  // will be e
 boolean local = System.getProperty("build.local") == "true"
 def versionSuffix = (local ? '+local' : '')
 
-def modId = project.mod_id
 def javaVersion = libs.versions.java.get().toInteger()
 
 allprojects {
@@ -32,6 +31,8 @@ allprojects {
 
     group = project.maven_group
     version = "${project.mod_version}+${libs.versions.minecraft.get()}${versionSuffix}"
+
+    def modId = project.mod_id
 
     base {
         archivesName = modId
@@ -144,6 +145,8 @@ dependencies {
 }
 
 loom.nestJars(tasks.named("jar"), configurations.nestedJars)
+
+configureSubstitutions(processClientResources, substitutions(rootProject))
 
 tasks.register("github", GithubDeploymentTask) {
     dependsOn tasks.jar
