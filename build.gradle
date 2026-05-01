@@ -65,13 +65,13 @@ allprojects {
         implementation(libs.fabric.api)
         implementation(libs.fabric.language.kotlin)
 
-        implementation("work.lclpnet.mods.kibu:kibu:${project.kibu_version}")
-        implementation("work.lclpnet.mods.kibu:kibu-world-api:${project.kibu_world_api_version}")
-        implementation("work.lclpnet.mods.gaco:gaco:${project.gaco_version}")
+        implementation(libs.kibu)
+        implementation(libs.kibu.world.api)
+        implementation(libs.gaco)
         implementation(libs.fantasy)
 
-        implementation("org.json:json:20250517")
-        include("org.json:json:20250517")
+        implementation(libs.json)
+        include(libs.json)
     }
 
     configureSubstitutions(processResources, substitutions(it))
@@ -117,8 +117,13 @@ loom {
 }
 
 dependencies {
-    include(implementation('org.apache.commons:commons-compress:1.26.2'))
-    include(implementation('org.tukaani:xz:1.10'))
+    def includeImpl = { dep ->
+        implementation(dep)
+        include(dep)
+    }
+
+    includeImpl(libs.commons.compress)
+    includeImpl(libs.xz)
 
     subprojects.each {
         api it
