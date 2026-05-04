@@ -38,12 +38,10 @@ fun init() {
         schemaManager.init(hooks)
 
         val mapArchiver = MapArchiver(setOf(
-            "advancements",
             "data/DistantHorizons.sqlite",
-            "DIM1",
-            "DIM-1",
-            "playerdata",
-            "stats",
+            "dimensions/the_nether",
+            "dimensions/the_end",
+            "players",
             "icon.png",
             "level.dat_old",
             "session.lock",
