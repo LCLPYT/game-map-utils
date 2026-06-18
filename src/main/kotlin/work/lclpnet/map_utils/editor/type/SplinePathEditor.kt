@@ -11,7 +11,7 @@ import net.minecraft.network.chat.Component
 import net.minecraft.server.dialog.Input
 import net.minecraft.server.dialog.body.DialogBody
 import net.minecraft.server.level.ServerPlayer
-import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EntityTypes
 import net.minecraft.world.entity.Interaction
 import net.minecraft.world.item.component.CustomData
 import net.minecraft.world.level.block.Blocks
@@ -62,7 +62,7 @@ class SplinePathEditor(
 
         if (keypoints.size < 2) {
             body.add(messageBody(translations.translateText(key("too_few_keypoints"))
-                .formatted(RED)
+                .withStyle(RED)
                 .translateFor(player)))
         }
     }
@@ -74,7 +74,7 @@ class SplinePathEditor(
             keybind("sprint", "use").withStyle(YELLOW),
             keybind("sprint", "attack").withStyle(YELLOW),
             keybind("swapOffhand").withStyle(YELLOW)
-        ).formatted(AQUA).sendTo(player)
+        ).withStyle(AQUA).sendTo(player)
     }
 
     override fun init(hooks: HookRegistrar) {
@@ -123,7 +123,7 @@ class SplinePathEditor(
             key("keypoint_added"),
             styled(keypoints.size, YELLOW),
             styled(player.position().toLocalizedShortString(), YELLOW)
-        ).formatted(GREEN).sendTo(player)
+        ).withStyle(GREEN).sendTo(player)
 
         return true
     }
@@ -145,7 +145,7 @@ class SplinePathEditor(
         translations.translateText(
             key("keypoint_selected"),
             styled(index + 1, YELLOW),
-        ).formatted(AQUA).sendTo(player)
+        ).withStyle(AQUA).sendTo(player)
     }
 
     private fun deleteKeypoint(index: Int) {
@@ -161,7 +161,7 @@ class SplinePathEditor(
             key("keypoint_removed"),
             styled(index + 1, YELLOW),
             styled(player.position().toLocalizedShortString(), YELLOW)
-        ).formatted(RED).sendTo(player)
+        ).withStyle(RED).sendTo(player)
     }
 
     private fun updateDisplay() {
@@ -183,7 +183,7 @@ class SplinePathEditor(
             val labels = mutableListOf<Object3d>()
 
             keypointMarkers.withIndex().forEach { (index, marker) ->
-                val interaction = Interaction(EntityType.INTERACTION, world)
+                val interaction = Interaction(EntityTypes.INTERACTION, world)
                 interaction.setPosRaw(marker.position.x, marker.position.y - 0.25, marker.position.z)
                 interaction.setResponse(true)
                 interaction.height = 0.5f
@@ -215,7 +215,7 @@ class SplinePathEditor(
 
         for ((i, keypoint) in keypoints.withIndex()) {
             val glowColor = if (i == selectedIndex) SELECTED_COLOR else 0xeeff00
-            markers.add(visualizer.marker(keypoint, Blocks.ORANGE_CONCRETE.defaultBlockState(), glowColor, 0.5))
+            markers.add(visualizer.marker(keypoint, Blocks.CONCRETE.orange.defaultBlockState(), glowColor, 0.5))
         }
 
         pathDisplay = Removable {
@@ -241,7 +241,7 @@ class SplinePathEditor(
     override fun create(nbt: CompoundTag): SplinePath? {
         if (keypoints.size < 2) {
             translations.translateText(key("too_few_keypoints"))
-                .formatted(RED)
+                .withStyle(RED)
                 .sendTo(player)
             return null
         }

@@ -62,7 +62,7 @@ class PositionEditor(
             key("init"),
             keybind("sprint", "swapOffhand").withStyle(YELLOW),
             keybind("swapOffhand").withStyle(YELLOW)
-        ).formatted(ChatFormatting.AQUA).sendTo(player)
+        ).withStyle(ChatFormatting.AQUA).sendTo(player)
     }
 
     override fun init(hooks: HookRegistrar) {
@@ -82,7 +82,7 @@ class PositionEditor(
             styled(player.position().toLocalizedShortString(), YELLOW),
             styled(format("%.2f", player.yRot), YELLOW),
             styled(format("%.2f", player.xRot), YELLOW)
-        ).formatted(GREEN).sendTo(player)
+        ).withStyle(GREEN).sendTo(player)
 
         marker?.remove()
         marker = data.display(posRot, visualizer, player, translations, id, propertyId)

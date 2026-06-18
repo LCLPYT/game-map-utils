@@ -37,7 +37,7 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
                 .append(Component.literal(propertyId).withStyle(YELLOW))
                 .append(" (")
                 .append(translations.translateText("type.${dataInstance.data.id()}")
-                    .formatted(AQUA)
+                    .withStyle(AQUA)
                     .translateFor(player))
                 .append(Component.literal(" #$num").withStyle(YELLOW))
                 .append(")")
@@ -123,7 +123,7 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
             DialogAction.CLOSE,
             if (actions.isNotEmpty()) listOf() else listOf(
                 PlainMessage(
-                translations.translateText("list.no_data").formatted(YELLOW).translateFor(player),
+                translations.translateText("list.no_data").withStyle(YELLOW).translateFor(player),
                 200
             )),
             if (actions.isNotEmpty()) inputs else listOf()
@@ -160,7 +160,7 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
         
         if (session.editor != null) {
             val msg = translations.translateText("list.replace_editor")
-                .formatted(YELLOW)
+                .withStyle(YELLOW)
                 .translateFor(player)
 
             openConfirmDialog(player, translations, msg, CONFIRM_SELECT_ID, payload = Optional.of(nbt))
@@ -193,9 +193,9 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
         val msg = translations.translateText(
             "list.confirm_delete",
             Component.literal(propertyId).withStyle(YELLOW)
-        ).formatted(RED).translateFor(player)
+        ).withStyle(RED).translateFor(player)
 
-        val label = translations.translateText("delete").formatted(RED).translateFor(player)
+        val label = translations.translateText("delete").withStyle(RED).translateFor(player)
 
         openConfirmDialog(player, translations, msg, CONFIRM_DELETE_ID, label, Optional.of(nbt))
     }
@@ -214,7 +214,7 @@ class ListDialog(val translations: Translations, val dataManager: DataManager, v
         translations.translateText(
             "list.deleted",
             Component.literal(propertyId).withStyle(YELLOW)
-        ).formatted(GREEN).sendTo(player)
+        ).withStyle(GREEN).sendTo(player)
 
         if (session.editor?.propertyId == propertyId) {
             session.destroyEditor()

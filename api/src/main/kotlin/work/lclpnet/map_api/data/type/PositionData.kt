@@ -5,7 +5,7 @@ import com.mojang.serialization.Codec
 import net.minecraft.core.Direction
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.Display
-import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EntityTypes
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.ObserverBlock
 import net.minecraft.world.phys.Vec3
@@ -37,7 +37,7 @@ object PositionData : Data<PositionRotation> {
     ): Removable {
         val random = if (propertyId != null) Random(propertyId.hashCode().toLong()) else Random()
 
-        val marker = Display.BlockDisplay(EntityType.BLOCK_DISPLAY, visualizer.world())
+        val marker = Display.BlockDisplay(EntityTypes.BLOCK_DISPLAY, visualizer.world())
         marker.setPos(value.x(), value.y() + 0.125, value.z())
         marker.setTransformation(
             Transformation(Matrix4f()

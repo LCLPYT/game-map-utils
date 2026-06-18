@@ -60,15 +60,15 @@ class BlockBoxEditor(
         translations.translateText(
             key("init"),
             translations.translateText(key("pos1"))
-                .formatted(BLUE)
+                .withStyle(BLUE)
                 .translateFor(player),
             keybind("sprint", "attack").withStyle(ChatFormatting.YELLOW),
             translations.translateText(key("pos2"))
-                .formatted(RED)
+                .withStyle(RED)
                 .translateFor(player),
             keybind("sprint", "use").withStyle(ChatFormatting.YELLOW),
             keybind("swapOffhand").withStyle(ChatFormatting.YELLOW)
-        ).formatted(ChatFormatting.AQUA).sendTo(player)
+        ).withStyle(ChatFormatting.AQUA).sendTo(player)
     }
 
     override fun init(hooks: HookRegistrar) {
@@ -130,7 +130,7 @@ class BlockBoxEditor(
         translations.translateText(
             key,
             styled(pos.toShortString(), ChatFormatting.YELLOW)
-        ).formatted(ChatFormatting.GREEN).sendTo(player)
+        ).withStyle(ChatFormatting.GREEN).sendTo(player)
     }
 
     private fun updateBox() {

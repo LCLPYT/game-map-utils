@@ -5,7 +5,7 @@ import com.mojang.serialization.Codec
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.util.Brightness
 import net.minecraft.world.entity.Display
-import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EntityTypes
 import net.minecraft.world.level.block.Blocks
 import org.joml.Matrix4f
 import work.lclpnet.gaco.ds.BlockBox
@@ -31,11 +31,11 @@ object BlockBoxData : Data<BlockBox> {
         id: String,
         propertyId: String?
     ): Removable {
-        val marker = Display.BlockDisplay(EntityType.BLOCK_DISPLAY, visualizer.world())
+        val marker = Display.BlockDisplay(EntityTypes.BLOCK_DISPLAY, visualizer.world())
 
         val margin = -0.015f
 
-        marker.blockState = Blocks.GREEN_STAINED_GLASS.defaultBlockState()
+        marker.blockState = Blocks.STAINED_GLASS.green.defaultBlockState()
         marker.brightnessOverride = Brightness(15, 15)
         marker.setPosRaw(
             value.min().x.toDouble() + margin,

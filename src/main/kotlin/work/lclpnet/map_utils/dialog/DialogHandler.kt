@@ -28,7 +28,7 @@ class DialogHandler(
 
     fun onCustomClick(player: ServerPlayer, id: Identifier, payload: Optional<Tag>) {
         if (!Commands.LEVEL_GAMEMASTERS.check(player.permissions()) || player.gameMode().isSurvival) {
-            translations.translateText("missing_permission").formatted(RED).sendTo(player)
+            translations.translateText("missing_permission").withStyle(RED).sendTo(player)
             return
         }
 

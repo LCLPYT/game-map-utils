@@ -53,10 +53,10 @@ interface DataEditor<T> {
 
     fun <T> required(value: T?, key: String, translations: Translations, player: ServerPlayer, toText: (T) -> Component): PlainMessage {
         val detail = if (value != null) toText(value).copy().withStyle(ChatFormatting.YELLOW)
-        else translations.translateText("required").formatted(ChatFormatting.YELLOW).translateFor(player)
+        else translations.translateText("required").withStyle(ChatFormatting.YELLOW).translateFor(player)
 
         val text = translations.translateText(player, key(key)).append(": ")
-            .formatted(if (value == null) ChatFormatting.RED else ChatFormatting.GREEN)
+            .withStyle(if (value == null) ChatFormatting.RED else ChatFormatting.GREEN)
             .append(detail)
 
         return messageBody(text)
@@ -74,7 +74,7 @@ interface DataEditor<T> {
             Component.literal(missing.joinToString {
                 args.translations.translate(args.player(), key(it))
             }).withStyle(ChatFormatting.YELLOW)
-        ).formatted(ChatFormatting.RED).sendTo(args.player())
+        ).withStyle(ChatFormatting.RED).sendTo(args.player())
     }
 
     fun onDataChanged(nbt: CompoundTag) {}

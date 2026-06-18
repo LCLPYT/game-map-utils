@@ -184,7 +184,7 @@ class MapManagerDialog(
             body.add(
                 PlainMessage(
                     translations.translateText("map_manager.no_maps")
-                        .formatted(RED).translateFor(player),
+                        .withStyle(RED).translateFor(player),
                     200
                 )
             )
@@ -369,7 +369,7 @@ class MapManagerDialog(
         translations.translateText(
             "map_manager.loaded",
             styled(worldId, YELLOW)
-        ).formatted(GREEN).sendTo(player)
+        ).withStyle(GREEN).sendTo(player)
     }
 
     fun loadWorld(player: ServerPlayer, worldId: Identifier): RuntimeLevelHandle? {
@@ -380,7 +380,7 @@ class MapManagerDialog(
             translations.translateText(
                 "map_manager.load_failed",
                 styled(worldId, YELLOW)
-            ).formatted(RED).sendTo(player)
+            ).withStyle(RED).sendTo(player)
         }
 
         return handle
@@ -396,7 +396,7 @@ class MapManagerDialog(
         translations.translateText(
             "map_manager.teleported",
             styled(world.dimension().identifier(), YELLOW)
-        ).formatted(GREEN).sendTo(player)
+        ).withStyle(GREEN).sendTo(player)
     }
 
     private fun findSpawnPos(player: ServerPlayer, world: ServerLevel): PositionRotation {
@@ -430,7 +430,7 @@ class MapManagerDialog(
         translations.translateText(
             "map_manager.closed",
             styled(world.dimension().identifier(), YELLOW)
-        ).formatted(GREEN).sendTo(player)
+        ).withStyle(GREEN).sendTo(player)
     }
 
     fun exportWorld(player: ServerPlayer, nbt: CompoundTag) {
@@ -448,12 +448,12 @@ class MapManagerDialog(
                 translations.translateText(
                     "map_manager.export_failed",
                     styled(worldId, YELLOW)
-                ).formatted(RED).sendTo(player)
+                ).withStyle(RED).sendTo(player)
             } else {
                 translations.translateText(
                     "map_manager.exported",
                     styled(worldId, YELLOW)
-                ).formatted(GREEN).sendTo(player)
+                ).withStyle(GREEN).sendTo(player)
             }
         }
 
@@ -484,11 +484,11 @@ class MapManagerDialog(
                     .applyFormat(AQUA)
                     .withHoverEvent(
                         HoverEvent.ShowText(translations.translateText("map_manager.click_tp")
-                        .formatted(AQUA)
+                        .withStyle(AQUA)
                         .translateFor(player)))
                     .withClickEvent(ClickEvent.Custom(TELEPORT_ID, Optional.of(nbt)))
                 }
-        ).formatted(GREEN).sendTo(player)
+        ).withStyle(GREEN).sendTo(player)
 
         open(player, nbt)
     }

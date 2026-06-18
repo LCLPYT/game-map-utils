@@ -55,7 +55,7 @@ class BlockFaceEditor(
             key("init"),
             keybind("sprint", "use").withStyle(ChatFormatting.YELLOW),
             keybind("swapOffhand").withStyle(ChatFormatting.YELLOW)
-        ).formatted(ChatFormatting.AQUA).sendTo(player)
+        ).withStyle(ChatFormatting.AQUA).sendTo(player)
     }
 
     override fun init(hooks: HookRegistrar) {
@@ -86,7 +86,7 @@ class BlockFaceEditor(
                 face.name.replaceFirstChar {
                     if (it.isLowerCase()) it.titlecase(getDefault()) else it.toString()
                 }, ChatFormatting.YELLOW),
-        ).formatted(ChatFormatting.GREEN).sendTo(player)
+        ).withStyle(ChatFormatting.GREEN).sendTo(player)
 
         return InteractionResult.FAIL
     }

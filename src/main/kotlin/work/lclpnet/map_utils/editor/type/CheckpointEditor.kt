@@ -45,15 +45,15 @@ class CheckpointEditor(
                 .translateFor(player),
             keybind("sprint", "swapOffhand").withStyle(YELLOW),
             translations.translateText(key("pos1"))
-                .formatted(BLUE)
+                .withStyle(BLUE)
                 .translateFor(player),
             keybind("sprint", "attack").withStyle(YELLOW),
             translations.translateText(key("pos2"))
-                .formatted(RED)
+                .withStyle(RED)
                 .translateFor(player),
             keybind("sprint", "use").withStyle(YELLOW),
             keybind("swapOffhand").withStyle(YELLOW)
-        ).formatted(AQUA).sendTo(player)
+        ).withStyle(AQUA).sendTo(player)
     }
 
     override fun init(hooks: HookRegistrar) {

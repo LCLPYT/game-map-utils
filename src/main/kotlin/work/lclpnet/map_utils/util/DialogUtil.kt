@@ -18,10 +18,10 @@ fun openConfirmDialog(
     translations: Translations,
     msg: Component,
     confirmId: Identifier,
-    confirmLabel: Component = translations.translateText("discard").formatted(RED).translateFor(player),
+    confirmLabel: Component = translations.translateText("discard").withStyle(RED).translateFor(player),
     payload: Optional<CompoundTag> = Optional.empty()
 ) {
-    val title = translations.translateText("warning").formatted(YELLOW, BOLD).translateFor(player)
+    val title = translations.translateText("warning").withStyle(YELLOW, BOLD).translateFor(player)
 
     val body = listOf<DialogBody>(
         PlainMessage(msg, 400)

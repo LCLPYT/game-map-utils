@@ -19,7 +19,7 @@ class CreateDialog(val translations: Translations, val sessionManager: SessionMa
 
     fun openOrConfirm(player: ServerPlayer) {
         if (sessionManager.optSession(player)?.editor != null) {
-            val msg = translations.translateText("create.active_editor").formatted(YELLOW).translateFor(player)
+            val msg = translations.translateText("create.active_editor").withStyle(YELLOW).translateFor(player)
             openConfirmDialog(player, translations, msg, CONFIRM_ID)
             return
         }
@@ -60,7 +60,7 @@ class CreateDialog(val translations: Translations, val sessionManager: SessionMa
     }
 
     fun startEditing(player: ServerPlayer, nbt: CompoundTag) {
-        val typeId = nbt.getString("type").orElse(null)
+        val typeId = nbt.getString("type").orElse(null) ?: return
 
         val data = DataManager.DATA_TYPES[typeId] ?: return
 

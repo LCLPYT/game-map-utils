@@ -70,7 +70,7 @@ class SchemaSelectorDialog(
                     "schema_selector.no_schemas",
                     Component.literal(schemaRelativePath.toString())
                         .withStyle(YELLOW)
-                ).formatted(RED).translateFor(player),
+                ).withStyle(RED).translateFor(player),
                 200
             ))
         }
@@ -134,7 +134,7 @@ class SchemaSelectorDialog(
             PlainMessage(
                 translations.translateText("schema_editor.unlink_schema")
                     .translateFor(player)
-                    .styled { it
+                    .withStyle() { it
                         .withColor(0xf7adad)
                         .withClickEvent(ClickEvent.Custom(UNLINK_ID, Optional.empty()))
                     },
@@ -249,7 +249,7 @@ class SchemaSelectorDialog(
                                 .withStyle(YELLOW))
                             .append("(")
                             .append(translations.translateText("type.${definition.data.id()}")
-                                .formatted(AQUA)
+                                .withStyle(AQUA)
                                 .translateFor(player)
                                 .append(Component.literal(" #${i + 1}").withStyle(YELLOW)))
                             .append(")"),
@@ -291,7 +291,7 @@ class SchemaSelectorDialog(
 
     fun editProperty(player: ServerPlayer, nbt: CompoundTag) {
         if (sessionManager.optSession(player)?.editor != null) {
-            val msg = translations.translateText("create.active_editor").formatted(YELLOW).translateFor(player)
+            val msg = translations.translateText("create.active_editor").withStyle(YELLOW).translateFor(player)
             openConfirmDialog(player, translations, msg, CONFIRM_EDIT_PROPERTY_ID, payload = Optional.of(nbt))
             return
         }
@@ -331,8 +331,8 @@ class SchemaSelectorDialog(
     }
 
     fun unlink(player: ServerPlayer) {
-        val msg = translations.translateText("schema_editor.confirm_unlink").formatted(YELLOW).translateFor(player)
-        val unlinkLabel = translations.translateText("unlink").formatted(RED).translateFor(player)
+        val msg = translations.translateText("schema_editor.confirm_unlink").withStyle(YELLOW).translateFor(player)
+        val unlinkLabel = translations.translateText("unlink").withStyle(RED).translateFor(player)
         openConfirmDialog(player, translations, msg, CONFIRM_UNLINK_ID, unlinkLabel)
     }
 

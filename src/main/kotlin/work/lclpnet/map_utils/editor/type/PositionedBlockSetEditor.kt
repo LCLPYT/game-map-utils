@@ -85,7 +85,7 @@ class PositionedBlockSetEditor(
             keybind("sprint", "use").withStyle(YELLOW),
             keybind("sprint", "attack").withStyle(YELLOW),
             keybind("swapOffhand").withStyle(YELLOW)
-        ).formatted(AQUA).sendTo(player)
+        ).withStyle(AQUA).sendTo(player)
     }
 
     override fun init(hooks: HookRegistrar) {
@@ -130,7 +130,7 @@ class PositionedBlockSetEditor(
         translations.translateText(
             key("added"),
             label(pos, state)
-        ).formatted(GREEN).sendTo(player)
+        ).withStyle(GREEN).sendTo(player)
 
         return InteractionResult.FAIL
     }
@@ -157,7 +157,7 @@ class PositionedBlockSetEditor(
         translations.translateText(
             key("removed"),
             label(pos, state)
-        ).formatted(RED).sendTo(player)
+        ).withStyle(RED).sendTo(player)
     }
 
     override fun create(nbt: CompoundTag): PositionedBlockSet = PositionedBlockSet(blocks)

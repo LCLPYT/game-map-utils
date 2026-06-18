@@ -7,7 +7,7 @@ import net.minecraft.core.Vec3i
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.entity.Display
 import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EntityTypes
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.Matrix4f
@@ -103,7 +103,7 @@ class PlayerVisualizer(
         }
 
         val margin = 0.015f
-        val marker = Display.BlockDisplay(EntityType.BLOCK_DISPLAY, args.world)
+        val marker = Display.BlockDisplay(EntityTypes.BLOCK_DISPLAY, args.world)
         marker.setPos(
             pos.x.toDouble() + margin,
             pos.y.toDouble() + margin,
@@ -135,7 +135,7 @@ class PlayerVisualizer(
         }
 
         val margin = 0.015f
-        val marker = Display.BlockDisplay(EntityType.BLOCK_DISPLAY, args.world)
+        val marker = Display.BlockDisplay(EntityTypes.BLOCK_DISPLAY, args.world)
 
         marker.setPos(
             pos.x.toDouble() + 0.5,

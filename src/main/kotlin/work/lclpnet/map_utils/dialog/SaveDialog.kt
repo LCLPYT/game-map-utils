@@ -74,7 +74,7 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
                 ),
                 ActionButton(
                     CommonButtonData(translations.translateText(if (editor.isNew()) "discard" else "discard_changes")
-                        .formatted(RED)
+                        .withStyle(RED)
                         .translateFor(player), 150),
                     Optional.of(CustomAll(DISCARD_ID, Optional.empty()))
                 )
@@ -102,8 +102,8 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
         if (propertyId.isBlank()) {
             translations.translateText(
                 "save.missing",
-                translations.translateText("save.property_id").formatted(YELLOW)
-            ).formatted(RED).sendTo(player)
+                translations.translateText("save.property_id").withStyle(YELLOW)
+            ).withStyle(RED).sendTo(player)
             return
         }
 
@@ -113,7 +113,7 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
             val msg = translations.translateText(
                 "save.overwrite",
                 styled(propertyId, YELLOW)
-            ).formatted(RED).translateFor(player)
+            ).withStyle(RED).translateFor(player)
 
             openConfirmDialog(player, translations, msg, CONFIRM_ID, payload = Optional.of(nbt))
             return
@@ -142,7 +142,7 @@ class SaveDialog(val translations: Translations, val dataManager: DataManager, v
             "save.saved",
             styled(propertyId, YELLOW),
             styled(player.level().dimension().identifier(), YELLOW)
-        ).formatted(GREEN).sendTo(player)
+        ).withStyle(GREEN).sendTo(player)
 
         dataManager.save(player.level())
 
